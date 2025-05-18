@@ -9,7 +9,7 @@
 | **Networking**           | TCP with SocketAsyncEventArgs                     | High-performance, low-overhead networking                                |
 | **Persistence**          | Custom Binary Format                              | Consistent with serialization approach, optimized for performance        |
 | **Scripting Engine**     | LuaJIT                                            | Exceptional performance, lightweight footprint, widely adopted in gaming |
-| **Configuration**        | JSON (appsettings.json)                           | Human-readable, widely supported, default in ASP.NET Core                |
+| **Configuration**        | JSON                                              | Human-readable, widely supported, default in ASP.NET Core                |
 | **Logging**              | Serilog                                           | Structured logging with rich ecosystem                                   |
 | **Admin Tools**          | EmbedIO (Self-Hosted REST API)                    | Lightweight, modular, suitable for AOT and console applications          |
 | **Testing**              | NUnit4 + Moq                                      | Popular, well-supported testing framework with mocking capabilities      |

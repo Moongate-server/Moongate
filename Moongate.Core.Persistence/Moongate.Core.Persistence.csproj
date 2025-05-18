@@ -6,8 +6,4 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
-    <ItemGroup>
-      <PackageReference Include="Orion.Foundations" Version="0.30.1" />
-    </ItemGroup>
-
 </Project>

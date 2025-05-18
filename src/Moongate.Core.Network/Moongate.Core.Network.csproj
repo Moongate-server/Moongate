@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Orion.Foundations" Version="0.30.1" />
+      <ProjectReference Include="..\Moongate.Core\Moongate.Core.csproj" />
     </ItemGroup>
 
 </Project>
