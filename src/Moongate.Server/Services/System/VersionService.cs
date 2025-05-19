@@ -9,7 +9,7 @@ public class VersionService : IVersionService
 {
     private readonly ITextTemplateService _templateService;
 
-    public VersionService( ITextTemplateService templateService)
+    public VersionService(ITextTemplateService templateService)
     {
 
         _templateService = templateService;

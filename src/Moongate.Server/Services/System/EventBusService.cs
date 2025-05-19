@@ -5,12 +5,15 @@ using Microsoft.Extensions.Logging;
 using Moongate.Core.Data.Internal;
 using Moongate.Core.Interfaces.EventBus;
 using Moongate.Core.Interfaces.Services.System;
+using Serilog;
+using ILogger = Serilog.ILogger;
+
 
 namespace Moongate.Server.Services.System;
 
 public class EventBusService : IEventBusService
 {
-    private readonly ILogger _logger;
+    private readonly ILogger _logger = Log.ForContext<EventBusService>();
     private readonly ConcurrentDictionary<Type, object> _listeners = new();
     private readonly ActionBlock<EventDispatchJob> _dispatchBlock;
     private readonly CancellationTokenSource _cts = new();
@@ -22,9 +25,9 @@ public class EventBusService : IEventBusService
     /// </summary>
     public IObservable<object> AllEventsObservable => _allEventsSubject;
 
-    public EventBusService(ILogger<EventBusService> logger)
+    public EventBusService()
     {
-        _logger = logger;
+
         var executionOptions = new ExecutionDataflowBlockOptions
         {
             MaxDegreeOfParallelism = 1,
@@ -36,7 +39,7 @@ public class EventBusService : IEventBusService
             executionOptions
         );
 
-        _logger.LogInformation(
+        _logger.Information(
             "Signal emitter initialized with {ParallelTasks} dispatch tasks",
             1
         );
@@ -57,7 +60,7 @@ public class EventBusService : IEventBusService
 
         listeners.Add(listener);
 
-        _logger.LogTrace(
+        _logger.Verbose(
             "Registered listener {ListenerType} for event {EventType}",
             listener.GetType().Name,
             eventType.Name
@@ -72,7 +75,7 @@ public class EventBusService : IEventBusService
         var listener = new FunctionSignalListener<TEvent>(handler);
         Subscribe<TEvent>(listener);
 
-        _logger.LogTrace(
+        _logger.Verbose(
             "Registered function handler for event {EventType}",
             typeof(TEvent).Name
         );
@@ -97,7 +100,7 @@ public class EventBusService : IEventBusService
 
             _listeners.TryUpdate(eventType, updatedListeners, listeners);
 
-            _logger.LogTrace(
+            _logger.Verbose(
                 "Unregistered listener {ListenerType} from event {EventType}",
                 listener.GetType().Name,
                 eventType.Name
@@ -126,7 +129,7 @@ public class EventBusService : IEventBusService
 
             _listeners.TryUpdate(eventType, updatedListeners, listeners);
 
-            _logger.LogTrace(
+            _logger.Verbose(
                 "Unregistered function handler for event {EventType}",
                 eventType.Name
             );
@@ -145,13 +148,13 @@ public class EventBusService : IEventBusService
 
         if (!_listeners.TryGetValue(eventType, out var listenersObj))
         {
-            _logger.LogTrace("No listeners registered for event {EventType}", eventType.Name);
+            _logger.Verbose("No listeners registered for event {EventType}", eventType.Name);
             return;
         }
 
         var listeners = (ConcurrentBag<IEventBusListener<TEvent>>)listenersObj;
 
-        _logger.LogTrace(
+        _logger.Verbose(
             "Emitting event {EventType} to {ListenerCount} listeners",
             eventType.Name,
             listeners.Count
@@ -167,7 +170,7 @@ public class EventBusService : IEventBusService
             }
             catch (Exception ex)
             {
-                _logger.LogError(
+                _logger.Error(
                     ex,
                     "Error dispatching event {EventType} to listener {ListenerType}",
                     eventType.Name,

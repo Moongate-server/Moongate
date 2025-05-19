@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Moongate.Core.Data.Services;
 using sMoongate.Core.Extensions.Services;
@@ -7,7 +8,15 @@ namespace Moongate.Core.Extensions.Services;
 public static class AddMoongateServiceExtension
 {
     public static IServiceCollection AddService(
-        this IServiceCollection services, Type serviceType, Type implementationType, int priority = 0
+        this IServiceCollection services,
+        [DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors
+        )]
+        Type serviceType,
+        [DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors
+        )]
+        Type implementationType, int priority = 0
     )
     {
         services.AddSingleton(serviceType, implementationType);
@@ -16,6 +25,7 @@ public static class AddMoongateServiceExtension
         return services;
     }
 
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)]
     public static IServiceCollection AddService<TService, TImplementation>(
         this IServiceCollection services, int priority = 0
     ) where TService : class where TImplementation : class, TService

@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using Microsoft.Extensions.Logging;
 using Moongate.Core.Interfaces.EventBus;
 using Moongate.Core.Interfaces.Services.System;
 using Orion.Core.Server.Events.TextTemplate;
@@ -7,20 +6,20 @@ using Orion.Core.Server.Interfaces.Services.System;
 using Scriban;
 using Scriban.Runtime;
 using Scriban.Syntax;
+using Serilog;
 
 namespace Moongate.Server.Services.System;
 
 public class TextTemplateService
     : ITextTemplateService, IEventBusListener<AddVariableEvent>, IEventBusListener<AddVariableBuilderEvent>
 {
-    private readonly ILogger _logger;
+    private readonly ILogger _logger = Log.ForContext<TextTemplateService>();
     private readonly ConcurrentDictionary<string, Func<object>> _variableBuilder = new();
     private readonly ConcurrentDictionary<string, object> _variables = new();
     private readonly IEventBusService _eventBusService;
 
-    public TextTemplateService(ILogger<TextTemplateService> logger, IEventBusService eventBusService)
+    public TextTemplateService(IEventBusService eventBusService)
     {
-        _logger = logger;
         _eventBusService = eventBusService;
 
         AddDefaultVariables();
@@ -39,13 +38,13 @@ public class TextTemplateService
 
     public void AddVariableBuilder(string variableName, Func<object> builder)
     {
-        _logger.LogDebug("Adding variable builder for {variableName}", variableName);
+        _logger.Debug("Adding variable builder for {variableName}", variableName);
         _variableBuilder[variableName] = builder;
     }
 
     public void AddVariable(string variableName, object value)
     {
-        _logger.LogDebug("Adding variable {variableName} with value {value}", variableName, value);
+        _logger.Debug("Adding variable {variableName} with value {value}", variableName, value);
         _variables[variableName] = value;
     }
 
@@ -82,7 +81,7 @@ public class TextTemplateService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error rendering template: {Template}", text);
+            _logger.Error(ex, "Error rendering template: {Template}", text);
 
             throw new Exception("Error rendering template", ex);
         }
@@ -126,7 +125,7 @@ public class TextTemplateService
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Error building variable {VariableName}", builder.Key);
+                _logger.Error(e, "Error building variable {VariableName}", builder.Key);
             }
         }
     }

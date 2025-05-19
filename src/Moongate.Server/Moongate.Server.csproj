@@ -6,15 +6,11 @@
         <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <PublishAot>true</PublishAot>
         <InvariantGlobalization>true</InvariantGlobalization>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-        <PublishAot>true</PublishAot>
-        <!--        <RuntimeIdentifier>linux-x64</RuntimeIdentifier>-->
         <SelfContained>true</SelfContained>
         <PublishReadyToRun>true</PublishReadyToRun>
         <PublishSingleFile>true</PublishSingleFile>
-        <PublishTrimmed>true</PublishTrimmed>
     </PropertyGroup>
 
     <ItemGroup>
@@ -24,8 +20,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="DryIoc.dll" Version="5.4.3"/>
-        <PackageReference Include="DryIoc.Microsoft.DependencyInjection" Version="6.2.0"/>
+
+        <PackageReference Include="DryIoc.Microsoft.DependencyInjection" Version="6.2.0" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.5"/>
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.5"/>
         <PackageReference Include="Scriban" Version="6.2.1"/>
