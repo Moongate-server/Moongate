@@ -1,6 +1,6 @@
 using Moongate.Core.Text;
 
-namespace Moongate.Core.Extensions;
+namespace Moongate.Core.Extensions.Strings;
 
 /// <summary>
 /// Provides extension methods for string operations, particularly for case conversions.

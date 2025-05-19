@@ -1,4 +1,5 @@
 using Moongate.Core.Extensions;
+using Moongate.Core.Extensions.Strings;
 
 namespace Moongate.Core.Directories;
 
