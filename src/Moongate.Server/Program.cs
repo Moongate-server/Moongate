@@ -1,6 +1,11 @@
 ﻿using DryIoc.Microsoft.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Moongate.Core.Extensions.Services;
+using Moongate.Core.Interfaces.Services.System;
+using Moongate.Server.Services.System;
+using Orion.Core.Server.Interfaces.Services.System;
 using Serilog;
 
 namespace Moongate.Server;
@@ -18,6 +23,20 @@ class Program
         Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 
         builder.ConfigureLogging(loggingBuilder => { loggingBuilder.ClearProviders().AddSerilog(); });
+
+        builder.ConfigureServices(services =>
+        {
+
+            services
+                .AddService<IEventBusService, EventBusService>()
+                .AddService<ITextTemplateService, TextTemplateService>(-1)
+                .AddService<IVersionService, VersionService>()
+                ;
+
+
+            services.AddHostedService<MoongateStartupService>();
+        });
+
 
         var app = builder.Build();
 
