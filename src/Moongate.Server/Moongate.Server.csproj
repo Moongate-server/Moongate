@@ -11,6 +11,7 @@
         <SelfContained>true</SelfContained>
         <PublishReadyToRun>true</PublishReadyToRun>
         <PublishSingleFile>true</PublishSingleFile>
+        <PublishAot>true</PublishAot>
     </PropertyGroup>
 
     <ItemGroup>
@@ -21,12 +22,12 @@
 
     <ItemGroup>
 
-        <PackageReference Include="DryIoc.Microsoft.DependencyInjection" Version="6.2.0" />
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.5"/>
-        <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.5"/>
+
+        <PackageReference Include="Jab" Version="0.11.0" PrivateAssets="All"/>
+
+
         <PackageReference Include="Scriban" Version="6.2.1"/>
         <PackageReference Include="Serilog" Version="4.3.0"/>
-        <PackageReference Include="Serilog.Extensions.Hosting" Version="9.0.0"/>
         <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0"/>
         <PackageReference Include="System.Reactive" Version="6.0.1"/>
         <PackageReference Include="GitInfo" Version="3.5.0">

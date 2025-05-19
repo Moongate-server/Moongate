@@ -16,11 +16,10 @@ public class TextTemplateService
     private readonly ILogger _logger = Log.ForContext<TextTemplateService>();
     private readonly ConcurrentDictionary<string, Func<object>> _variableBuilder = new();
     private readonly ConcurrentDictionary<string, object> _variables = new();
-    private readonly IEventBusService _eventBusService;
 
     public TextTemplateService(IEventBusService eventBusService)
     {
-        _eventBusService = eventBusService;
+
 
         AddDefaultVariables();
 

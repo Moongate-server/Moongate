@@ -1,6 +1,6 @@
-using Microsoft.Extensions.Logging;
 using Moongate.Core.Extensions.Strings;
 using Moongate.Core.Interfaces.Services.System;
+using Serilog;
 
 namespace Moongate.Server.Services.System;
 
@@ -8,11 +8,10 @@ public class EventDispatcherService : IEventDispatcherService
 {
     private readonly Dictionary<string, List<Action<object?>>> _eventHandlers = new();
 
-    private readonly ILogger _logger;
+    private readonly ILogger _logger = Log.ForContext<EventDispatcherService>();
 
-    public EventDispatcherService(ILogger<EventDispatcherService> logger, IEventBusService eventBusService)
+    public EventDispatcherService(IEventBusService eventBusService)
     {
-        _logger = logger;
         eventBusService.AllEventsObservable.Subscribe(OnEvent);
     }
 
@@ -24,7 +23,7 @@ public class EventDispatcherService : IEventDispatcherService
 
     private void DispatchEvent(string eventName, object? eventData = null)
     {
-        _logger.LogDebug("Dispatching event {EventName}", eventName);
+        _logger.Debug("Dispatching event {EventName}", eventName);
         if (!_eventHandlers.TryGetValue(eventName, out var eventHandler))
         {
             return;

@@ -1,49 +1,46 @@
-﻿using DryIoc.Microsoft.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Moongate.Core.Extensions.Services;
-using Moongate.Core.Interfaces.Services.System;
-using Moongate.Server.Services;
-using Moongate.Server.Services.System;
-using Orion.Core.Server.Interfaces.Services.System;
+﻿using Moongate.Core.Interfaces.Services.System;
+using Moongate.Server.Provider;
 using Serilog;
 
 namespace Moongate.Server;
 
 class Program
 {
-    public static CancellationTokenRegistration _quitTokenRegistration = new();
-
     public static async Task Main(string[] args)
     {
-        var builder = Host.CreateDefaultBuilder(args);
-
-
-        builder.UseServiceProviderFactory(new DryIocServiceProviderFactory());
+        var cts = new CancellationTokenSource();
 
         Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 
-        builder.ConfigureLogging(loggingBuilder => { loggingBuilder.ClearProviders().AddSerilog(); });
 
-        builder.ConfigureServices(services =>
-            {
-                services
-                    .AddService<IEventBusService, EventBusService>()
-                    .AddService<ITextTemplateService, TextTemplateService>(-1)
-                    .AddService<IVersionService, VersionService>()
-                    .AddService<IEventDispatcherService, EventDispatcherService>()
-                    .AddService<IProcessQueueService, ProcessQueueService>()
-                    ;
+        Log.Information("Starting Moongate Server...");
 
 
-                services.AddHostedService<MoongateStartupService>();
-            }
-        );
+        Console.CancelKeyPress += (sender, eventArgs) =>
+        {
+            eventArgs.Cancel = true;
+            cts.Cancel();
+        };
 
+        try
+        {
+            MoongateServiceProvider.Instance.GetService<IEventBusService>();
+            MoongateServiceProvider.Instance.GetService<IVersionService>();
 
-        var app = builder.Build();
-
-        await app.RunAsync(_quitTokenRegistration.Token);
+            await Task.Delay(Timeout.Infinite, cts.Token);
+        }
+        catch (TaskCanceledException)
+        {
+            // Handle cancellation
+            Log.Information("Cancellation requested. Exiting...");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "An error occurred while running the application.");
+        }
+        finally
+        {
+            await Log.CloseAndFlushAsync();
+        }
     }
 }
