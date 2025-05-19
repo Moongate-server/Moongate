@@ -1,4 +1,4 @@
-using Orion.Foundations.Extensions;
+using Moongate.Core.Extensions;
 
 namespace Moongate.Core.Directories;
 
