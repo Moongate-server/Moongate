@@ -1,5 +1,6 @@
 ﻿using Moongate.Core.Interfaces.Services.System;
 using Moongate.Server.Provider;
+using Orion.Core.Server.Interfaces.Services.System;
 using Serilog;
 
 namespace Moongate.Server;
@@ -10,7 +11,7 @@ class Program
     {
         var cts = new CancellationTokenSource();
 
-        Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
+        Log.Logger = new LoggerConfiguration().MinimumLevel.Debug().WriteTo.Console().CreateLogger();
 
 
         Log.Information("Starting Moongate Server...");
@@ -26,6 +27,7 @@ class Program
         {
             MoongateServiceProvider.Instance.GetService<IEventBusService>();
             MoongateServiceProvider.Instance.GetService<IVersionService>();
+            MoongateServiceProvider.Instance.GetService<ITextTemplateService>();
 
             await Task.Delay(Timeout.Infinite, cts.Token);
         }
