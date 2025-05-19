@@ -8,16 +8,16 @@ public class DirectoriesConfig
     private readonly string _rootDirectory;
     private readonly string[] _directories;
 
-    public DirectoriesConfig(string rootDirectory, params string[] directories)
+    public DirectoriesConfig(string[] directories)
     {
-        _rootDirectory = rootDirectory;
         _directories = directories;
+        _rootDirectory = Environment.GetEnvironmentVariable("MOONGATE_ROOT") ??
+                         Path.Combine(Directory.GetCurrentDirectory(), "moongate");
 
         Init();
     }
 
     public string Root => _rootDirectory;
-
 
     public string this[string directoryType] => GetPath(directoryType);
 
@@ -41,7 +41,7 @@ public class DirectoriesConfig
         return path;
     }
 
-    private void Init()
+    public void Init()
     {
         if (!Directory.Exists(_rootDirectory))
         {

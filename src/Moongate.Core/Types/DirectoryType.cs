@@ -4,4 +4,5 @@ public enum DirectoryType
 {
     Data,
     Scripts,
+    Logs
 }
