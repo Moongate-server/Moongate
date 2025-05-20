@@ -16,9 +16,21 @@ using Serilog.Formatting.Compact;
 
 await ConsoleApp.RunAsync(
     args,
-    async (LogLevelType defaultLogLevel = LogLevelType.Debug, bool logToFile = true) =>
+    async (
+        LogLevelType defaultLogLevel = LogLevelType.Debug, bool logToFile = true, bool loadFromEnv = false,
+        string? rootDirectory = null
+    ) =>
     {
         var cts = new CancellationTokenSource();
+
+
+        if (loadFromEnv)
+        {
+            CheckEnvFileAndLoad();
+        }
+
+        rootDirectory ??= Environment.GetEnvironmentVariable("MOONGATE_ROOT") ??
+                          Path.Combine(Directory.GetCurrentDirectory(), "moongate");
 
         var container = new Container(rules => rules
             .WithUseInterpretation()
@@ -43,13 +55,15 @@ await ConsoleApp.RunAsync(
         container.RegisterInstance(container);
 
 
-        container.RegisterInstance(new DirectoriesConfig(Enum.GetNames<DirectoryType>()));
+        container.RegisterInstance(new DirectoriesConfig(rootDirectory, Enum.GetNames<DirectoryType>()));
         container.RegisterInstance(new ScriptEngineConfig());
         container.RegisterInstance(new EventLoopConfig());
-        container.RegisterInstance(new DiagnosticServiceConfig()
-        {
-            PidFileName = Path.Combine(container.Resolve<DirectoriesConfig>().Root, "moongate.pid")
-        });
+        container.RegisterInstance(
+            new DiagnosticServiceConfig()
+            {
+                PidFileName = Path.Combine(container.Resolve<DirectoriesConfig>().Root, "moongate.pid")
+            }
+        );
 
         var logConfiguration = new LoggerConfiguration()
             .MinimumLevel.Is(defaultLogLevel.ToSerilogLogLevel())
@@ -112,3 +126,25 @@ await ConsoleApp.RunAsync(
         }
     }
 );
+
+void CheckEnvFileAndLoad()
+{
+    var currentDirectory = Directory.GetCurrentDirectory();
+
+    var envFilePath = Path.Combine(currentDirectory, ".env");
+
+    if (File.Exists(envFilePath))
+    {
+        var envFileContent = File.ReadAllText(envFilePath);
+        var envVariables = envFileContent.Split(['\n', '\r'], StringSplitOptions.RemoveEmptyEntries);
+
+        foreach (var envVariable in envVariables)
+        {
+            var keyValue = envVariable.Split('=');
+            if (keyValue.Length == 2)
+            {
+                Environment.SetEnvironmentVariable(keyValue[0].Trim(), keyValue[1].Trim());
+            }
+        }
+    }
+}
