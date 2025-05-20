@@ -1,4 +1,5 @@
-﻿using Moongate.Core.Interfaces.Services.System;
+﻿using System.Reflection;
+using Moongate.Core.Interfaces.Services.System;
 using Orion.Core.Server.Interfaces.Services.System;
 using Serilog;
 using ConsoleAppFramework;
@@ -19,15 +20,19 @@ await ConsoleApp.RunAsync(
     {
         var cts = new CancellationTokenSource();
 
-        var container = new Container();
+        var container = new Container(rules => rules
+            .WithUseInterpretation()
+            .WithFactorySelector(Rules.SelectLastRegisteredFactory())
+        );
 
         container
-            .AddService<IEventBusService, EventBusService>()
-            .AddService<IVersionService, VersionService>()
-            .AddService<IScriptEngineService, ScriptEngineService>()
-            .AddService<ITextTemplateService, TextTemplateService>();
+            .AddService(typeof(IEventBusService), typeof(EventBusService))
+            .AddService(typeof(ITextTemplateService), typeof(TextTemplateService))
+            .AddService(typeof(IVersionService), typeof(VersionService))
+            .AddService(typeof(IScriptEngineService), typeof(ScriptEngineService));
 
-        container.AddService<MoongateStartupService>();
+
+        container.AddService(typeof(MoongateStartupService));
 
         container.RegisterInstance(container);
 
@@ -68,7 +73,8 @@ await ConsoleApp.RunAsync(
 
         try
         {
-            // Add script here
+            container.AddService(typeof(LoggerModule));
+
             container.Resolve<IScriptEngineService>().AddScriptModule(typeof(LoggerModule));
 
             await container.Resolve<MoongateStartupService>().StartAsync(cts.Token);

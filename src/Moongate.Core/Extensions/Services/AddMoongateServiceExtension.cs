@@ -8,13 +8,7 @@ public static class AddMoongateServiceExtension
 {
     public static IContainer AddService(
         this IContainer container,
-        [DynamicallyAccessedMembers(
-            DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors
-        )]
         Type serviceType,
-        [DynamicallyAccessedMembers(
-            DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors
-        )]
         Type implementationType,
         int priority = 0
     )
@@ -24,9 +18,7 @@ public static class AddMoongateServiceExtension
         return container;
     }
 
-    [DynamicallyAccessedMembers(
-        DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors
-    )]
+
     public static IContainer AddService<TService, TImplementation>(
         this IContainer container, int priority = 0
     ) where TService : class where TImplementation : class, TService
@@ -45,8 +37,12 @@ public static class AddMoongateServiceExtension
         return container;
     }
 
+
     public static IContainer AddService(
-        this IContainer container, Type serviceType, int priority = 0
+        this IContainer container, [DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors
+        )]
+        Type serviceType, int priority = 0
     )
     {
         container.Register(serviceType, Reuse.Singleton);

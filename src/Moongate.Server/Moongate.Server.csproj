@@ -12,6 +12,8 @@
         <SelfContained>true</SelfContained>
         <PublishReadyToRun>true</PublishReadyToRun>
         <PublishSingleFile>true</PublishSingleFile>
+        <PublishTrimmed>true</PublishTrimmed>
+
     </PropertyGroup>
 
     <ItemGroup>
@@ -25,7 +27,7 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
- 
+
         <PackageReference Include="NLua" Version="1.7.5"/>
         <PackageReference Include="Scriban" Version="6.2.1"/>
         <PackageReference Include="Serilog" Version="4.3.0"/>
@@ -45,6 +47,10 @@
 
     <ItemGroup>
         <Folder Include="Assets\"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <TrimmerRootDescriptor Include="ILLink.Descriptors.xml"/>
     </ItemGroup>
 
 </Project>

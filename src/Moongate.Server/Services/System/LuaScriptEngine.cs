@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -162,7 +163,13 @@ public class ScriptEngineService : IScriptEngineService
         }
     }
 
-    public void AddScriptModule(Type type)
+
+    public void AddScriptModule(
+        [DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors
+        )]
+        Type type
+    )
     {
         try
         {
