@@ -1,13 +1,33 @@
+using Moongate.Core.Data.Scripts;
 using Moongate.Core.Interfaces.Services.Base;
 
 namespace Moongate.Core.Interfaces.Services.System;
 
 public interface IScriptEngineService : IMoongateStartStopService
 {
-    void AddInitScript(string script);
-    void ExecuteScript(string script);
-    void ExecuteScriptFile(string scriptFile);
-    void AddCallback(string name, Action<object[]> callback);
-    void AddConstant(string name, object value);
-    void ExecuteCallback(string name, params object[] args);
+    Task ExecuteFileAsync(string file);
+
+    ScriptEngineExecutionResult ExecuteCommand(string command);
+
+    List<ScriptFunctionDescriptor> Functions { get; }
+
+    Dictionary<string, object> ContextVariables { get; }
+
+    Task<string> GenerateDefinitionsAsync();
+
+    void AddContextVariable(string name, object value);
+
+    TVar? GetContextVariable<TVar>(string name, bool throwIfNotFound = true) where TVar : class;
+
+    object? GetContextVariable(string name, Type type, bool throwIfNotFound = true);
+
+    bool ExecuteContextVariable(string name, params object[] args);
+
+    Task<bool> BootstrapAsync();
+
+    Task<bool> SeedAsync();
+
+    void AddConstant<T>(T value);
+
+    void AddScriptModule(Type type);
 }

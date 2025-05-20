@@ -141,6 +141,18 @@ public static class JsonUtils
         return Deserialize<TEntity>(json, null);
     }
 
+    public static object Deserialize(string json, Type type, JsonSerializerOptions? options = null)
+    {
+        if (options == null && TypeInfoCache.TryGetValue(type, out var typeInfo))
+        {
+            return JsonSerializer.Deserialize(json, typeInfo);
+        }
+
+        return JsonSerializer.Deserialize(json, type, options ?? DefaultSerializerOptions);
+    }
+
+
+
     /// <summary>
     /// Deserializes a JSON string to an object of the specified type using optional custom serializer options.
     /// </summary>

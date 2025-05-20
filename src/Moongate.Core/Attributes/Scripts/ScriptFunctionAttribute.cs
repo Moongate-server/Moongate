@@ -1,7 +1,14 @@
 namespace Moongate.Core.Attributes.Scripts;
 
-[AttributeUsage(AttributeTargets.Method)]
-public class ScriptFunctionAttribute(string? helpText = null) : Attribute
+[AttributeUsage(AttributeTargets.Method, Inherited = false)]
+public class ScriptFunctionAttribute : Attribute
 {
-    public string? HelpText { get; } = helpText;
+    public string? Alias { get; set; }
+    public string? Help { get; set; }
+
+    public ScriptFunctionAttribute(string? alias, string? help = null)
+    {
+        Alias = alias ?? string.Empty;
+        Help = help;
+    }
 }

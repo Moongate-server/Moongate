@@ -1,7 +1,13 @@
 namespace Moongate.Core.Attributes.Scripts;
 
 [AttributeUsage(AttributeTargets.Class)]
-public class ScriptModuleAttribute(string name) : Attribute
+public class ScriptModuleAttribute : Attribute
 {
-    public string Name { get; } = name;
+    public string TableName { get; }
+
+    public ScriptModuleAttribute(string tableName)
+    {
+        TableName = tableName;
+    }
+
 }

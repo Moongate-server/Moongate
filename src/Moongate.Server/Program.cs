@@ -1,8 +1,8 @@
 ﻿using Moongate.Core.Interfaces.Services.System;
-using Moongate.Server.Provider;
 using Orion.Core.Server.Interfaces.Services.System;
 using Serilog;
 using ConsoleAppFramework;
+using DryIoc;
 using Moongate.Core.Directories;
 using Moongate.Core.Extensions.Loggers;
 using Moongate.Core.Types;
@@ -13,9 +13,12 @@ await ConsoleApp.RunAsync(
     args,
     async (LogLevelType defaultLogLevel = LogLevelType.Information, bool logToFile = true) =>
     {
-        MoongateServiceProvider.Instance.DirectoriesConfig = new DirectoriesConfig(Enum.GetNames<DirectoryType>());
-
         var cts = new CancellationTokenSource();
+
+        var container = new Container();
+        container.RegisterInstance(container);
+        container.RegisterInstance(new DirectoriesConfig(Enum.GetNames<DirectoryType>()));
+
 
         var logConfiguration = new LoggerConfiguration()
             .MinimumLevel.Is(defaultLogLevel.ToSerilogLogLevel())
@@ -24,7 +27,7 @@ await ConsoleApp.RunAsync(
         if (logToFile)
         {
             var logFilePath = Path.Combine(
-                MoongateServiceProvider.Instance.DirectoriesConfig[DirectoryType.Logs],
+                container.Resolve<DirectoriesConfig>()[DirectoryType.Logs],
                 "moongate_.log"
             );
 
@@ -39,7 +42,7 @@ await ConsoleApp.RunAsync(
 
 
         Log.Information("Starting Moongate Server...");
-        Log.Information("Root directory: {RootDirectory}", MoongateServiceProvider.Instance.DirectoriesConfig.Root);
+        Log.Information("Root directory: {RootDirectory}", container.Resolve<DirectoriesConfig>().Root);
 
 
         Console.CancelKeyPress += (sender, eventArgs) =>
@@ -50,9 +53,9 @@ await ConsoleApp.RunAsync(
 
         try
         {
-            MoongateServiceProvider.Instance.GetService<IEventBusService>();
-            MoongateServiceProvider.Instance.GetService<IVersionService>();
-            MoongateServiceProvider.Instance.GetService<ITextTemplateService>();
+            container.Resolve<IEventBusService>();
+            container.Resolve<IVersionService>();
+            container.Resolve<ITextTemplateService>();
 
             await Task.Delay(Timeout.Infinite, cts.Token);
         }
