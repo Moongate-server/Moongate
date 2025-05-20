@@ -11,6 +11,7 @@ using Moongate.Core.Extensions.Services;
 using Moongate.Core.Extensions.Templates;
 using Moongate.Core.Instances;
 using Moongate.Core.Types;
+using Moongate.Core.Utils.Resources;
 using Moongate.Server.Modules;
 using Moongate.Server.Services.System;
 using Serilog.Formatting.Compact;
@@ -20,7 +21,7 @@ await ConsoleApp.RunAsync(
     args,
     async (
         LogLevelType defaultLogLevel = LogLevelType.Debug, bool logToFile = true, bool loadFromEnv = false,
-        string? rootDirectory = null
+        string? rootDirectory = null, bool printHeader = true
     ) =>
     {
         var cts = new CancellationTokenSource();
@@ -32,6 +33,14 @@ await ConsoleApp.RunAsync(
 
         rootDirectory ??= Environment.GetEnvironmentVariable("MOONGATE_ROOT") ??
                           Path.Combine(Directory.GetCurrentDirectory(), "moongate");
+
+
+        var content = ResourceUtils.ReadEmbeddedResource("Assets.header.txt", typeof(Program).Assembly);
+
+        if (!string.IsNullOrEmpty(content) && printHeader)
+        {
+            Console.WriteLine(content);
+        }
 
         var container = new Container(rules => rules
             .WithUseInterpretation()
