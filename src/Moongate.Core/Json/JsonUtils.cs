@@ -152,7 +152,6 @@ public static class JsonUtils
     }
 
 
-
     /// <summary>
     /// Deserializes a JSON string to an object of the specified type using optional custom serializer options.
     /// </summary>
@@ -248,6 +247,49 @@ public static class JsonUtils
         {
             JsonSerializer.Serialize(stream, entity, options ?? DefaultSerializerOptions);
         }
+    }
+
+    /// <summary>
+    ///  Serializes an object to a JSON file using a specific JsonSerializerContext.
+    /// </summary>
+    /// <param name="entity"></param>
+    /// <param name="filePath"></param>
+    /// <param name="jsonSerializerContext"></param>
+    /// <typeparam name="TEntity"></typeparam>
+    public static void SerializeToFile<TEntity>(TEntity entity, string filePath, JsonSerializerContext jsonSerializerContext)
+    {
+        using var stream = new FileStream(filePath, FileMode.Create);
+
+        if (TypeInfoCache.TryGetValue(typeof(TEntity), out var typeInfo))
+        {
+            JsonSerializer.Serialize(stream, entity, (JsonTypeInfo<TEntity>)typeInfo);
+        }
+        else
+        {
+            JsonSerializer.Serialize(stream, entity, typeof(TEntity), jsonSerializerContext);
+        }
+    }
+
+    /// <summary>
+    ///  Deserializes a JSON file to an object of the specified type using a specific JsonSerializerContext.
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <param name="jsonSerializerContext"></param>
+    /// <typeparam name="TEntity"></typeparam>
+    /// <returns></returns>
+    public static TEntity DeserializeFromFile<TEntity>(string filePath, JsonSerializerContext? jsonSerializerContext = null)
+    {
+        using var stream = new FileStream(filePath, FileMode.Open);
+
+
+        if (jsonSerializerContext != null && TypeInfoCache.TryGetValue(typeof(TEntity), out var typeInfo))
+        {
+            return (TEntity)JsonSerializer.Deserialize(stream, typeInfo);
+        }
+
+        var content = File.ReadAllText(filePath);
+
+        return (TEntity)JsonSerializer.Deserialize(content, typeof(TEntity), jsonSerializerContext);
     }
 
     /// <summary>

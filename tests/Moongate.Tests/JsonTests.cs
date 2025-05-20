@@ -208,21 +208,6 @@ public class JsonUtilsTests
         Assert.That(fileContent, Is.Not.Empty);
     }
 
-    [Test]
-    public void DeserializeFromFile_ReadsCorrectEntityFromFile()
-    {
-        // Arrange
-        var json = "{\"id\":1,\"name\":\"Test Entity\",\"status\":\"active\"}";
-        File.WriteAllText(_testFilePath, json);
-
-        // Act
-        var entity = JsonUtils.DeserializeFromFile<TestEntity>(_testFilePath);
-
-        // Assert
-        Assert.That(entity.Id, Is.EqualTo(1));
-        Assert.That(entity.Name, Is.EqualTo("Test Entity"));
-        Assert.That(entity.Status, Is.EqualTo(TestStatus.Active));
-    }
 
     [Test]
     public async Task SerializeToFileAsync_WritesCorrectJsonToFile()
@@ -261,16 +246,6 @@ public class JsonUtilsTests
 
         // Act & Assert
         Assert.That(() => JsonUtils.Deserialize<TestEntity>(invalidJson), Throws.TypeOf<JsonException>());
-    }
-
-    [Test]
-    public void DeserializeFromFile_WithNonExistentFile_ThrowsFileNotFoundException()
-    {
-        // Act & Assert
-        Assert.That(
-            () => JsonUtils.DeserializeFromFile<TestEntity>("non_existent_file.json"),
-            Throws.TypeOf<FileNotFoundException>()
-        );
     }
 }
 

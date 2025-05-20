@@ -20,6 +20,7 @@
 include = {}
 logger = {}
 scheduler = {}
+template = {}
 timers = {}
 
 ---@param message string
@@ -56,6 +57,24 @@ function include.file(file) end
 ---@param directory string
 ---@return nil
 function include.dir(directory) end
+
+---@param name string
+---@param value any
+---@return nil
+function template.Add Variable to the text template service and you can find by use {{name}}(name, value) end
+
+---@param name string
+---@param builder Func`1
+---@return nil
+function template.Add Variable Builder to the text template service and you can find by use {{name}}(name, builder) end
+
+---@param text string
+---@param context any
+---@return string
+function template.Replaces the text with the variables(text, context) end
+
+---@return string[]
+function template.Get all variables() end
 
 ---@description Register a timer
 ---@param register TimerRegisterData
