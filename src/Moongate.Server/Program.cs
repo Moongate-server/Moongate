@@ -8,6 +8,7 @@ using Moongate.Core.Directories;
 using Moongate.Core.Extensions.Loggers;
 using Moongate.Core.Extensions.Services;
 using Moongate.Core.Types;
+using Moongate.Server.Modules;
 using Moongate.Server.Services.System;
 using Serilog.Formatting.Compact;
 
@@ -55,7 +56,6 @@ await ConsoleApp.RunAsync(
         Log.Logger = logConfiguration.CreateLogger();
 
 
-
         Log.Information("Starting Moongate Server...");
         Log.Information("Root directory: {RootDirectory}", container.Resolve<DirectoriesConfig>().Root);
 
@@ -68,6 +68,9 @@ await ConsoleApp.RunAsync(
 
         try
         {
+            // Add script here
+            container.Resolve<IScriptEngineService>().AddScriptModule(typeof(LoggerModule));
+
             await container.Resolve<MoongateStartupService>().StartAsync(cts.Token);
 
             await Task.Delay(Timeout.Infinite, cts.Token);

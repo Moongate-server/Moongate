@@ -3,7 +3,6 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Reflection;
 using DryIoc;
-
 using Moongate.Core.Attributes.Scripts;
 using Moongate.Core.Data.Configs.Services;
 using Moongate.Core.Data.Scripts;
@@ -104,6 +103,25 @@ public class ScriptEngineService : IScriptEngineService
                     }
                 }
             );
+
+
+        await GenerateDefinitionFileAsync();
+    }
+
+    private async Task GenerateDefinitionFileAsync()
+    {
+        var index = await LuaTypeDefinitionsGenerator.GenerateTypeDefinitionsAsync(Functions, ContextVariables, Constants);
+
+        var indexFile = Path.Combine(_directoryConfig[DirectoryType.Scripts], "__index.lua");
+
+        if (File.Exists(indexFile))
+        {
+            File.Delete(indexFile);
+        }
+
+        await File.WriteAllTextAsync(indexFile, index);
+
+        _logger.Debug("Generated definition index file: {File}", indexFile);
     }
 
     private void OnScriptFileChanged(object sender, FileSystemEventArgs e)
@@ -113,7 +131,6 @@ public class ScriptEngineService : IScriptEngineService
             _fileChanges.OnNext(e.FullPath);
         }
     }
-
 
     public void AddConstant<T>(T value)
     {
@@ -149,6 +166,13 @@ public class ScriptEngineService : IScriptEngineService
     {
         try
         {
+            if (!_serviceProvider.IsRegistered(type))
+            {
+                _logger.Debug("Type {Type} not registered in service provider, registering", type);
+
+                _serviceProvider.Register(type);
+            }
+
             var obj = _serviceProvider.GetService(type);
 
             var sClassAttr = type.GetCustomAttribute<ScriptModuleAttribute>();
@@ -174,7 +198,7 @@ public class ScriptEngineService : IScriptEngineService
                 ExtractFunctionDescriptor(sClassAttr.TableName, sMethodAttr, scriptMethod);
 
                 _logger.Debug(
-                    "Adding script method {TableNAme}.{M}",
+                    "Adding script method {TableName}.{M}",
                     sClassAttr.TableName,
                     sMethodAttr.Alias ?? scriptMethod.Name
                 );
@@ -188,8 +212,6 @@ public class ScriptEngineService : IScriptEngineService
             _logger.Error("Error during initialize script module {Alias}: {Ex}", type, ex);
         }
     }
-
-
 
 
     public async Task ExecuteFileAsync(string file)
@@ -346,11 +368,6 @@ public class ScriptEngineService : IScriptEngineService
         var parameterTypes =
             method.GetParameters().Select(p => p.ParameterType).Concat(new[] { method.ReturnType }).ToArray();
         return method.CreateDelegate(Expression.GetDelegateType(parameterTypes), obj);
-    }
-
-    public async Task<string> GenerateDefinitionsAsync()
-    {
-        return await _typeGenerator.GenerateTypeDefinitionsAsync(Functions, ContextVariables, Constants);
     }
 
 
