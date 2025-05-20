@@ -99,7 +99,7 @@ public class DiagnosticService : IDiagnosticService, IMetricsProvider
             TimeSpan.FromSeconds(_diagnosticServiceConfig.MetricsIntervalInSeconds)
         );
 
-        var fileName = Path.GetFileName(_currentProcess.MainModule?.FileName);
+        var fileName = Path.GetFileName(_diagnosticServiceConfig.PidFileName);
 
         _logger.Information("Diagnostic service started. PID: {Pid} in file: {FileName}", _currentProcess.Id, fileName);
     }

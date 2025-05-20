@@ -8,6 +8,8 @@ using Moongate.Core.Data.Configs.Services;
 using Moongate.Core.Directories;
 using Moongate.Core.Extensions.Loggers;
 using Moongate.Core.Extensions.Services;
+using Moongate.Core.Extensions.Templates;
+using Moongate.Core.Instances;
 using Moongate.Core.Types;
 using Moongate.Server.Modules;
 using Moongate.Server.Services.System;
@@ -23,7 +25,6 @@ await ConsoleApp.RunAsync(
     {
         var cts = new CancellationTokenSource();
 
-
         if (loadFromEnv)
         {
             CheckEnvFileAndLoad();
@@ -37,6 +38,8 @@ await ConsoleApp.RunAsync(
             .WithDefaultIfAlreadyRegistered(IfAlreadyRegistered.Keep)
             .WithFactorySelector(Rules.SelectLastRegisteredFactory())
         );
+
+        MoongateInstanceHolder.Container = container;
 
         container
             .AddService(typeof(IEventBusService), typeof(EventBusService))
@@ -98,14 +101,22 @@ await ConsoleApp.RunAsync(
 
         try
         {
-            container.AddService(typeof(LoggerModule));
+            container
+                .AddService(typeof(LoggerModule))
+                .AddService(typeof(SchedulerModule))
+                .AddService(typeof(IncludeModule))
+                .AddService(typeof(TimerScriptModule));
+
 
             container.Resolve<IScriptEngineService>().AddScriptModule(typeof(LoggerModule));
+            container.Resolve<IScriptEngineService>().AddScriptModule(typeof(SchedulerModule));
+            container.Resolve<IScriptEngineService>().AddScriptModule(typeof(IncludeModule));
+            container.Resolve<IScriptEngineService>().AddScriptModule(typeof(TimerScriptModule));
+
 
             await container.Resolve<MoongateStartupService>().StartAsync(cts.Token);
 
-            var testReplace = container.Resolve<ITextTemplateService>().TranslateText("{{cpu_count}}");
-
+            Log.Information("CPU: {{cpu_count}} running version: {{version}}".ReplaceTemplate());
 
             await Task.Delay(Timeout.Infinite, cts.Token);
         }

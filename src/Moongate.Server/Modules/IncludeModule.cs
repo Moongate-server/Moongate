@@ -28,4 +28,19 @@ public class IncludeModule
 
         _scriptEngineService.ExecuteFileAsync(fullPath).Wait();
     }
+
+    [ScriptFunction("dir")]
+    public void IncludeDirectory(string directory)
+    {
+        var fullPath = Path.Combine(_directoriesConfig[DirectoryType.Scripts], directory);
+        if (!Directory.Exists(fullPath))
+        {
+            throw new DirectoryNotFoundException($"Directory not found: {fullPath}");
+        }
+
+        foreach (var file in Directory.GetFiles(fullPath, "*.lua"))
+        {
+            _scriptEngineService.ExecuteFileAsync(file).Wait();
+        }
+    }
 }
