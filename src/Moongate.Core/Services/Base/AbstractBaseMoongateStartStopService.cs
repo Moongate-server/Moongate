@@ -1,11 +1,11 @@
-using Microsoft.Extensions.Logging;
 using Moongate.Core.Interfaces.Services.Base;
+using Serilog;
 
 namespace Moongate.Core.Services.Base;
 
 public abstract class AbstractBaseMoongateStartStopService : AbstractBaseMoongateService, IMoongateStartStopService
 {
-    protected AbstractBaseMoongateStartStopService(ILogger<AbstractBaseMoongateService> logger) : base(logger)
+    protected AbstractBaseMoongateStartStopService(ILogger logger) : base(logger)
     {
     }
 

@@ -1,11 +1,11 @@
-using Microsoft.Extensions.Logging;
 using Moongate.Core.Interfaces.Services.Base;
+using Serilog;
 
 namespace Moongate.Core.Services.Base;
 
 public abstract class AbstractBaseMoongateService : IMoongateService
 {
-    protected AbstractBaseMoongateService(ILogger<AbstractBaseMoongateService> logger)
+    protected AbstractBaseMoongateService(ILogger logger)
     {
         Logger = logger;
     }

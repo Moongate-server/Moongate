@@ -3,10 +3,11 @@ using System.Diagnostics;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks.Dataflow;
-using Microsoft.Extensions.Logging;
+
 using Moongate.Core.Data.Configs.Services;
 using Moongate.Core.Interfaces.Services.System;
 using Orion.Core.Server.Data.Metrics.ProcessQueue;
+using Serilog;
 
 namespace Moongate.Server.Services.System;
 
@@ -17,7 +18,7 @@ public class ProcessQueueService : IProcessQueueService
 
     public IObservable<ProcessQueueMetric> GetMetrics => _metricsSubject.AsObservable();
 
-    private readonly ILogger _logger;
+    private readonly ILogger _logger = Log.ForContext<ProcessQueueService>();
 
     private readonly ConcurrentDictionary<string, ActionBlock<Func<Task>>> _queues;
     private readonly ConcurrentDictionary<string, ProcessStats> _stats;
@@ -31,10 +32,9 @@ public class ProcessQueueService : IProcessQueueService
 
     // private readonly SemaphoreSlim _mainThreadSemaphore = new(1);
 
-    public ProcessQueueService(ILogger<ProcessQueueService> logger)
+    public ProcessQueueService()
     {
         Config = new  ProcessQueueConfig();
-        _logger = logger;
         _queues = new ConcurrentDictionary<string, ActionBlock<Func<Task>>>();
         _stats = new ConcurrentDictionary<string, ProcessStats>();
         _metricsSubject = new Subject<ProcessQueueMetric>();
@@ -73,7 +73,7 @@ public class ProcessQueueService : IProcessQueueService
         var tcs = new TaskCompletionSource();
 
 
-        _logger.LogDebug("Enqueueing task for context {Context} current {Size}", context, stats.QueuedItems);
+        _logger.Debug("Enqueueing task for context {Context} current {Size}", context, stats.QueuedItems);
 
 
         queue.Post(
@@ -97,7 +97,7 @@ public class ProcessQueueService : IProcessQueueService
                 {
                     stats.IncrementFailed();
                     tcs.SetException(ex);
-                    _logger.LogError(ex, "Failed to process task for context {Context}", context);
+                    _logger.Error(ex, "Failed to process task for context {Context}", context);
                 }
             }
         );
@@ -113,7 +113,7 @@ public class ProcessQueueService : IProcessQueueService
 
         var tcs = new TaskCompletionSource<T>();
 
-        _logger.LogDebug("Enqueueing task for context {Context} current {Size}", context, queue.InputCount);
+        _logger.Debug("Enqueueing task for context {Context} current {Size}", context, queue.InputCount);
 
         queue.Post(
             async () =>
@@ -136,7 +136,7 @@ public class ProcessQueueService : IProcessQueueService
                 {
                     stats.IncrementFailed();
                     tcs.SetException(ex);
-                    _logger.LogError(ex, "Failed to process task for context {Context}", context);
+                    _logger.Error(ex, "Failed to process task for context {Context}", context);
                 }
             }
         );
@@ -153,7 +153,7 @@ public class ProcessQueueService : IProcessQueueService
         stats.IncrementQueued();
 
 
-        _logger.LogDebug("Enqueueing action on main thread");
+        _logger.Debug("Enqueueing action on main thread");
         //   _mainThreadSemaphore.Wait();
 
         _mainThreadQueue.Enqueue(action);
@@ -174,7 +174,7 @@ public class ProcessQueueService : IProcessQueueService
             catch (Exception ex)
             {
                 stats.IncrementFailed();
-                _logger.LogError(ex, "Failed to process main thread action");
+                _logger.Error(ex, "Failed to process main thread action");
             }
             finally
             {
@@ -268,7 +268,7 @@ public class ProcessQueueService : IProcessQueueService
     {
         MaxParallelTask = Config.MaxParallelTask;
 
-        _logger.LogInformation("Process queue service started with {MaxParallelTask} parallel tasks", MaxParallelTask);
+        _logger.Information("Process queue service started with {MaxParallelTask} parallel tasks", MaxParallelTask);
 
         return Task.CompletedTask;
     }

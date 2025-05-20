@@ -1,27 +1,24 @@
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Moongate.Core.Data.Events;
+using DryIoc;
 using Moongate.Core.Data.Events.Server;
 using Moongate.Core.Data.Services;
 using Moongate.Core.Interfaces.Services.Base;
+using Serilog;
 
 namespace Moongate.Core.Interfaces.Services.System;
 
-public class MoongateStartupService : IHostedService
+public class MoongateStartupService
 {
-    private readonly ILogger<MoongateStartupService> _logger;
+    private readonly ILogger _logger = Log.ForContext<MoongateStartupService>();
     private readonly IServiceProvider _serviceProvider;
     private readonly IEventBusService _eventBusService;
     private readonly List<ServiceDescriptionData> _servicesToLoad;
 
 
     public MoongateStartupService(
-        ILogger<MoongateStartupService> logger, IServiceProvider serviceProvider, IEventBusService eventBusService,
+        IContainer serviceProvider, IEventBusService eventBusService,
         List<ServiceDescriptionData> servicesToLoad
     )
     {
-        _logger = logger;
         _serviceProvider = serviceProvider;
         _eventBusService = eventBusService;
         _servicesToLoad = servicesToLoad.OrderBy(s => s.Priority).ToList();
@@ -54,8 +51,8 @@ public class MoongateStartupService : IHostedService
     {
         try
         {
-            var serviceInstance = _serviceProvider.GetRequiredService(service.ServiceType);
-            _logger.LogInformation(
+            var serviceInstance = _serviceProvider.GetService(service.ServiceType);
+            _logger.Information(
                 "{TypeOfLoading} service '{ServiceType}' Priority {ServicePriority}",
                 isStopping ? "Stopping" : "Starting",
                 service.ServiceType.Name,
@@ -75,7 +72,7 @@ public class MoongateStartupService : IHostedService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error loading service {ServiceName}", service.ServiceType.Name);
+            _logger.Error(ex, "Error loading service {ServiceName}", service.ServiceType.Name);
         }
     }
 }

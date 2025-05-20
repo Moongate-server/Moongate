@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using System.Reactive.Subjects;
 using System.Threading.Tasks.Dataflow;
-using Microsoft.Extensions.Logging;
 using Moongate.Core.Data.Internal;
 using Moongate.Core.Interfaces.EventBus;
 using Moongate.Core.Interfaces.Services.System;

@@ -1,14 +1,13 @@
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.Extensions.DependencyInjection;
+using DryIoc;
 using Moongate.Core.Data.Services;
-using sMoongate.Core.Extensions.Services;
 
 namespace Moongate.Core.Extensions.Services;
 
 public static class AddMoongateServiceExtension
 {
-    public static IServiceCollection AddService(
-        this IServiceCollection services,
+    public static IContainer AddService(
+        this IContainer container,
         [DynamicallyAccessedMembers(
             DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors
         )]
@@ -16,43 +15,42 @@ public static class AddMoongateServiceExtension
         [DynamicallyAccessedMembers(
             DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors
         )]
-        Type implementationType, int priority = 0
+        Type implementationType,
+        int priority = 0
     )
     {
-        services.AddSingleton(serviceType, implementationType);
-        services.AddToRegisterTypedList(new ServiceDescriptionData(serviceType, implementationType, priority));
-
-        return services;
+        container.Register(serviceType, implementationType, Reuse.Singleton);
+        container.AddToRegisterTypedList(new ServiceDescriptionData(serviceType, implementationType, priority));
+        return container;
     }
 
-    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)]
-    public static IServiceCollection AddService<TService, TImplementation>(
-        this IServiceCollection services, int priority = 0
+    [DynamicallyAccessedMembers(
+        DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors
+    )]
+    public static IContainer AddService<TService, TImplementation>(
+        this IContainer container, int priority = 0
     ) where TService : class where TImplementation : class, TService
     {
-        services.AddSingleton<TService, TImplementation>();
-        services.AddToRegisterTypedList(new ServiceDescriptionData(typeof(TService), typeof(TImplementation), priority));
-
-        return services;
+        container.Register<TService, TImplementation>(Reuse.Singleton);
+        container.AddToRegisterTypedList(new ServiceDescriptionData(typeof(TService), typeof(TImplementation), priority));
+        return container;
     }
 
-    public static IServiceCollection AddService<TService>(
-        this IServiceCollection services, int priority = 0
+    public static IContainer AddService<TService>(
+        this IContainer container, int priority = 0
     ) where TService : class
     {
-        services.AddSingleton<TService>();
-        services.AddToRegisterTypedList(new ServiceDescriptionData(typeof(TService), typeof(TService), priority));
-
-        return services;
+        container.Register<TService>(Reuse.Singleton);
+        container.AddToRegisterTypedList(new ServiceDescriptionData(typeof(TService), typeof(TService), priority));
+        return container;
     }
 
-    public static IServiceCollection AddService(
-        this IServiceCollection services, Type serviceType, int priority = 0
+    public static IContainer AddService(
+        this IContainer container, Type serviceType, int priority = 0
     )
     {
-        services.AddSingleton(serviceType);
-        services.AddToRegisterTypedList(new ServiceDescriptionData(serviceType, serviceType, priority));
-
-        return services;
+        container.Register(serviceType, Reuse.Singleton);
+        container.AddToRegisterTypedList(new ServiceDescriptionData(serviceType, serviceType, priority));
+        return container;
     }
 }

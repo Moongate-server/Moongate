@@ -3,7 +3,7 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Reflection;
 using DryIoc;
-using Microsoft.Extensions.DependencyInjection;
+
 using Moongate.Core.Attributes.Scripts;
 using Moongate.Core.Data.Configs.Services;
 using Moongate.Core.Data.Scripts;
@@ -149,7 +149,7 @@ public class ScriptEngineService : IScriptEngineService
     {
         try
         {
-            var obj = _serviceProvider.GetRequiredService(type);
+            var obj = _serviceProvider.GetService(type);
 
             var sClassAttr = type.GetCustomAttribute<ScriptModuleAttribute>();
 

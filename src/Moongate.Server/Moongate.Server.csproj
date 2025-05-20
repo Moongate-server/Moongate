@@ -11,7 +11,6 @@
         <SelfContained>true</SelfContained>
         <PublishReadyToRun>true</PublishReadyToRun>
         <PublishSingleFile>true</PublishSingleFile>
-        <PublishAot>true</PublishAot>
     </PropertyGroup>
 
     <ItemGroup>
@@ -25,8 +24,7 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="DryIoc.dll" Version="5.4.3" />
-        
+ 
         <PackageReference Include="NLua" Version="1.7.5"/>
         <PackageReference Include="Scriban" Version="6.2.1"/>
         <PackageReference Include="Serilog" Version="4.3.0"/>
