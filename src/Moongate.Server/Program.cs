@@ -22,7 +22,9 @@ await ConsoleApp.RunAsync(
 
         var container = new Container(rules => rules
             .WithUseInterpretation()
+            .WithDefaultIfAlreadyRegistered(IfAlreadyRegistered.Keep)
             .WithFactorySelector(Rules.SelectLastRegisteredFactory())
+
         );
 
         container
