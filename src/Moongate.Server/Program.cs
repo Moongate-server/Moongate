@@ -108,6 +108,7 @@ await ConsoleApp.RunAsync(
             cts.Cancel();
         };
 
+
         try
         {
             container
