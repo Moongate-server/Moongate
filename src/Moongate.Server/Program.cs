@@ -111,17 +111,12 @@ await ConsoleApp.RunAsync(
 
         try
         {
-            container
-                .AddService(typeof(LoggerModule))
-                .AddService(typeof(SchedulerModule))
-                .AddService(typeof(IncludeModule))
-                .AddService(typeof(TimerScriptModule));
-
-
-            container.Resolve<IScriptEngineService>().AddScriptModule(typeof(LoggerModule));
-            container.Resolve<IScriptEngineService>().AddScriptModule(typeof(SchedulerModule));
-            container.Resolve<IScriptEngineService>().AddScriptModule(typeof(IncludeModule));
-            container.Resolve<IScriptEngineService>().AddScriptModule(typeof(TimerScriptModule));
+            var scriptEngine = container.Resolve<IScriptEngineService>();
+            
+            scriptEngine.AddScriptModule(typeof(LoggerModule));
+            scriptEngine.AddScriptModule(typeof(SchedulerModule));
+            scriptEngine.AddScriptModule(typeof(IncludeModule));
+            scriptEngine.AddScriptModule(typeof(TimerScriptModule));
 
 
             await container.Resolve<MoongateStartupService>().StartAsync(cts.Token);
