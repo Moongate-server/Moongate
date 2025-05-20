@@ -24,15 +24,19 @@ await ConsoleApp.RunAsync(
             .WithUseInterpretation()
             .WithDefaultIfAlreadyRegistered(IfAlreadyRegistered.Keep)
             .WithFactorySelector(Rules.SelectLastRegisteredFactory())
-
         );
 
         container
             .AddService(typeof(IEventBusService), typeof(EventBusService))
             .AddService(typeof(ITextTemplateService), typeof(TextTemplateService))
             .AddService(typeof(IVersionService), typeof(VersionService))
+            .AddService(typeof(ISchedulerSystemService), typeof(SchedulerSystemService))
+            .AddService(typeof(IDiagnosticService), typeof(DiagnosticService))
+            .AddService(typeof(ITimerService), typeof(TimerService))
+            .AddService(typeof(IEventLoopService), typeof(EventLoopService), -1)
+            .AddService(typeof(IProcessQueueService), typeof(ProcessQueueService))
+            .AddService(typeof(IEventDispatcherService), typeof(EventDispatcherService))
             .AddService(typeof(IScriptEngineService), typeof(ScriptEngineService));
-
 
         container.AddService(typeof(MoongateStartupService));
 
@@ -41,6 +45,11 @@ await ConsoleApp.RunAsync(
 
         container.RegisterInstance(new DirectoriesConfig(Enum.GetNames<DirectoryType>()));
         container.RegisterInstance(new ScriptEngineConfig());
+        container.RegisterInstance(new EventLoopConfig());
+        container.RegisterInstance(new DiagnosticServiceConfig()
+        {
+            PidFileName = Path.Combine(container.Resolve<DirectoriesConfig>().Root, "moongate.pid")
+        });
 
         var logConfiguration = new LoggerConfiguration()
             .MinimumLevel.Is(defaultLogLevel.ToSerilogLogLevel())
@@ -80,6 +89,9 @@ await ConsoleApp.RunAsync(
             container.Resolve<IScriptEngineService>().AddScriptModule(typeof(LoggerModule));
 
             await container.Resolve<MoongateStartupService>().StartAsync(cts.Token);
+
+            var testReplace = container.Resolve<ITextTemplateService>().TranslateText("{{cpu_count}}");
+
 
             await Task.Delay(Timeout.Infinite, cts.Token);
         }

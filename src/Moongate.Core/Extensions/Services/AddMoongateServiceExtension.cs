@@ -19,23 +19,23 @@ public static class AddMoongateServiceExtension
     }
 
 
-    public static IContainer AddService<TService, TImplementation>(
-        this IContainer container, int priority = 0
-    ) where TService : class where TImplementation : class, TService
-    {
-        container.Register<TService, TImplementation>(Reuse.Singleton);
-        container.AddToRegisterTypedList(new ServiceDescriptionData(typeof(TService), typeof(TImplementation), priority));
-        return container;
-    }
-
-    public static IContainer AddService<TService>(
-        this IContainer container, int priority = 0
-    ) where TService : class
-    {
-        container.Register<TService>(Reuse.Singleton);
-        container.AddToRegisterTypedList(new ServiceDescriptionData(typeof(TService), typeof(TService), priority));
-        return container;
-    }
+    // public static IContainer AddService<TService, TImplementation>(
+    //     this IContainer container, int priority = 0
+    // ) where TService : class where TImplementation : class, TService
+    // {
+    //     container.Register<TService, TImplementation>(Reuse.Singleton);
+    //     container.AddToRegisterTypedList(new ServiceDescriptionData(typeof(TService), typeof(TImplementation), priority));
+    //     return container;
+    // }
+    //
+    // public static IContainer AddService<TService>(
+    //     this IContainer container, int priority = 0
+    // ) where TService : class
+    // {
+    //     container.Register<TService>(Reuse.Singleton);
+    //     container.AddToRegisterTypedList(new ServiceDescriptionData(typeof(TService), typeof(TService), priority));
+    //     return container;
+    // }
 
 
     public static IContainer AddService(
