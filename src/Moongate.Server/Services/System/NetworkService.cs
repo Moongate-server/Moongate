@@ -16,9 +16,15 @@ namespace Moongate.Server.Services.System;
 
 public class NetworkService : AbstractBaseMoongateStartStopService, INetworkService
 {
+    private readonly bool _useEventLoop = true;
+
     public event INetworkService.ClientConnectedDelegate? ClientConnected;
     public event INetworkService.ClientDisconnectedDelegate? ClientDisconnected;
 
+    private readonly Dictionary<byte, List<INetworkService.PacketReceivedDelegate>> _packetHandlers = new();
+
+    private readonly ISessionManagerService _sessionManagerService;
+    private readonly IEventLoopService _eventLoopService;
     private readonly MoongateServerConfig _moongateServerConfig;
     private readonly MoonTcpServerOptions _moonTcpServerOptions = new();
     private readonly List<MoongateTcpServer> _loginServers = new();
@@ -31,13 +37,17 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
     private readonly ConcurrentDictionary<string, NetClient> _clients = new();
     private readonly IEventBusService _eventBusService;
 
-
-    public NetworkService(MoongateServerConfig moongateServerConfig, IEventBusService eventBusService) : base(
+    public NetworkService(
+        MoongateServerConfig moongateServerConfig, IEventBusService eventBusService,
+        ISessionManagerService sessionManagerService, IEventLoopService eventLoopService
+    ) : base(
         Log.ForContext<NetworkService>()
     )
     {
         _moongateServerConfig = moongateServerConfig;
         _eventBusService = eventBusService;
+        _sessionManagerService = sessionManagerService;
+        _eventLoopService = eventLoopService;
 
         PrepareTcpServers();
     }
@@ -106,12 +116,16 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
 
         ClientDisconnected?.Invoke(server.Id, obj.Id);
         _eventBusService.PublishAsync(new ClientDisconnectedEvent(server.Id, obj.Id));
+        _sessionManagerService.DeleteSession(obj.Id);
     }
 
     private void OnClientConnected(MoongateTcpServer server, NetClient obj)
     {
         if (_clients.TryAdd(obj.Id, obj))
         {
+            var session = _sessionManagerService.CreateSession(obj.Id);
+            session.Client = obj;
+
             Logger.Debug("Added session Id {Session}", obj.Id);
             ClientConnected?.Invoke(server.Id, obj.Id, obj);
             _eventBusService.PublishAsync(new ClientConnectedEvent(server.Id, obj.Id));
@@ -212,7 +226,41 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
     {
         // Dispatch the packet to the appropriate handler
         // This is where you would implement your packet handling logic
-        Logger.Debug("Dispatching packet with opcode: 0x{Opcode:X2} from client {ClientId}: {Content}", packet.OpCode, clientId, packet.ToString());
+        Logger.Debug(
+            "Dispatching packet with opcode: 0x{Opcode:X2} from client {ClientId}: {Content}",
+            packet.OpCode,
+            clientId,
+            packet.ToString()
+        );
+
+        var handlers = _packetHandlers.GetValueOrDefault(packet.OpCode);
+
+        if (handlers != null)
+        {
+            var session = _sessionManagerService.GetSession(clientId);
+            foreach (var handler in handlers)
+            {
+                if (_useEventLoop)
+                {
+                    _eventLoopService.EnqueueAction("NetworkService", () => handler(session, packet));
+                }
+                else
+                {
+                    try
+                    {
+                        handler(session, packet);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Error(ex, "Error processing packet with opcode: 0x{Opcode:X2}", packet.OpCode);
+                    }
+                }
+            }
+        }
+        else
+        {
+            Logger.Warning("No handlers registered for packet with opcode: 0x{Opcode:X2}", packet.OpCode);
+        }
     }
 
     public override Task StopAsync(CancellationToken cancellationToken = default)
@@ -264,6 +312,23 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
         _packetSizes[opCode] = packet.Length;
 
         Logger.Debug("Registered packet with opCode 0x{OpCode:X2}", opCode);
+    }
+
+    public void RegisterPacketHandler<TPacket>(INetworkService.PacketReceivedDelegate handler)
+        where TPacket : IUoNetworkPacket, new()
+    {
+        var packet = new TPacket();
+        var opCode = packet.OpCode;
+
+        if (!_packetHandlers.TryGetValue(opCode, out List<INetworkService.PacketReceivedDelegate>? value))
+        {
+            value = new List<INetworkService.PacketReceivedDelegate>();
+            _packetHandlers[opCode] = value;
+        }
+
+        value.Add(handler);
+
+        Logger.Debug("Registered packet handler for opCode 0x{OpCode:X2}", opCode);
     }
 
 

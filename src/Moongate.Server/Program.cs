@@ -145,6 +145,12 @@ await ConsoleApp.RunAsync(
 
             networkService.RegisterPacket<SeedPacket>();
 
+            networkService.RegisterPacketHandler<SeedPacket>((session, packet) =>
+            {
+                var seed = (SeedPacket)packet;
+                Log.Logger.Information("Client version: {ClientVersion}", seed.Major);
+            });
+
 
             await container.Resolve<MoongateStartupService>().StartAsync(cts.Token);
 

@@ -1,8 +1,6 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.ObjectPool;
 using Moongate.Core.Data.Sessions;
-using Moongate.Core.Interfaces.Services.System;
-using Moongate.Core.Network.Servers.Tcp;
 using Moongate.Core.Services.Base;
 using Moongate.Uo.Network.Interfaces.Services;
 using Serilog;
@@ -19,36 +17,10 @@ public class SessionManagerService : AbstractBaseMoongateService, ISessionManage
 
     private readonly ConcurrentDictionary<string, SessionData> _sessionData = new();
 
-    public SessionManagerService(INetworkService networkService) : base(Log.ForContext<SessionManagerService>())
+    public SessionManagerService() : base(Log.ForContext<SessionManagerService>())
     {
-        _networkService = networkService;
-        _networkService.ClientConnected += OnClientConnected;
-        _networkService.ClientDisconnected += OnClientDisconnected;
+
     }
-
-    private void OnClientDisconnected(string serverId, string sessionId)
-    {
-        if (_sessionData.TryRemove(sessionId, out var session))
-        {
-            session.Dispose();
-            _sessionPool.Return(session);
-            Logger.Information("Removed session: {ServerId} {SessionId}", serverId, sessionId);
-        }
-        else
-        {
-            Logger.Warning("Session not found for disconnection: {SessionId}", sessionId);
-        }
-    }
-
-    private void OnClientConnected(string serverId, string sessionId, NetClient client)
-    {
-        var session = _sessionPool.Get();
-
-        _sessionData[sessionId] = session;
-
-        Logger.Information("Added session: {ServerId} {SessionId}", serverId, sessionId);
-    }
-
 
     public SessionData? GetSession(string sessionId, bool throwIfNotFound = true)
     {
@@ -63,6 +35,35 @@ public class SessionManagerService : AbstractBaseMoongateService, ISessionManage
         }
 
         return null;
+    }
+
+    public SessionData CreateSession(string sessionId)
+    {
+        if (_sessionData.ContainsKey(sessionId))
+        {
+            throw new InvalidOperationException($"Session with ID {sessionId} already exists.");
+        }
+
+        var session = _sessionPool.Get();
+        _sessionData[sessionId] = session;
+
+        Logger.Information("Created session: {SessionId}", sessionId);
+
+        return session;
+    }
+
+    public void DeleteSession(string sessionId)
+    {
+        if (_sessionData.TryRemove(sessionId, out var session))
+        {
+            session.Dispose();
+            _sessionPool.Return(session);
+            Logger.Information("Deleted session: {SessionId}", sessionId);
+        }
+        else
+        {
+            Logger.Warning("Session not found for deletion: {SessionId}", sessionId);
+        }
     }
 
     public void Dispose()
