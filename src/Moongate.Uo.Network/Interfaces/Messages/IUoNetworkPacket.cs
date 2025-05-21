@@ -6,7 +6,9 @@ public interface IUoNetworkPacket
 {
     byte OpCode { get; }
 
-    void Read(SpanReader reader);
+    int Length { get; }
+
+    bool Read(SpanReader reader);
 
     ReadOnlyMemory<byte> Write(SpanWriter writer);
 

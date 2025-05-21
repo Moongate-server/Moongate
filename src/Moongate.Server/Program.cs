@@ -22,6 +22,7 @@ using Moongate.Server.Json;
 using Moongate.Server.Modules;
 using Moongate.Server.Services.System;
 using Moongate.Uo.Network.Interfaces.Services;
+using Moongate.Uo.Network.Packets;
 using Serilog.Formatting.Compact;
 
 
@@ -142,16 +143,8 @@ await ConsoleApp.RunAsync(
 
             var networkService = container.Resolve<INetworkService>();
 
-            networkService.AddOpCodeHandler(
-                0xEF,
-                21,
-                (id, sessionId, buffer) =>
-                {
-                    Log.Logger.Information("Received Login SEED: {OpCode}", buffer.Remaining);
+            networkService.RegisterPacket<SeedPacket>();
 
-                    return null;
-                }
-            );
 
             await container.Resolve<MoongateStartupService>().StartAsync(cts.Token);
 

@@ -5,7 +5,6 @@ using Moongate.Core.Data.Configs.Server;
 using Moongate.Core.Data.Events.Network;
 using Moongate.Core.Interfaces.Services.System;
 using Moongate.Core.Network.Data;
-
 using Moongate.Core.Network.Servers.Tcp;
 using Moongate.Core.Services.Base;
 using Moongate.Core.Spans;
@@ -24,8 +23,8 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
     private readonly MoonTcpServerOptions _moonTcpServerOptions = new();
     private readonly List<MoongateTcpServer> _loginServers = new();
     private readonly List<MoongateTcpServer> _gameServers = new();
-    private readonly Dictionary<byte, List<INetworkService.PacketReceivedHandler>> _packetHandlers = new();
-    private readonly Dictionary<byte, INetworkService.ByteReceivedHandler> _rawPacketHandlers = new();
+
+    private readonly Dictionary<byte, Func<IUoNetworkPacket>> _packets = new();
     private readonly Dictionary<byte, int> _packetSizes = new();
 
 
@@ -134,7 +133,7 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
 
             byte opcode = span[0];
 
-            if (!_rawPacketHandlers.TryGetValue(opcode, out var handler))
+            if (!_packets.TryGetValue(opcode, out var handler))
             {
                 Logger.Warning("Received unknown packet opcode: 0x{Opcode:X2}", opcode);
                 break;
@@ -175,17 +174,28 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
             }
 
 
-            var currentPacket = remainingBuffer[..packetSize];
-            using var packetBuffer = new SpanReader(currentPacket.Span);
-            var packet = handler(server.Id, client.Id, packetBuffer);
+            var currentPacketBuffer = remainingBuffer[..packetSize];
+            using var packetBuffer = new SpanReader(currentPacketBuffer.Span);
 
-            if (packet == null)
+            var packet = handler();
+
+            try
             {
-                Logger.Warning("Failed to parse packet with opcode: 0x{Opcode:X2}", opcode);
-                break;
+                var success = packet.Read(packetBuffer);
+
+                if (!success)
+                {
+                    Logger.Warning("Failed to read packet with opcode: 0x{Opcode:X2}", opcode);
+                    break;
+                }
+
+                DispatchPacket(server.Id, client.Id, packet);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Error reading packet with opcode: 0x{Opcode:X2}", opcode);
             }
 
-            DispatchPacket(server.Id, client.Id, packet);
 
             remainingBuffer = remainingBuffer[packetSize..];
         }
@@ -197,6 +207,13 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
         }
     }
 
+
+    private void DispatchPacket(string serverId, string clientId, IUoNetworkPacket packet)
+    {
+        // Dispatch the packet to the appropriate handler
+        // This is where you would implement your packet handling logic
+        Logger.Debug("Dispatching packet with opcode: 0x{Opcode:X2} from client {ClientId}: {Content}", packet.OpCode, clientId, packet.ToString());
+    }
 
     public override Task StopAsync(CancellationToken cancellationToken = default)
     {
@@ -228,56 +245,27 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
     }
 
 
-
-
-    public void AddOpCodeHandler(byte opCode, int length, INetworkService.ByteReceivedHandler handler)
-    {
-        if (_rawPacketHandlers.ContainsKey(opCode))
-        {
-            Logger.Warning("Packet handler for opCode {OpCode} already exists. Overwriting.", opCode);
-        }
-
-        _rawPacketHandlers[opCode] = handler;
-
-        if (_packetSizes.ContainsKey(opCode))
-        {
-            Logger.Warning("Packet size for opCode {OpCode} already exists. Overwriting.", opCode);
-        }
-
-        _packetSizes[opCode] = length;
-    }
-
-    private void DispatchPacket(string serverId, string sessionId, IUoNetworkPacket packet)
-    {
-        if (_packetHandlers.TryGetValue(packet.OpCode, out var handlers))
-        {
-            foreach (var handler in handlers)
-            {
-                handler(serverId, sessionId, packet);
-            }
-        }
-        else
-        {
-            Logger.Warning("No handler found for packet with opCode: {OpCode:X2}", packet.OpCode);
-        }
-    }
-
     public void ChangeOpCodeSize(byte opCode, int length)
     {
         _packetSizes[opCode] = length;
     }
 
-    public void AddPacketHandler(byte opCode, INetworkService.PacketReceivedHandler handler)
+    public void RegisterPacket<TPacket>() where TPacket : IUoNetworkPacket, new()
     {
-        if (!_packetHandlers.TryGetValue(opCode, out var handlers))
+        var packet = new TPacket();
+        var opCode = packet.OpCode;
+
+        if (_packets.ContainsKey(opCode))
         {
-            handlers = new List<INetworkService.PacketReceivedHandler>();
-            _packetHandlers[opCode] = handlers;
+            Logger.Warning("Packet with opCode {OpCode} already registered. Overwriting.", opCode);
         }
 
-        Logger.Verbose("Adding packet handler for opCode 0x{OpCode:X2}", opCode);
-        handlers.Add(handler);
+        _packets[opCode] = () => new TPacket();
+        _packetSizes[opCode] = packet.Length;
+
+        Logger.Debug("Registered packet with opCode 0x{OpCode:X2}", opCode);
     }
+
 
     public void Send(string sessionId, ReadOnlyMemory<byte> buffer)
     {

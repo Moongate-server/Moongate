@@ -1,7 +1,7 @@
 using Moongate.Core.Data.Sessions;
 using Moongate.Core.Interfaces.Services.Base;
 
-namespace Moongate.Core.Interfaces.Services.System;
+namespace Moongate.Uo.Network.Interfaces.Services;
 
 public interface ISessionManagerService : IMoongateService
 {
