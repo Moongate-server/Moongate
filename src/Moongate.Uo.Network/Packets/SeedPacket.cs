@@ -8,7 +8,6 @@ public class SeedPacket : IUoNetworkPacket
     public byte OpCode => 0xEF;
     public int Length => 21;
 
-
     public int Major { get; set; }
 
     public int Minor { get; set; }

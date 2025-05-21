@@ -16,8 +16,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Attributes\" />
-      <Folder Include="Data\Metrics\" />
       <Folder Include="Services\Hosted\" />
     </ItemGroup>
 
