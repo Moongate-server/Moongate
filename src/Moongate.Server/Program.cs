@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Reflection;
+using System.Text;
 using Moongate.Core.Interfaces.Services.System;
 using Orion.Core.Server.Interfaces.Services.System;
 using Serilog;
@@ -80,6 +81,8 @@ await ConsoleApp.RunAsync(
 
         var config = CheckAndLoadConfig(container, container.Resolve<DirectoriesConfig>(), configName);
 
+        CheckUltimaOnlineDirectory(config);
+
         container.RegisterInstance(config);
 
         MoongateInstanceHolder.Container = container;
@@ -94,7 +97,9 @@ await ConsoleApp.RunAsync(
             .AddService(typeof(IEventLoopService), typeof(EventLoopService), -1)
             .AddService(typeof(IProcessQueueService), typeof(ProcessQueueService))
             .AddService(typeof(IEventDispatcherService), typeof(EventDispatcherService))
-            .AddService(typeof(IScriptEngineService), typeof(ScriptEngineService));
+            .AddService(typeof(IScriptEngineService), typeof(ScriptEngineService))
+            .AddService(typeof(INetworkService), typeof(NetworkService), 100)
+            ;
 
         container.AddService(typeof(MoongateStartupService));
 
@@ -132,9 +137,6 @@ await ConsoleApp.RunAsync(
             scriptEngine.AddScriptModule(typeof(VariableScriptModule));
             scriptEngine.AddScriptModule(typeof(TimerScriptModule));
 
-            var tcpServer = new MoonTcpServer(new IPEndPoint(IPAddress.Any, 8080), new MoonTcpServerOptions());
-
-            tcpServer.Start();
             await container.Resolve<MoongateStartupService>().StartAsync(cts.Token);
 
             Log.Information("CPU: {{cpu_count}} running version: {{version}}".ReplaceTemplate());
@@ -160,6 +162,12 @@ await ConsoleApp.RunAsync(
 );
 
 return;
+
+void CheckUltimaOnlineDirectory(MoongateServerConfig config)
+{
+
+
+}
 
 MoongateServerConfig CheckAndLoadConfig(IContainer container, DirectoriesConfig directoriesConfig, string configName)
 {

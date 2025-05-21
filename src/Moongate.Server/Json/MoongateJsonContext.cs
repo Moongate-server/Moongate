@@ -14,6 +14,7 @@ namespace Moongate.Server.Json;
 )]
 [JsonSerializable(typeof(MoongateServerConfig))]
 [JsonSerializable(typeof(ShardConfig))]
+[JsonSerializable(typeof(NetworkConfig))]
 public partial class MoongateJsonContext : JsonSerializerContext
 {
 }

@@ -8,9 +8,12 @@ namespace Moongate.Core.Network.Servers.Tcp;
 /// <summary>
 /// A server that listens for incoming connections from clients.
 /// </summary>
-public class MoonTcpServer
+public class MoongateTcpServer
 {
-    private readonly ILogger _logger = Log.ForContext<MoonTcpServer>();
+    private readonly ILogger _logger = Log.ForContext<MoongateTcpServer>();
+
+
+    public string Id { get; set; }
 
     /// <summary>
     /// Event that is raised when a new client connects to the server.
@@ -47,8 +50,9 @@ public class MoonTcpServer
     private readonly MoonTcpServerOptions _options;
     private readonly IPEndPoint _endPoint;
 
-    public MoonTcpServer(IPEndPoint endPoint, MoonTcpServerOptions options)
+    public MoongateTcpServer(string id, IPEndPoint endPoint, MoonTcpServerOptions options)
     {
+        Id = id;
         _options = options;
         _endPoint = endPoint;
         BufferSize = options.BufferSize;
@@ -75,7 +79,7 @@ public class MoonTcpServer
         // Start the first accept operation.
         StartAccept();
 
-        _logger.Information("Listening on {EndPoint}", _endPoint);
+        _logger.Information("{Id} Listening on {EndPoint}", Id, _endPoint);
 
         IsRunning = true;
     }
@@ -109,7 +113,7 @@ public class MoonTcpServer
         _acceptEventArgs = null;
         IsRunning = false;
 
-        _logger.Information("Server stopped");
+        _logger.Information("{Id} Server stopped", Id);
     }
 
     private void StartAccept()
@@ -157,7 +161,8 @@ public class MoonTcpServer
             }
 
             _logger.Information(
-                "Client connected: {RemoteEndPoint} sessionId: {SessionId}",
+                "{Id} Client connected: {RemoteEndPoint} sessionId: {SessionId}",
+                Id,
                 acceptedSocket.RemoteEndPoint,
                 client.Id
             );
@@ -166,7 +171,8 @@ public class MoonTcpServer
             {
                 OnClientDisconnected?.Invoke(client);
                 _logger.Information(
-                    "Client disconnected:  sessionId: {SessionId}",
+                    "{Id} Client disconnected:  sessionId: {SessionId}",
+                    Id,
                     client.Id
                 );
                 lock (_clients)

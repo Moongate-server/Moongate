@@ -5,4 +5,6 @@ namespace Moongate.Core.Data.Configs.Server;
 public class MoongateServerConfig
 {
     public ShardConfig Shard { get; set; } = new();
+
+    public NetworkConfig Network { get; set; } = new();
 }
