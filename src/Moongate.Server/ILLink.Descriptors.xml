@@ -8,6 +8,18 @@
         <type fullname="Moongate.Core.Network.*" preserve="all"/>
     </assembly>
 
+    <assembly fullname="Moongate.Uo.Network">
+        <type fullname="Moongate.Uo.Network.*" preserve="all"/>
+    </assembly>
+
+    <assembly fullname="Moongate.Persistence">
+        <type fullname="Moongate.Persistence.*" preserve="all"/>
+    </assembly>
+
+    <assembly fullname="Moongate.Core.Web">
+        <type fullname="Moongate.Core.Web.*" preserve="all"/>
+    </assembly>
+
     <assembly fullname="DryIoc">
         <type fullname="DryIoc.ReflectionTools">
             <method name="GetDefault"/>
