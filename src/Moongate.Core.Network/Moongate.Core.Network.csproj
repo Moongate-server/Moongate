@@ -8,7 +8,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Moongate.Core\Moongate.Core.csproj" />
+      <Folder Include="Data\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Nanoid" Version="3.1.0" />
+      <PackageReference Include="Serilog" Version="4.3.0" />
     </ItemGroup>
 
 </Project>

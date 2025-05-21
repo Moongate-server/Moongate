@@ -175,7 +175,7 @@ public class ScriptEngineService : IScriptEngineService
         {
             if (!_serviceProvider.IsRegistered(type))
             {
-                _logger.Debug("Type {Type} not registered in service provider, registering", type);
+                _logger.Debug("Type {Type} not registered in service provider, registering", type.Name);
 
                 _serviceProvider.Register(type);
             }
