@@ -5,17 +5,18 @@ using Moongate.Core.Data.Configs.Server;
 using Moongate.Core.Data.Events.Network;
 using Moongate.Core.Interfaces.Services.System;
 using Moongate.Core.Network.Data;
-using Moongate.Core.Network.Interfaces.Messages;
+
 using Moongate.Core.Network.Servers.Tcp;
 using Moongate.Core.Services.Base;
 using Moongate.Core.Spans;
+using Moongate.Uo.Network.Interfaces.Messages;
+using Moongate.Uo.Network.Interfaces.Services;
 using Serilog;
 
 namespace Moongate.Server.Services.System;
 
 public class NetworkService : AbstractBaseMoongateStartStopService, INetworkService
 {
-
     public event INetworkService.ClientConnectedDelegate? ClientConnected;
     public event INetworkService.ClientDisconnectedDelegate? ClientDisconnected;
 

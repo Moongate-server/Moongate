@@ -1,4 +1,4 @@
-namespace Moongate.Core.Network.Interfaces.Middleware;
+namespace Moongate.Core.Network.Middleware;
 
 /// <summary>
 /// Middleware for processing data before sending or receiving

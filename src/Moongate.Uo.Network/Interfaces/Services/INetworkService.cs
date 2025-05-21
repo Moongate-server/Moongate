@@ -1,9 +1,9 @@
 using Moongate.Core.Interfaces.Services.Base;
-using Moongate.Core.Network.Interfaces.Messages;
 using Moongate.Core.Network.Servers.Tcp;
 using Moongate.Core.Spans;
+using Moongate.Uo.Network.Interfaces.Messages;
 
-namespace Moongate.Core.Interfaces.Services.System;
+namespace Moongate.Uo.Network.Interfaces.Services;
 
 public interface INetworkService : IMoongateStartStopService
 {

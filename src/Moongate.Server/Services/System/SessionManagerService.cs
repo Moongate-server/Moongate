@@ -4,6 +4,7 @@ using Moongate.Core.Data.Sessions;
 using Moongate.Core.Interfaces.Services.System;
 using Moongate.Core.Network.Servers.Tcp;
 using Moongate.Core.Services.Base;
+using Moongate.Uo.Network.Interfaces.Services;
 using Serilog;
 
 namespace Moongate.Server.Services.System;
@@ -17,7 +18,6 @@ public class SessionManagerService : AbstractBaseMoongateService, ISessionManage
     );
 
     private readonly ConcurrentDictionary<string, SessionData> _sessionData = new();
-
 
     public SessionManagerService(INetworkService networkService) : base(Log.ForContext<SessionManagerService>())
     {
@@ -67,5 +67,6 @@ public class SessionManagerService : AbstractBaseMoongateService, ISessionManage
 
     public void Dispose()
     {
+        _sessionData.Clear();
     }
 }

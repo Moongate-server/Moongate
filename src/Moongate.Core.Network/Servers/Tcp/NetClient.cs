@@ -2,8 +2,8 @@ using System.Buffers;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Moongate.Core.Network.Interfaces;
-using Moongate.Core.Network.Interfaces.Middleware;
+
+using Moongate.Core.Network.Middleware;
 using NanoidDotNet;
 
 namespace Moongate.Core.Network.Servers.Tcp;

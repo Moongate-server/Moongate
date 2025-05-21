@@ -21,6 +21,7 @@ using Moongate.Core.Utils.Resources;
 using Moongate.Server.Json;
 using Moongate.Server.Modules;
 using Moongate.Server.Services.System;
+using Moongate.Uo.Network.Interfaces.Services;
 using Serilog.Formatting.Compact;
 
 
