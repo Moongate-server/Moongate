@@ -166,8 +166,7 @@ public class MoonTcpServer
             {
                 OnClientDisconnected?.Invoke(client);
                 _logger.Information(
-                    "Client disconnected: {RemoteEndPoint} sessionId: {SessionId}",
-                    acceptedSocket.RemoteEndPoint,
+                    "Client disconnected:  sessionId: {SessionId}",
                     client.Id
                 );
                 lock (_clients)
@@ -177,7 +176,7 @@ public class MoonTcpServer
             };
             client.OnDataReceived += data => OnClientDataReceived?.Invoke(client, data);
             client.OnError += OnError;
-            client.Connect(acceptedSocket, BufferSize);
+            client.Connect(acceptedSocket, _options.BufferSize);
         }
         // If the accept operation was canceled, then the server is stopped.
         else if (e.SocketError != SocketError.Interrupted && e.SocketError != SocketError.OperationAborted)

@@ -40,7 +40,7 @@ public class NetClient
     /// <summary>
     /// Whether the client is connected
     /// </summary>
-    public bool IsConnected => _isConnected;
+    public bool IsConnected { get; private set; }
 
     /// <summary>
     /// Remote host IP address
@@ -49,7 +49,6 @@ public class NetClient
 
     private readonly List<INetMiddleware> _middlewares = new();
     private Socket _socket;
-    private bool _isConnected;
     private int _sending;
 
     private SocketAsyncEventArgs _receiveArg;
@@ -84,14 +83,14 @@ public class NetClient
     /// <exception cref="InvalidOperationException"></exception>
     public void Connect(string ip, int port, int bufferSize = 1024)
     {
-        if (_isConnected)
+        if (IsConnected)
         {
             throw new InvalidOperationException("Already connected");
         }
 
         _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         _socket.Connect(ip, port);
-        _isConnected = true;
+        IsConnected = true;
         Ip = ((System.Net.IPEndPoint)_socket.RemoteEndPoint!).Address.ToString();
 
         _receivedData = new ArrayBufferWriter<byte>(bufferSize);
@@ -121,13 +120,13 @@ public class NetClient
     /// <exception cref="InvalidOperationException"></exception>
     internal void Connect(Socket socket, int bufferSize = 1024)
     {
-        if (_isConnected)
+        if (IsConnected)
         {
             throw new InvalidOperationException("Already connected");
         }
 
         _socket = socket;
-        _isConnected = true;
+        IsConnected = true;
         Ip = ((System.Net.IPEndPoint)socket.RemoteEndPoint!).Address.ToString();
 
         _receivedData = new ArrayBufferWriter<byte>(bufferSize);
@@ -154,12 +153,12 @@ public class NetClient
     /// </summary>
     public void Stop()
     {
-        if (!_isConnected)
+        if (!IsConnected)
         {
             return;
         }
 
-        _isConnected = false;
+        IsConnected = false;
         _socket?.Shutdown(SocketShutdown.Both);
         _socket?.Close();
         _socket?.Dispose();
@@ -189,7 +188,7 @@ public class NetClient
     /// <exception cref="InvalidOperationException"></exception>
     public bool Send(ReadOnlyMemory<byte> data)
     {
-        if (!_isConnected)
+        if (!IsConnected)
         {
             throw new InvalidOperationException("Not connected");
         }
@@ -377,7 +376,7 @@ public class NetClient
                 goto cont_receive;
             }
 
-            if (!client._isConnected || client._socket == null)
+            if (!client.IsConnected || client._socket == null)
             {
                 return;
             }

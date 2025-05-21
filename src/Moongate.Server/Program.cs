@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Net;
+using System.Reflection;
 using Moongate.Core.Interfaces.Services.System;
 using Orion.Core.Server.Interfaces.Services.System;
 using Serilog;
@@ -12,6 +13,8 @@ using Moongate.Core.Extensions.Services;
 using Moongate.Core.Extensions.Templates;
 using Moongate.Core.Instances;
 using Moongate.Core.Json;
+using Moongate.Core.Network.Data;
+using Moongate.Core.Network.Servers.Tcp;
 using Moongate.Core.Types;
 using Moongate.Core.Utils.Resources;
 using Moongate.Server.Json;
@@ -75,7 +78,6 @@ await ConsoleApp.RunAsync(
         Log.Logger = logConfiguration.CreateLogger();
 
 
-
         var config = CheckAndLoadConfig(container, container.Resolve<DirectoriesConfig>(), configName);
 
         container.RegisterInstance(config);
@@ -130,7 +132,9 @@ await ConsoleApp.RunAsync(
             scriptEngine.AddScriptModule(typeof(VariableScriptModule));
             scriptEngine.AddScriptModule(typeof(TimerScriptModule));
 
+            var tcpServer = new MoonTcpServer(new IPEndPoint(IPAddress.Any, 8080), new MoonTcpServerOptions());
 
+            tcpServer.Start();
             await container.Resolve<MoongateStartupService>().StartAsync(cts.Token);
 
             Log.Information("CPU: {{cpu_count}} running version: {{version}}".ReplaceTemplate());

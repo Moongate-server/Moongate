@@ -4,6 +4,10 @@
         <type fullname="Moongate.Server.Modules.*" preserve="all"/>
     </assembly>
 
+    <assembly fullname="Moongate.Core.Network">
+        <type fullname="Moongate.Core.Network.*" preserve="all"/>
+    </assembly>
+
     <assembly fullname="DryIoc">
         <type fullname="DryIoc.ReflectionTools">
             <method name="GetDefault"/>
