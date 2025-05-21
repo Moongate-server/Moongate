@@ -11,7 +11,7 @@ public class TcpServerTests
     public Task TestTcpServer()
     {
         // Arrange
-        var server = new MoongateTcpServer(
+        var server = new MoongateTcpServer("b",
             new IPEndPoint(IPAddress.Loopback, 8080),
             new MoonTcpServerOptions
             {
@@ -37,7 +37,7 @@ public class TcpServerTests
     public Task TestTcpServerWithCustomOptions()
     {
         // Arrange
-        var server = new MoongateTcpServer(
+        var server = new MoongateTcpServer("a",
             new IPEndPoint(IPAddress.Loopback, 8080),
             new MoonTcpServerOptions
             {

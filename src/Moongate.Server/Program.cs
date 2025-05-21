@@ -137,6 +137,20 @@ await ConsoleApp.RunAsync(
             scriptEngine.AddScriptModule(typeof(VariableScriptModule));
             scriptEngine.AddScriptModule(typeof(TimerScriptModule));
 
+
+            var networkService = container.Resolve<INetworkService>();
+
+            networkService.AddOpCodeHandler(
+                0xEF,
+                21,
+                (id, sessionId, buffer) =>
+                {
+                    Log.Logger.Information("Received Login SEED: {OpCode}", buffer.ToString());
+
+                    return null;
+                }
+            );
+
             await container.Resolve<MoongateStartupService>().StartAsync(cts.Token);
 
             Log.Information("CPU: {{cpu_count}} running version: {{version}}".ReplaceTemplate());
@@ -165,8 +179,6 @@ return;
 
 void CheckUltimaOnlineDirectory(MoongateServerConfig config)
 {
-
-
 }
 
 MoongateServerConfig CheckAndLoadConfig(IContainer container, DirectoriesConfig directoriesConfig, string configName)

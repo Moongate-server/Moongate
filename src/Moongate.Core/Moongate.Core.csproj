@@ -20,5 +20,9 @@
       <Folder Include="Services\Hosted\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Moongate.Core.Network\Moongate.Core.Network.csproj" />
+    </ItemGroup>
+
    
 </Project>
