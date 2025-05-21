@@ -98,6 +98,7 @@ await ConsoleApp.RunAsync(
             .AddService(typeof(IProcessQueueService), typeof(ProcessQueueService))
             .AddService(typeof(IEventDispatcherService), typeof(EventDispatcherService))
             .AddService(typeof(IScriptEngineService), typeof(ScriptEngineService))
+            .AddService(typeof(ISessionManagerService), typeof(SessionManagerService), 99)
             .AddService(typeof(INetworkService), typeof(NetworkService), 100)
             ;
 
@@ -145,7 +146,7 @@ await ConsoleApp.RunAsync(
                 21,
                 (id, sessionId, buffer) =>
                 {
-                    Log.Logger.Information("Received Login SEED: {OpCode}", buffer.ToString());
+                    Log.Logger.Information("Received Login SEED: {OpCode}", buffer.Remaining);
 
                     return null;
                 }

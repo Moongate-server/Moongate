@@ -1,17 +1,24 @@
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.NetworkInformation;
 using Moongate.Core.Data.Configs.Server;
+using Moongate.Core.Data.Events.Network;
 using Moongate.Core.Interfaces.Services.System;
 using Moongate.Core.Network.Data;
 using Moongate.Core.Network.Interfaces.Messages;
 using Moongate.Core.Network.Servers.Tcp;
 using Moongate.Core.Services.Base;
+using Moongate.Core.Spans;
 using Serilog;
 
 namespace Moongate.Server.Services.System;
 
 public class NetworkService : AbstractBaseMoongateStartStopService, INetworkService
 {
+
+    public event INetworkService.ClientConnectedDelegate? ClientConnected;
+    public event INetworkService.ClientDisconnectedDelegate? ClientDisconnected;
+
     private readonly MoongateServerConfig _moongateServerConfig;
     private readonly MoonTcpServerOptions _moonTcpServerOptions = new();
     private readonly List<MoongateTcpServer> _loginServers = new();
@@ -20,9 +27,17 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
     private readonly Dictionary<byte, INetworkService.ByteReceivedHandler> _rawPacketHandlers = new();
     private readonly Dictionary<byte, int> _packetSizes = new();
 
-    public NetworkService(MoongateServerConfig moongateServerConfig) : base(Log.ForContext<NetworkService>())
+
+    private readonly ConcurrentDictionary<string, NetClient> _clients = new();
+    private readonly IEventBusService _eventBusService;
+
+
+    public NetworkService(MoongateServerConfig moongateServerConfig, IEventBusService eventBusService) : base(
+        Log.ForContext<NetworkService>()
+    )
     {
         _moongateServerConfig = moongateServerConfig;
+        _eventBusService = eventBusService;
 
         PrepareTcpServers();
     }
@@ -65,6 +80,8 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
         {
             var loginServer = new MoongateTcpServer($"login_{index}", endPoint, _moonTcpServerOptions);
             loginServer.OnClientDataReceived += (client, memory) => ParsePacket(loginServer, client, memory);
+            loginServer.OnClientConnected += client => OnClientConnected(loginServer, client);
+            loginServer.OnClientDisconnected += client => OnClientDisconnected(loginServer, client);
 
 
             var gameServer = new MoongateTcpServer(
@@ -77,6 +94,27 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
             _loginServers.Add(loginServer);
             _gameServers.Add(gameServer);
             index++;
+        }
+    }
+
+    private void OnClientDisconnected(MoongateTcpServer server, NetClient obj)
+    {
+        if (!_clients.TryRemove(obj.Id, out var client))
+        {
+            Logger.Warning("Client {ClientId} not found in the list of connected clients", obj.Id);
+        }
+
+        ClientDisconnected?.Invoke(server.Id, obj.Id);
+        _eventBusService.PublishAsync(new ClientDisconnectedEvent(server.Id, obj.Id));
+    }
+
+    private void OnClientConnected(MoongateTcpServer server, NetClient obj)
+    {
+        if (_clients.TryAdd(obj.Id, obj))
+        {
+            Logger.Debug("Added session Id {Session}", obj.Id);
+            ClientConnected?.Invoke(server.Id, obj.Id, obj);
+            _eventBusService.PublishAsync(new ClientConnectedEvent(server.Id, obj.Id));
         }
     }
 
@@ -137,7 +175,8 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
 
 
             var currentPacket = remainingBuffer[..packetSize];
-            var packet = handler(server.Id, client.Id, currentPacket);
+            using var packetBuffer = new SpanReader(currentPacket.Span);
+            var packet = handler(server.Id, client.Id, packetBuffer);
 
             if (packet == null)
             {
@@ -147,7 +186,7 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
 
             DispatchPacket(server.Id, client.Id, packet);
 
-            remainingBuffer = remainingBuffer.Slice(packetSize);
+            remainingBuffer = remainingBuffer[packetSize..];
         }
 
 
@@ -186,6 +225,8 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
 
         return Task.CompletedTask;
     }
+
+
 
 
     public void AddOpCodeHandler(byte opCode, int length, INetworkService.ByteReceivedHandler handler)
@@ -235,6 +276,33 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
 
         Logger.Verbose("Adding packet handler for opCode 0x{OpCode:X2}", opCode);
         handlers.Add(handler);
+    }
+
+    public void Send(string sessionId, ReadOnlyMemory<byte> buffer)
+    {
+        if (_clients.TryGetValue(sessionId, out var client))
+        {
+            client.Send(buffer);
+        }
+        else
+        {
+            Logger.Warning("Client {ClientId} not found in the list of connected clients", sessionId);
+        }
+    }
+
+    public NetClient? GetClient(string sessionId, bool throwIfNotFound = true)
+    {
+        if (_clients.TryGetValue(sessionId, out var client))
+        {
+            return client;
+        }
+
+        if (throwIfNotFound)
+        {
+            throw new KeyNotFoundException($"Client with session ID {sessionId} not found.");
+        }
+
+        return null;
     }
 
 
