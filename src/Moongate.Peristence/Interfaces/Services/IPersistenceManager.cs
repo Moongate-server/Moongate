@@ -11,7 +11,7 @@ public interface IPersistenceManager
     /// <param name="entities">Dictionary of entity lists grouped by type</param>
     /// <param name="cancellationToken">Cancellation token</param>
     Task SaveEntitiesAsync(
-        string filePath, IDictionary<Type, IList<object>> entities, CancellationToken cancellationToken = default
+        string filePath, List<object> entities, CancellationToken cancellationToken = default
     );
 
     /// <summary>

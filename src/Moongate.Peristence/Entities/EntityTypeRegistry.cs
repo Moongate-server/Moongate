@@ -70,6 +70,11 @@ public static class EntityTypeRegistry
         return _typeToId.ContainsKey(typeof(T));
     }
 
+    public static bool IsRegistered(Type type)
+    {
+        return _typeToId.ContainsKey(type);
+    }
+
     /// <summary>
     /// Gets all registered entity types
     /// </summary>

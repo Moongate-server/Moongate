@@ -28,11 +28,30 @@ public class MemoryPackPersistenceManager : IPersistenceManager
     /// <exception cref="ArgumentNullException">Thrown when filePath or entities is null</exception>
     /// <exception cref="InvalidOperationException">Thrown when entity types are not registered</exception>
     public async Task SaveEntitiesAsync(
-        string filePath, IDictionary<Type, IList<object>> entities, CancellationToken cancellationToken = default
+        string filePath, List<object> entitiesList, CancellationToken cancellationToken = default
     )
     {
         ArgumentNullException.ThrowIfNull(filePath);
-        ArgumentNullException.ThrowIfNull(entities);
+        ArgumentNullException.ThrowIfNull(entitiesList);
+
+        var entities = new Dictionary<Type, IList<object>>();
+
+        foreach (var entity in entitiesList)
+        {
+            var entityType = entity.GetType();
+            if (!EntityTypeRegistry.IsRegistered(entityType))
+            {
+                throw new InvalidOperationException($"Entity type {entityType.Name} is not registered");
+            }
+
+            if (!entities.TryGetValue(entityType, out var entityList))
+            {
+                entityList = new List<object>();
+                entities[entityType] = entityList;
+            }
+
+            entityList.Add(entity);
+        }
 
         _logger.Information("Saving {EntityCount} entity types to {FilePath}", entities.Count, filePath);
 
@@ -148,6 +167,11 @@ public class MemoryPackPersistenceManager : IPersistenceManager
         {
             dataChecksum.Dispose();
         }
+    }
+
+    public Task SaveEntitiesAsync(string filePath, IList<object> entities, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
     }
 
     /// <summary>
