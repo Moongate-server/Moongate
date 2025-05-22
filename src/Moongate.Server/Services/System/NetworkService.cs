@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.NetworkInformation;
+using DryIoc;
 using Moongate.Core.Data.Configs.Server;
 using Moongate.Core.Data.Events.Network;
 using Moongate.Core.Interfaces.Services.System;
@@ -8,6 +9,7 @@ using Moongate.Core.Network.Data;
 using Moongate.Core.Network.Servers.Tcp;
 using Moongate.Core.Services.Base;
 using Moongate.Core.Spans;
+using Moongate.Uo.Network.Interfaces.Handlers;
 using Moongate.Uo.Network.Interfaces.Messages;
 using Moongate.Uo.Network.Interfaces.Services;
 using Serilog;
@@ -16,7 +18,7 @@ namespace Moongate.Server.Services.System;
 
 public class NetworkService : AbstractBaseMoongateStartStopService, INetworkService
 {
-    private readonly bool _useEventLoop = true;
+    private const bool _useEventLoop = true;
 
     public event INetworkService.ClientConnectedDelegate? ClientConnected;
     public event INetworkService.ClientDisconnectedDelegate? ClientDisconnected;
@@ -34,12 +36,13 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
     private readonly Dictionary<byte, int> _packetSizes = new();
 
 
+    private readonly IContainer _container;
     private readonly ConcurrentDictionary<string, NetClient> _clients = new();
     private readonly IEventBusService _eventBusService;
 
     public NetworkService(
         MoongateServerConfig moongateServerConfig, IEventBusService eventBusService,
-        ISessionManagerService sessionManagerService, IEventLoopService eventLoopService
+        ISessionManagerService sessionManagerService, IEventLoopService eventLoopService, IContainer container
     ) : base(
         Log.ForContext<NetworkService>()
     )
@@ -48,6 +51,7 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
         _eventBusService = eventBusService;
         _sessionManagerService = sessionManagerService;
         _eventLoopService = eventLoopService;
+        _container = container;
 
         PrepareTcpServers();
     }
@@ -311,7 +315,11 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
         _packets[opCode] = () => new TPacket();
         _packetSizes[opCode] = packet.Length;
 
-        Logger.Debug("Registered packet with opCode 0x{OpCode:X2}", opCode);
+        Logger.Debug(
+            "Registered packet with opCode {OpCode:X2} ({Type})",
+            "0x" + opCode.ToString("X2"),
+            typeof(TPacket).Name
+        );
     }
 
     public void RegisterPacketHandler<TPacket>(INetworkService.PacketReceivedDelegate handler)
@@ -329,6 +337,32 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
         value.Add(handler);
 
         Logger.Debug("Registered packet handler for opCode 0x{OpCode:X2}", opCode);
+    }
+
+    public void RegisterPacketHandler<TPacket, THandler>()
+        where TPacket : IUoNetworkPacket, new() where THandler : IPacketListener
+    {
+        var packet = new TPacket();
+        var opCode = packet.OpCode;
+
+        if (!_packetHandlers.TryGetValue(opCode, out List<INetworkService.PacketReceivedDelegate>? value))
+        {
+            value = [];
+            _packetHandlers[opCode] = value;
+        }
+
+        if (!_container.IsRegistered<THandler>())
+        {
+            _container.Register<THandler>(Reuse.Singleton);
+        }
+
+        var handler = _container.Resolve<THandler>();
+
+
+        value.Add((session, networkPacket) => { handler.OnPacketReceived(session, networkPacket); }
+        );
+
+        Logger.Debug("Registered packet handler (via DI) for opCode {OpCode} in handler name: {HandleTypeName}",  "0x"+opCode.ToString("X2"), typeof(THandler).Name);
     }
 
 

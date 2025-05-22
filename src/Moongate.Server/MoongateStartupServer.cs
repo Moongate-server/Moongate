@@ -13,6 +13,7 @@ using Moongate.Core.Utils.Resources;
 using Moongate.Persistence.Interfaces.Services;
 using Moongate.Server.Json;
 using Moongate.Server.Services.System;
+using Moongate.Uo.Network.Interfaces.Services;
 using Serilog;
 using Serilog.Formatting.Compact;
 
@@ -21,12 +22,14 @@ namespace Moongate.Server;
 public class MoongateStartupServer
 {
     public delegate void RegisterServicesDelegate(IContainer container);
-
     public event RegisterServicesDelegate RegisterServices;
 
     public delegate void RegisterScriptModulesDelegate(IScriptEngineService container);
-
     public event RegisterScriptModulesDelegate RegisterScriptModules;
+
+    public delegate void RegisterPacketsAndHandlersDelegate(INetworkService networkService);
+
+    public event RegisterPacketsAndHandlersDelegate RegisterPacketsAndHandlers;
 
     private IContainer _container;
 
@@ -83,9 +86,12 @@ public class MoongateStartupServer
         Log.Information("Root directory: {RootDirectory}", _container.Resolve<DirectoriesConfig>().Root);
 
         var scriptEngine = _container.Resolve<IScriptEngineService>();
+        var networkService = _container.Resolve<INetworkService>();
         var startupService = _container.Resolve<MoongateStartupService>();
 
         RegisterScriptModules?.Invoke(scriptEngine);
+
+        RegisterPacketsAndHandlers?.Invoke(networkService);
 
         try
         {

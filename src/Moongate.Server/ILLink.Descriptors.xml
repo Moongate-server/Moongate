@@ -2,6 +2,7 @@
     <assembly fullname="Moongate.Server">
         <type fullname="Moongate.Server.Services.*" preserve="all"/>
         <type fullname="Moongate.Server.Modules.*" preserve="all"/>
+        <type fullname="Moongate.Server.Handlers.*" preserve="all"/>
     </assembly>
 
     <assembly fullname="Moongate.Core.Network">

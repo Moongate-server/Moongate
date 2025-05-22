@@ -2,6 +2,7 @@ using Moongate.Core.Data.Sessions;
 using Moongate.Core.Interfaces.Services.Base;
 using Moongate.Core.Network.Servers.Tcp;
 using Moongate.Core.Spans;
+using Moongate.Uo.Network.Interfaces.Handlers;
 using Moongate.Uo.Network.Interfaces.Messages;
 
 namespace Moongate.Uo.Network.Interfaces.Services;
@@ -20,9 +21,9 @@ public interface INetworkService : IMoongateStartStopService
     void RegisterPacket<TPacket>() where TPacket : IUoNetworkPacket, new();
 
     void RegisterPacketHandler<TPacket>(PacketReceivedDelegate handler) where TPacket : IUoNetworkPacket, new();
+    void RegisterPacketHandler<TPacket, THandler>() where TPacket : IUoNetworkPacket, new() where THandler : IPacketListener;
 
     void Send(string sessionId, ReadOnlyMemory<byte> buffer);
-
 
     NetClient? GetClient(string sessionId, bool throwIfNotFound = true);
 
