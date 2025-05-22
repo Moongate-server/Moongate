@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 namespace Moongate.Persistence.Entities;
 
 /// <summary>
-/// Registry for mapping entity types to their byte identifiers
+///     Registry for mapping entity types to their byte identifiers
 /// </summary>
 public static class EntityTypeRegistry
 {
@@ -13,7 +13,7 @@ public static class EntityTypeRegistry
     private static byte _nextId = 1;
 
     /// <summary>
-    /// Registers an entity type with the specified ID
+    ///     Registers an entity type with the specified ID
     /// </summary>
     /// <typeparam name="T">The entity type to register</typeparam>
     /// <param name="id">The byte identifier for this entity type</param>
@@ -25,7 +25,7 @@ public static class EntityTypeRegistry
     }
 
     /// <summary>
-    /// Registers an entity type with an auto-assigned ID
+    ///     Registers an entity type with an auto-assigned ID
     /// </summary>
     /// <typeparam name="T">The entity type to register</typeparam>
     /// <returns>The assigned ID</returns>
@@ -37,7 +37,7 @@ public static class EntityTypeRegistry
     }
 
     /// <summary>
-    /// Gets the ID for the specified entity type
+    ///     Gets the ID for the specified entity type
     /// </summary>
     /// <param name="type">The entity type</param>
     /// <returns>The byte identifier</returns>
@@ -49,7 +49,7 @@ public static class EntityTypeRegistry
     }
 
     /// <summary>
-    /// Gets the type for the specified entity ID
+    ///     Gets the type for the specified entity ID
     /// </summary>
     /// <param name="id">The byte identifier</param>
     /// <returns>The entity type</returns>
@@ -61,7 +61,7 @@ public static class EntityTypeRegistry
     }
 
     /// <summary>
-    /// Checks if an entity type is registered
+    ///     Checks if an entity type is registered
     /// </summary>
     /// <typeparam name="T">The entity type to check</typeparam>
     /// <returns>True if registered, false otherwise</returns>
@@ -76,7 +76,7 @@ public static class EntityTypeRegistry
     }
 
     /// <summary>
-    /// Gets all registered entity types
+    ///     Gets all registered entity types
     /// </summary>
     /// <returns>Dictionary of type to ID mappings</returns>
     public static IReadOnlyDictionary<Type, byte> GetRegisteredTypes()

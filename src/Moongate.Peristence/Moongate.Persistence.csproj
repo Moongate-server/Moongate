@@ -8,11 +8,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Moongate.Core\Moongate.Core.csproj" />
+        <ProjectReference Include="..\Moongate.Core\Moongate.Core.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="MemoryPack" Version="1.21.4" />
+        <PackageReference Include="MemoryPack" Version="1.21.4"/>
     </ItemGroup>
 
 </Project>

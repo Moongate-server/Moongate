@@ -1,12 +1,12 @@
 namespace Moongate.Persistence.Interfaces.Entities;
 
 /// <summary>
-/// Builder for registering entity types
+///     Builder for registering entity types
 /// </summary>
 public interface IEntityRegistrationBuilder
 {
     /// <summary>
-    /// Registers an entity type with a specific ID
+    ///     Registers an entity type with a specific ID
     /// </summary>
     /// <typeparam name="T">The entity type</typeparam>
     /// <param name="id">The byte identifier</param>
@@ -14,7 +14,7 @@ public interface IEntityRegistrationBuilder
     IEntityRegistrationBuilder Register<T>(byte id) where T : class;
 
     /// <summary>
-    /// Registers an entity type with an auto-assigned ID
+    ///     Registers an entity type with an auto-assigned ID
     /// </summary>
     /// <typeparam name="T">The entity type</typeparam>
     /// <returns>The builder for method chaining</returns>

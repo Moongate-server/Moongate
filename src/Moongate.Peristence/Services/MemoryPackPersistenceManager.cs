@@ -10,17 +10,17 @@ namespace Moongate.Persistence.Services;
 
 public class MemoryPackPersistenceManager : IPersistenceManager
 {
-    private readonly ILogger _logger = Log.ForContext<MemoryPackPersistenceManager>();
-
-    /// <summary>
-    /// Magic number representing "MOONGATE" in binary
-    /// </summary>
-    private static readonly ulong MagicNumber = BitConverter.ToUInt64("MOONGATE"u8);
-
     private const uint CurrentFileVersion = 1;
 
     /// <summary>
-    /// Saves entities to a binary file with the specified format
+    ///     Magic number representing "MOONGATE" in binary
+    /// </summary>
+    private static readonly ulong MagicNumber = BitConverter.ToUInt64("MOONGATE"u8);
+
+    private readonly ILogger _logger = Log.ForContext<MemoryPackPersistenceManager>();
+
+    /// <summary>
+    ///     Saves entities to a binary file with the specified format
     /// </summary>
     /// <param name="filePath">Path to the binary file</param>
     /// <param name="entities">Dictionary of entity lists grouped by type</param>
@@ -28,30 +28,11 @@ public class MemoryPackPersistenceManager : IPersistenceManager
     /// <exception cref="ArgumentNullException">Thrown when filePath or entities is null</exception>
     /// <exception cref="InvalidOperationException">Thrown when entity types are not registered</exception>
     public async Task SaveEntitiesAsync(
-        string filePath, List<object> entitiesList, CancellationToken cancellationToken = default
+        string filePath, IDictionary<Type, IList<object>> entities, CancellationToken cancellationToken = default
     )
     {
         ArgumentNullException.ThrowIfNull(filePath);
-        ArgumentNullException.ThrowIfNull(entitiesList);
-
-        var entities = new Dictionary<Type, IList<object>>();
-
-        foreach (var entity in entitiesList)
-        {
-            var entityType = entity.GetType();
-            if (!EntityTypeRegistry.IsRegistered(entityType))
-            {
-                throw new InvalidOperationException($"Entity type {entityType.Name} is not registered");
-            }
-
-            if (!entities.TryGetValue(entityType, out var entityList))
-            {
-                entityList = new List<object>();
-                entities[entityType] = entityList;
-            }
-
-            entityList.Add(entity);
-        }
+        ArgumentNullException.ThrowIfNull(entities);
 
         _logger.Information("Saving {EntityCount} entity types to {FilePath}", entities.Count, filePath);
 
@@ -60,7 +41,7 @@ public class MemoryPackPersistenceManager : IPersistenceManager
             FileMode.Create,
             FileAccess.Write,
             FileShare.None,
-            bufferSize: 64 * 1024
+            64 * 1024
         );
 
         // Write placeholder header (will be updated later)
@@ -84,7 +65,10 @@ public class MemoryPackPersistenceManager : IPersistenceManager
             // Write entity data and build TOC
             foreach (var (entityType, entityList) in entities)
             {
-                if (entityList.Count == 0) continue;
+                if (entityList.Count == 0)
+                {
+                    continue;
+                }
 
                 var entityId = EntityTypeRegistry.GetEntityId(entityType);
                 var tocEntry = new TocEntry
@@ -169,13 +153,8 @@ public class MemoryPackPersistenceManager : IPersistenceManager
         }
     }
 
-    public Task SaveEntitiesAsync(string filePath, IList<object> entities, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException();
-    }
-
     /// <summary>
-    /// Loads entities from a binary file
+    ///     Loads entities from a binary file
     /// </summary>
     /// <param name="filePath">Path to the binary file</param>
     /// <param name="cancellationToken">Cancellation token</param>
@@ -190,7 +169,9 @@ public class MemoryPackPersistenceManager : IPersistenceManager
         ArgumentNullException.ThrowIfNull(filePath);
 
         if (!File.Exists(filePath))
+        {
             throw new FileNotFoundException($"Binary persistence file not found: {filePath}");
+        }
 
         _logger.Information("Loading entities from {FilePath}", filePath);
 
@@ -199,7 +180,7 @@ public class MemoryPackPersistenceManager : IPersistenceManager
             FileMode.Open,
             FileAccess.Read,
             FileShare.Read,
-            bufferSize: 64 * 1024
+            64 * 1024
         );
 
         // Read and validate header
@@ -210,10 +191,14 @@ public class MemoryPackPersistenceManager : IPersistenceManager
         var header = MemoryPackSerializer.Deserialize<FileHeader>(headerBytes);
 
         if (header.MagicNumber != MagicNumber)
+        {
             throw new InvalidDataException("Invalid file format: magic number mismatch");
+        }
 
         if (header.Version > CurrentFileVersion)
+        {
             throw new InvalidDataException($"Unsupported file version: {header.Version}");
+        }
 
         _logger.Debug(
             "File header: Version={Version}, Entities={EntryCount}, Size={FileSize}",
@@ -288,7 +273,7 @@ public class MemoryPackPersistenceManager : IPersistenceManager
     }
 
     /// <summary>
-    /// Loads entities of a specific type from a binary file
+    ///     Loads entities of a specific type from a binary file
     /// </summary>
     /// <typeparam name="T">The entity type to load</typeparam>
     /// <param name="filePath">Path to the binary file</param>
@@ -308,7 +293,7 @@ public class MemoryPackPersistenceManager : IPersistenceManager
     }
 
     /// <summary>
-    /// Validates the integrity of a binary persistence file
+    ///     Validates the integrity of a binary persistence file
     /// </summary>
     /// <param name="filePath">Path to the binary file</param>
     /// <param name="cancellationToken">Cancellation token</param>
@@ -320,7 +305,9 @@ public class MemoryPackPersistenceManager : IPersistenceManager
             ArgumentNullException.ThrowIfNull(filePath);
 
             if (!File.Exists(filePath))
+            {
                 return false;
+            }
 
             await using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
 
@@ -333,13 +320,19 @@ public class MemoryPackPersistenceManager : IPersistenceManager
 
             // Basic validation
             if (header.MagicNumber != MagicNumber)
+            {
                 return false;
+            }
 
             if (header.Version > CurrentFileVersion)
+            {
                 return false;
+            }
 
             if (header.FileSize != (ulong)fileStream.Length)
+            {
                 return false;
+            }
 
             _logger.Debug("File {FilePath} passed basic validation", filePath);
             return true;
@@ -352,7 +345,7 @@ public class MemoryPackPersistenceManager : IPersistenceManager
     }
 
     /// <summary>
-    /// Gets file information without loading the entire file
+    ///     Gets file information without loading the entire file
     /// </summary>
     /// <param name="filePath">Path to the binary file</param>
     /// <param name="cancellationToken">Cancellation token</param>
@@ -362,7 +355,9 @@ public class MemoryPackPersistenceManager : IPersistenceManager
         ArgumentNullException.ThrowIfNull(filePath);
 
         if (!File.Exists(filePath))
+        {
             throw new FileNotFoundException($"Binary persistence file not found: {filePath}");
+        }
 
         await using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
 
@@ -400,9 +395,11 @@ public class MemoryPackPersistenceManager : IPersistenceManager
     }
 
     /// <summary>
-    /// Disposes resources used by the service
+    ///     Disposes resources used by the service
     /// </summary>
-    public void Dispose() =>
+    public void Dispose()
+    {
         // No resources to dispose currently
         SuppressFinalize(this);
+    }
 }

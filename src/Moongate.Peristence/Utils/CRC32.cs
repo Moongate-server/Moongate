@@ -1,7 +1,7 @@
 namespace Moongate.Persistence.Utils;
 
 /// <summary>
-/// Simple CRC32 implementation for data integrity
+///     Simple CRC32 implementation for data integrity
 /// </summary>
 internal static class CRC32
 {
@@ -19,6 +19,7 @@ internal static class CRC32
             {
                 crc = (crc & 1) == 1 ? (crc >> 1) ^ polynomial : crc >> 1;
             }
+
             table[i] = crc;
         }
 
@@ -27,7 +28,7 @@ internal static class CRC32
 
     public static uint Compute(ReadOnlySpan<byte> data)
     {
-        uint crc = 0xFFFFFFFF;
+        var crc = 0xFFFFFFFF;
 
         foreach (var b in data)
         {

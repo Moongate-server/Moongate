@@ -4,11 +4,12 @@ using Moongate.Persistence.Interfaces.Entities;
 namespace Moongate.Persistence.Builders;
 
 /// <summary>
-/// Implementation of the entity registration builder
+///     Implementation of the entity registration builder
 /// </summary>
 public class EntityRegistrationBuilder : IEntityRegistrationBuilder
 {
-    public static EntityRegistrationBuilder Instance { get; } = new EntityRegistrationBuilder();
+    public static EntityRegistrationBuilder Instance { get; } = new();
+
     public IEntityRegistrationBuilder Register<T>(byte id) where T : class
     {
         EntityTypeRegistry.RegisterEntityType<T>(id);
