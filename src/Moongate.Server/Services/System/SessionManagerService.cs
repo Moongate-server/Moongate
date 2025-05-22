@@ -9,8 +9,6 @@ namespace Moongate.Server.Services.System;
 
 public class SessionManagerService : AbstractBaseMoongateService, ISessionManagerService
 {
-    private readonly INetworkService _networkService;
-
     private readonly ObjectPool<SessionData> _sessionPool = ObjectPool.Create(
         new DefaultPooledObjectPolicy<SessionData>()
     );
@@ -19,7 +17,6 @@ public class SessionManagerService : AbstractBaseMoongateService, ISessionManage
 
     public SessionManagerService() : base(Log.ForContext<SessionManagerService>())
     {
-
     }
 
     public SessionData? GetSession(string sessionId, bool throwIfNotFound = true)
