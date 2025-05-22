@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using DryIoc;
 using Moongate.Core.Data.Configs.Server;
 using Moongate.Core.Data.Options;
@@ -90,26 +91,6 @@ public class MoongateStartupServer
         try
         {
             await startupService.StartAsync(_cancellationTokenSource.Token);
-
-            var entitiesTst = new List<AccountEntity>();
-
-            for (var i = 0; i < 100; i++)
-            {
-                var entity = new AccountEntity();
-                entity.Id = i.ToString();
-                entity.Username = $"User{i}";
-                entity.PasswordHash = $"PasswordHash{i}";
-                entitiesTst.Add(entity);
-            }
-
-            var persistenceManager = _container.Resolve<IPersistenceManager>();
-            var entitiesToType = new Dictionary<Type, IList<object>>();
-
-            entitiesToType.Add(typeof(AccountEntity), entitiesTst.Cast<object>().ToList());
-
-            await persistenceManager.SaveEntitiesAsync("/tmp/test.bin", entitiesToType);
-
-
 
             await RunConsoleInputLoop();
         }
