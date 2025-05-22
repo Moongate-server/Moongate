@@ -8,6 +8,7 @@ namespace Moongate.Persistence.Builders;
 /// </summary>
 public class EntityRegistrationBuilder : IEntityRegistrationBuilder
 {
+    public static EntityRegistrationBuilder Instance { get; } = new EntityRegistrationBuilder();
     public IEntityRegistrationBuilder Register<T>(byte id) where T : class
     {
         EntityTypeRegistry.RegisterEntityType<T>(id);

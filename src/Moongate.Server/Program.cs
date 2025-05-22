@@ -7,7 +7,11 @@ using Moongate.Core.Extensions.Services;
 using Moongate.Core.Instances;
 using Moongate.Core.Interfaces.Services.System;
 using Moongate.Core.Types;
+using Moongate.Persistence.Builders;
+using Moongate.Persistence.Interfaces.Services;
+using Moongate.Persistence.Services;
 using Moongate.Server;
+using Moongate.Server.Entities;
 using Moongate.Server.Modules;
 using Moongate.Server.Services.System;
 using Moongate.Uo.Network.Interfaces.Services;
@@ -53,6 +57,8 @@ await ConsoleApp.RunAsync(
             }
         };
 
+        EntityRegistrationBuilder.Instance.Register<AccountEntity>();
+
         moongateStartupServer.RegisterServices += container =>
         {
             container
@@ -70,6 +76,9 @@ await ConsoleApp.RunAsync(
                 .AddService(typeof(INetworkService), typeof(NetworkService), 100)
                 ;
 
+
+            container
+                .AddService(typeof(IPersistenceManager), typeof(MemoryPackPersistenceManager));
 
             container.RegisterInstance(new ScriptEngineConfig());
 

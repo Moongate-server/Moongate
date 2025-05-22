@@ -9,6 +9,8 @@ using Moongate.Core.Interfaces.Services.System;
 using Moongate.Core.Json;
 using Moongate.Core.Types;
 using Moongate.Core.Utils.Resources;
+using Moongate.Persistence.Interfaces.Services;
+using Moongate.Server.Entities;
 using Moongate.Server.Json;
 using Moongate.Server.Services.System;
 using Serilog;
@@ -89,6 +91,26 @@ public class MoongateStartupServer
         {
             await startupService.StartAsync(_cancellationTokenSource.Token);
 
+            var entitiesTst = new List<AccountEntity>();
+
+            for (var i = 0; i < 100; i++)
+            {
+                var entity = new AccountEntity();
+                entity.Id = i.ToString();
+                entity.Username = $"User{i}";
+                entity.PasswordHash = $"PasswordHash{i}";
+                entitiesTst.Add(entity);
+            }
+
+            var persistenceManager = _container.Resolve<IPersistenceManager>();
+            var entitiesToType = new Dictionary<Type, IList<object>>();
+
+            entitiesToType.Add(typeof(AccountEntity), entitiesTst.Cast<object>().ToList());
+
+            await persistenceManager.SaveEntitiesAsync("/tmp/test.bin", entitiesToType);
+
+
+
             await RunConsoleInputLoop();
         }
         catch (Exception ex)
@@ -155,7 +177,7 @@ public class MoongateStartupServer
         await using var registration = cancellationToken.Register(() => { tcs.TrySetCanceled(); });
 
 
-        var readTask = Task.Run(
+        Task.Run(
             () =>
             {
                 try

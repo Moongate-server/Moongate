@@ -1,13 +1,14 @@
 using System.Security.Cryptography;
 using MemoryPack;
 using Moongate.Persistence.Entities;
+using Moongate.Persistence.Interfaces.Services;
 using Moongate.Persistence.Utils;
 using Serilog;
 using static System.GC;
 
 namespace Moongate.Persistence.Services;
 
-public class MemoryPackPersistenceManager
+public class MemoryPackPersistenceManager : IPersistenceManager
 {
     private readonly ILogger _logger = Log.ForContext<MemoryPackPersistenceManager>();
 
@@ -79,7 +80,7 @@ public class MemoryPackPersistenceManager
                 // Write entities of this type
                 foreach (var entity in entityList)
                 {
-                    var entityBytes = MemoryPackSerializer.Serialize(entity);
+                    var entityBytes = MemoryPackSerializer.Serialize(entityType, entity);
                     var entityChecksum = CRC32.Compute(entityBytes);
 
                     var entityHeader = new EntityHeader
