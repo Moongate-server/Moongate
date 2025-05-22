@@ -54,6 +54,26 @@ public class AccountManagerService : AbstractBaseMoongateStartStopService, IAcco
         return true;
     }
 
+    public AccountEntity? Login(string username, string password)
+    {
+        if (_accounts.TryGetValue(username, out var account))
+        {
+            if (HashUtils.VerifyPassword(password, account.PasswordHash))
+            {
+                Logger.Information("User {Username} logged in successfully.", username);
+                return account;
+            }
+
+            Logger.Warning("Invalid password for user {Username}.", username);
+        }
+        else
+        {
+            Logger.Warning("User {Username} not found.", username);
+        }
+
+        return null;
+    }
+
 
     public override async Task StartAsync(CancellationToken cancellationToken = default)
     {
