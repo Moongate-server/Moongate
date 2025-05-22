@@ -1,5 +1,5 @@
-using Moongate.Core.Data.Sessions;
 using Moongate.Core.Interfaces.Services.Base;
+using Moongate.Uo.Network.Data.Sessions;
 
 namespace Moongate.Uo.Network.Interfaces.Services;
 

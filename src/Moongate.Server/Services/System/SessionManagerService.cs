@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.ObjectPool;
-using Moongate.Core.Data.Sessions;
 using Moongate.Core.Services.Base;
+using Moongate.Uo.Network.Data.Sessions;
 using Moongate.Uo.Network.Interfaces.Services;
 using Serilog;
 
@@ -42,6 +42,7 @@ public class SessionManagerService : AbstractBaseMoongateService, ISessionManage
         }
 
         var session = _sessionPool.Get();
+        session.Id = sessionId;
         _sessionData[sessionId] = session;
 
         Logger.Information("Created session: {SessionId}", sessionId);

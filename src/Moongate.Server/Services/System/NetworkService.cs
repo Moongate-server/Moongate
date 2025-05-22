@@ -9,6 +9,7 @@ using Moongate.Core.Network.Data;
 using Moongate.Core.Network.Servers.Tcp;
 using Moongate.Core.Services.Base;
 using Moongate.Core.Spans;
+using Moongate.Uo.Network.Data.Sessions;
 using Moongate.Uo.Network.Interfaces.Handlers;
 using Moongate.Uo.Network.Interfaces.Messages;
 using Moongate.Uo.Network.Interfaces.Services;
@@ -118,6 +119,7 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
             Logger.Warning("Client {ClientId} not found in the list of connected clients", obj.Id);
         }
 
+        _sessionManagerService.GetSession(obj.Id).OnSendPacket -= SendPacket;
         ClientDisconnected?.Invoke(server.Id, obj.Id);
         _eventBusService.PublishAsync(new ClientDisconnectedEvent(server.Id, obj.Id));
         _sessionManagerService.DeleteSession(obj.Id);
@@ -129,10 +131,50 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
         {
             var session = _sessionManagerService.CreateSession(obj.Id);
             session.Client = obj;
+            session.OnSendPacket += SendPacket;
 
             Logger.Debug("Added session Id {Session}", obj.Id);
             ClientConnected?.Invoke(server.Id, obj.Id, obj);
             _eventBusService.PublishAsync(new ClientConnectedEvent(server.Id, obj.Id));
+        }
+    }
+
+    private void SendPacket(NetClient client, IUoNetworkPacket packet)
+    {
+        try
+        {
+            using var packetBuffer = new SpanWriter();
+            var bufferToSend = packet.Write(packetBuffer);
+
+            SendBuffer(client, bufferToSend);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "Error sending packet to client {ClientId}", client.Id);
+        }
+    }
+
+    private void SendBuffer(NetClient client, ReadOnlyMemory<byte> buffer)
+    {
+        try
+        {
+            if (_useEventLoop)
+            {
+                _eventLoopService.EnqueueAction(
+                    $" network_send_{client.Id}",
+                    () => client.Send(buffer)
+                );
+            }
+            else
+            {
+                client.Send(buffer);
+            }
+
+            client.Send(buffer);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "Error sending buffer to client {ClientId}", client.Id);
         }
     }
 
@@ -359,10 +401,27 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
         var handler = _container.Resolve<THandler>();
 
 
-        value.Add((session, networkPacket) => { handler.OnPacketReceived(session, networkPacket); }
+        value.Add((session, networkPacket) =>
+            {
+                if (_useEventLoop)
+                {
+                    _eventLoopService.EnqueueAction(
+                        $"packet_listener_{typeof(THandler).Name}",
+                        () => handler.OnPacketReceivedAsync(session, networkPacket).Wait()
+                    );
+                }
+                else
+                {
+                    Task.Run(async () => await handler.OnPacketReceivedAsync(session, networkPacket));
+                }
+            }
         );
 
-        Logger.Debug("Registered packet handler (via DI) for opCode {OpCode} in handler name: {HandleTypeName}",  "0x"+opCode.ToString("X2"), typeof(THandler).Name);
+        Logger.Debug(
+            "Registered packet handler (via DI) for opCode {OpCode} in handler name: {HandleTypeName}",
+            "0x" + opCode.ToString("X2"),
+            typeof(THandler).Name
+        );
     }
 
 

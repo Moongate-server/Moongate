@@ -2,7 +2,6 @@ using System.Buffers;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-
 using Moongate.Core.Network.Middleware;
 using NanoidDotNet;
 
@@ -49,6 +48,7 @@ public class NetClient
     public string Ip { get; private set; }
 
     private readonly List<INetMiddleware> _middlewares = new();
+    private readonly List<INetInterceptor> _interceptors = new();
     private Socket _socket;
     private int _sending;
 
@@ -66,6 +66,11 @@ public class NetClient
         _middlewares.Add(middleware);
     }
 
+    public void AddInterceptor(INetInterceptor interceptor)
+    {
+        _interceptors.Add(interceptor);
+    }
+
     /// <summary>
     /// Remove a middleware from the client
     /// </summary>
@@ -73,6 +78,11 @@ public class NetClient
     public void RemoveMiddleware(INetMiddleware middleware)
     {
         _middlewares.Remove(middleware);
+    }
+
+    public void RemoveInterceptor(INetInterceptor interceptor)
+    {
+        _interceptors.Remove(interceptor);
     }
 
     /// <summary>
@@ -200,6 +210,21 @@ public class NetClient
             return false;
         }
 
+        foreach (var interceptor in _interceptors)
+        {
+            try
+            {
+                interceptor.ProcessSend(data);
+            }
+            catch (Exception e)
+            {
+                OnError?.Invoke(e);
+                // reset sending flag
+                Interlocked.Exchange(ref _sending, 0);
+                return false;
+            }
+        }
+
         // process through middlewares
         foreach (var middleware in _middlewares)
         {
@@ -215,6 +240,7 @@ public class NetClient
                 return false;
             }
         }
+
 
         _tempSendBuffer = ArrayPool<byte>.Shared.Rent(data.Length);
         data.Span.CopyTo(_tempSendBuffer);
@@ -307,6 +333,8 @@ public class NetClient
                             goto cont_receive;
                         }
                     }
+
+
 
                     // still the original data or partially the original data
                     ref byte processed = ref MemoryMarshal.GetReference(processedData.Span);
