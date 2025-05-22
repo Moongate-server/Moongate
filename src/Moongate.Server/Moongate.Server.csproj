@@ -61,4 +61,8 @@
       <EmbeddedResource Include="Assets\**\*" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Entities\" />
+    </ItemGroup>
+
 </Project>

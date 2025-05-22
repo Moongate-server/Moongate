@@ -2,7 +2,7 @@ using MemoryPack;
 using Moongate.Persistence.Attributes;
 using NanoidDotNet;
 
-namespace Moongate.Server.Entities;
+namespace Moongate.Uo.Services.Serialization.Entities;
 
 
 [MemoryPackable]

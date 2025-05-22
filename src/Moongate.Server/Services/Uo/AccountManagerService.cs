@@ -5,8 +5,8 @@ using Moongate.Core.Types;
 using Moongate.Core.Utils.Hash;
 using Moongate.Persistence.Extensions;
 using Moongate.Persistence.Interfaces.Services;
-using Moongate.Server.Entities;
 using Moongate.Uo.Services.Interfaces.Services;
+using Moongate.Uo.Services.Serialization.Entities;
 using Serilog;
 
 namespace Moongate.Server.Services.Uo;
@@ -66,7 +66,6 @@ public class AccountManagerService : AbstractBaseMoongateStartStopService, IAcco
         {
             Logger.Warning("No accounts file found. Creating default one.");
             Logger.Warning("Default username: admin, password: admin");
-
 
             CreateAccount("admin", "admin");
 

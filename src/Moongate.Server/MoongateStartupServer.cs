@@ -11,7 +11,6 @@ using Moongate.Core.Json;
 using Moongate.Core.Types;
 using Moongate.Core.Utils.Resources;
 using Moongate.Persistence.Interfaces.Services;
-using Moongate.Server.Entities;
 using Moongate.Server.Json;
 using Moongate.Server.Services.System;
 using Serilog;

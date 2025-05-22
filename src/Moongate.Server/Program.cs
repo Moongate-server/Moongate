@@ -11,12 +11,12 @@ using Moongate.Persistence.Builders;
 using Moongate.Persistence.Interfaces.Services;
 using Moongate.Persistence.Services;
 using Moongate.Server;
-using Moongate.Server.Entities;
 using Moongate.Server.Modules;
 using Moongate.Server.Services.System;
 using Moongate.Server.Services.Uo;
 using Moongate.Uo.Network.Interfaces.Services;
 using Moongate.Uo.Services.Interfaces.Services;
+using Moongate.Uo.Services.Serialization.Entities;
 using Orion.Core.Server.Interfaces.Services.System;
 
 
