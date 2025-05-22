@@ -7,5 +7,9 @@
     "gamePort": 2594,
     "isPingServerEnabled": false,
     "logPackets": true
+  },
+  "webServer": {
+    "port": 23853,
+    "enabled": true
   }
 }

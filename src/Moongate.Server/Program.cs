@@ -7,6 +7,8 @@ using Moongate.Core.Extensions.Services;
 using Moongate.Core.Instances;
 using Moongate.Core.Interfaces.Services.System;
 using Moongate.Core.Types;
+using Moongate.Core.Web.Interfaces.Services;
+using Moongate.Core.Web.Services;
 using Moongate.Persistence.Builders;
 using Moongate.Persistence.Interfaces.Services;
 using Moongate.Persistence.Services;
@@ -76,6 +78,7 @@ await ConsoleApp.RunAsync(
                 .AddService(typeof(IProcessQueueService), typeof(ProcessQueueService))
                 .AddService(typeof(IEventDispatcherService), typeof(EventDispatcherService))
                 .AddService(typeof(IScriptEngineService), typeof(ScriptEngineService))
+                .AddService(typeof(IWebServerService), typeof(WebServerService))
                 .AddService(typeof(ISessionManagerService), typeof(SessionManagerService), 99)
                 .AddService(typeof(INetworkService), typeof(NetworkService), 100)
                 ;

@@ -212,7 +212,7 @@ public class EventLoopService : IEventLoopService, IMetricsProvider
 
         UpdatePriorityMetrics();
 
-        _logger.Debug(
+        _logger.Verbose(
             "Action '{Name}' with ID {Id} enqueued with priority {Priority}",
             name,
             queuedAction.Id,

@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using Moongate.Core.Data.Configs.Server;
 using Moongate.Core.Data.Configs.Server.Sections;
+using Moongate.Core.Web.Interfaces.Services;
 
 namespace Moongate.Server.Json;
 
@@ -15,6 +16,7 @@ namespace Moongate.Server.Json;
 [JsonSerializable(typeof(MoongateServerConfig))]
 [JsonSerializable(typeof(ShardConfig))]
 [JsonSerializable(typeof(NetworkConfig))]
+[JsonSerializable(typeof(WebServerConfig))]
 public partial class MoongateJsonContext : JsonSerializerContext
 {
 }
