@@ -4,6 +4,7 @@ using Moongate.Core.Data.Configs.Services;
 using Moongate.Core.Data.Options;
 using Moongate.Core.Directories;
 using Moongate.Core.Extensions.Services;
+using Moongate.Core.Instances;
 using Moongate.Core.Interfaces.Services.System;
 using Moongate.Core.Types;
 using Moongate.Server;
@@ -11,6 +12,7 @@ using Moongate.Server.Modules;
 using Moongate.Server.Services.System;
 using Moongate.Uo.Network.Interfaces.Services;
 using Orion.Core.Server.Interfaces.Services.System;
+
 
 await ConsoleApp.RunAsync(
     args,
@@ -21,11 +23,7 @@ await ConsoleApp.RunAsync(
     {
         var cts = new CancellationTokenSource();
 
-        Console.CancelKeyPress += (sender, eventArgs) =>
-        {
-            eventArgs.Cancel = true;
-            cts.Cancel();
-        };
+        MoongateInstanceHolder.ConsoleCancellationTokenSource = cts;
 
         var moongateStartupServer = new MoongateStartupServer(
             cts,
@@ -39,6 +37,21 @@ await ConsoleApp.RunAsync(
                 DefaultLogLevel = defaultLogLevel
             }
         );
+
+        Console.CancelKeyPress += (sender, eventArgs) =>
+        {
+            eventArgs.Cancel = true;
+
+            Console.WriteLine();
+            Console.WriteLine("Shutdown signal received. Stopping server gracefully...");
+
+            moongateStartupServer.StopAsync().Wait();
+
+            if (!cts.Token.IsCancellationRequested)
+            {
+                cts.Cancel();
+            }
+        };
 
         moongateStartupServer.RegisterServices += container =>
         {
@@ -67,7 +80,6 @@ await ConsoleApp.RunAsync(
                     PidFileName = Path.Combine(container.Resolve<DirectoriesConfig>().Root, "moongate.pid")
                 }
             );
-
         };
 
 

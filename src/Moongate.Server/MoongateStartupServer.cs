@@ -10,6 +10,7 @@ using Moongate.Core.Json;
 using Moongate.Core.Types;
 using Moongate.Core.Utils.Resources;
 using Moongate.Server.Json;
+using Moongate.Server.Services.System;
 using Serilog;
 using Serilog.Formatting.Compact;
 
@@ -24,7 +25,6 @@ public class MoongateStartupServer
     public delegate void RegisterScriptModulesDelegate(IScriptEngineService container);
 
     public event RegisterScriptModulesDelegate RegisterScriptModules;
-
 
     private IContainer _container;
 
@@ -61,6 +61,15 @@ public class MoongateStartupServer
         _container.AddService(typeof(MoongateStartupService));
 
         RegisterServices?.Invoke(_container);
+
+        _container.AddService(typeof(IConsoleCommandService), typeof(ConsoleCommandService));
+    }
+
+    public Task StopAsync()
+    {
+        var startupService = _container.Resolve<MoongateStartupService>();
+
+        return startupService.StopAsync(_cancellationTokenSource.Token);
     }
 
     public async Task StartAsync()
@@ -79,12 +88,8 @@ public class MoongateStartupServer
         try
         {
             await startupService.StartAsync(_cancellationTokenSource.Token);
-            await Task.Delay(Timeout.Infinite, _cancellationTokenSource.Token);
-        }
-        catch (TaskCanceledException)
-        {
-            Log.Information("Cancellation requested. Exiting...");
-            await startupService.StopAsync(_cancellationTokenSource.Token);
+
+            await RunConsoleInputLoop();
         }
         catch (Exception ex)
         {
@@ -93,6 +98,86 @@ public class MoongateStartupServer
         finally
         {
             await Log.CloseAndFlushAsync();
+        }
+    }
+
+    private async Task RunConsoleInputLoop()
+    {
+        Log.Information("Server started successfully. Type 'help' for commands or 'quit' to exit.");
+        Log.Information("Press Ctrl+C to stop the server.");
+
+        var consoleTask = Task.Run(async () =>
+            {
+                while (!_cancellationTokenSource.Token.IsCancellationRequested)
+                {
+                    try
+                    {
+                        Console.Write("> ");
+
+                        var input = await ReadLineWithCancellation(_cancellationTokenSource.Token);
+
+                        if (input == null)
+                            break;
+
+                        if (string.IsNullOrWhiteSpace(input))
+                            continue;
+
+                        await _container.Resolve<IConsoleCommandService>().ProcessCommand(input.Trim().ToLowerInvariant());
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Error processing console command.");
+                    }
+                }
+            }
+        );
+
+
+        try
+        {
+            await Task.WhenAny(consoleTask, Task.Delay(Timeout.Infinite, _cancellationTokenSource.Token));
+        }
+        catch (OperationCanceledException)
+        {
+            Log.Information("Cancellation detected in console loop.");
+        }
+    }
+
+    private async Task<string> ReadLineWithCancellation(CancellationToken cancellationToken)
+    {
+        var tcs = new TaskCompletionSource<string>();
+
+
+        await using var registration = cancellationToken.Register(() => { tcs.TrySetCanceled(); });
+
+
+        var readTask = Task.Run(
+            () =>
+            {
+                try
+                {
+                    var result = Console.ReadLine();
+                    tcs.TrySetResult(result);
+                }
+                catch (Exception ex)
+                {
+                    tcs.TrySetException(ex);
+                }
+            },
+            cancellationToken
+        );
+
+        try
+        {
+            return await tcs.Task;
+        }
+        catch (OperationCanceledException)
+        {
+            return null;
         }
     }
 
