@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using Serilog;
 
 namespace Moongate.Persistence.Entities;
 
@@ -12,6 +13,8 @@ public static class EntityTypeRegistry
     private static readonly ConcurrentDictionary<byte, Type> _idToType = new();
     private static byte _nextId = 1;
 
+    private static readonly ILogger _logger = Log.ForContext(typeof(EntityTypeRegistry));
+
     /// <summary>
     ///     Registers an entity type with the specified ID
     /// </summary>
@@ -22,6 +25,8 @@ public static class EntityTypeRegistry
         var type = typeof(T);
         _typeToId[type] = id;
         _idToType[id] = type;
+
+        _logger.Debug("Registered entity type {type} id: 0x{Id:X2}", type.Name, id);
     }
 
     /// <summary>

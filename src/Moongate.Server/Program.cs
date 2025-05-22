@@ -14,7 +14,9 @@ using Moongate.Server;
 using Moongate.Server.Entities;
 using Moongate.Server.Modules;
 using Moongate.Server.Services.System;
+using Moongate.Server.Services.Uo;
 using Moongate.Uo.Network.Interfaces.Services;
+using Moongate.Uo.Services.Interfaces.Services;
 using Orion.Core.Server.Interfaces.Services.System;
 
 
@@ -79,6 +81,10 @@ await ConsoleApp.RunAsync(
 
             container
                 .AddService(typeof(IPersistenceManager), typeof(MemoryPackPersistenceManager));
+
+
+            container
+                .AddService(typeof(IAccountManagerService), typeof(AccountManagerService));
 
             container.RegisterInstance(new ScriptEngineConfig());
 

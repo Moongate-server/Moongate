@@ -75,7 +75,7 @@ public static class HashUtils
     public static string CreatePassword(string password)
     {
         var (hash, salt) = HashPassword(password);
-        return $"{hash}:{salt}";
+        return $"hash://{hash}:{salt}";
     }
 
     /// <summary>

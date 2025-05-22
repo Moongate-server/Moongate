@@ -106,8 +106,8 @@ public class MoongateStartupServer
 
     private async Task RunConsoleInputLoop()
     {
-        Log.Information("Server started successfully. Type 'help' for commands or 'quit' to exit.");
-        Log.Information("Press Ctrl+C to stop the server.");
+        Console.WriteLine("Server started successfully. Type 'help' for commands or 'quit' to exit.");
+        Console.WriteLine("Press Ctrl+C to stop the server.");
 
         var consoleTask = Task.Run(async () =>
             {
@@ -120,10 +120,14 @@ public class MoongateStartupServer
                         var input = await ReadLineWithCancellation(_cancellationTokenSource.Token);
 
                         if (input == null)
+                        {
                             break;
+                        }
 
                         if (string.IsNullOrWhiteSpace(input))
+                        {
                             continue;
+                        }
 
                         await _container.Resolve<IConsoleCommandService>().ProcessCommand(input.Trim().ToLowerInvariant());
                     }
@@ -227,6 +231,10 @@ public class MoongateStartupServer
     {
         var logConfiguration = new LoggerConfiguration()
             .MinimumLevel.Is(_moongateServerArgs.DefaultLogLevel.ToSerilogLogLevel())
+            .Enrich.FromLogContext()
+            .Enrich.WithProcessId()
+            .Enrich.WithProcessName()
+            .Enrich.WithThreadId()
             .WriteTo.Console();
 
         if (_moongateServerArgs.LogToFile)

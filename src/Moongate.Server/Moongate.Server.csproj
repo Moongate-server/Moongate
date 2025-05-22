@@ -31,6 +31,8 @@
         <PackageReference Include="NLua" Version="1.7.5"/>
         <PackageReference Include="Scriban" Version="6.2.1"/>
         <PackageReference Include="Serilog" Version="4.3.0"/>
+        <PackageReference Include="Serilog.Enrichers.Process" Version="3.0.0" />
+        <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
         <PackageReference Include="Serilog.Formatting.Compact" Version="3.0.0"/>
         <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0"/>
         <PackageReference Include="Serilog.Sinks.File" Version="7.0.0"/>
@@ -43,9 +45,11 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Moongate.Core.Network\Moongate.Core.Network.csproj" />
+        <ProjectReference Include="..\Moongate.Core.Web\Moongate.Core.Web.csproj" />
         <ProjectReference Include="..\Moongate.Core\Moongate.Core.csproj"/>
         <ProjectReference Include="..\Moongate.Peristence\Moongate.Persistence.csproj" />
         <ProjectReference Include="..\Moongate.Uo.Network\Moongate.Uo.Network.csproj" />
+        <ProjectReference Include="..\Moongate.Uo.Services\Moongate.Uo.Services.csproj" />
     </ItemGroup>
 
     <ItemGroup>
