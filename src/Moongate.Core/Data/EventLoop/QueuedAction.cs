@@ -1,4 +1,5 @@
 using Moongate.Core.Types;
+using NanoidDotNet;
 
 namespace Moongate.Core.Data.EventLoop;
 
@@ -10,7 +11,7 @@ public struct QueuedAction
     /// <summary>
     /// Gets the unique identifier for this action.
     /// </summary>
-    public Guid Id { get; }
+    public string Id { get; }
 
     /// <summary>
     /// Gets the name of the action for easier identification.
@@ -50,8 +51,8 @@ public struct QueuedAction
     /// <param name="priority">The priority of the action.</param>
     public QueuedAction(string name, Action action, EventLoopPriority priority)
     {
-        Id = Guid.NewGuid();
-        Name = name;
+        Id = Nanoid.Generate();
+        Name = name.ToLower();
         Action = action;
         Priority = priority;
         EnqueuedAt = DateTime.UtcNow;

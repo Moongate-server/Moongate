@@ -5,6 +5,7 @@
   "network": {
     "loginPort": 2593,
     "gamePort": 2594,
-    "isPingServerEnabled": false
+    "isPingServerEnabled": false,
+    "logPackets": true
   }
 }

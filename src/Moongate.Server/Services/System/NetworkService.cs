@@ -1,15 +1,18 @@
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Text;
 using DryIoc;
 using Moongate.Core.Data.Configs.Server;
 using Moongate.Core.Data.Events.Network;
+using Moongate.Core.Directories;
+using Moongate.Core.Extensions.Buffers;
 using Moongate.Core.Interfaces.Services.System;
 using Moongate.Core.Network.Data;
 using Moongate.Core.Network.Servers.Tcp;
 using Moongate.Core.Services.Base;
 using Moongate.Core.Spans;
-using Moongate.Uo.Network.Data.Sessions;
+using Moongate.Core.Types;
 using Moongate.Uo.Network.Interfaces.Handlers;
 using Moongate.Uo.Network.Interfaces.Messages;
 using Moongate.Uo.Network.Interfaces.Services;
@@ -27,6 +30,7 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
     private readonly Dictionary<byte, List<INetworkService.PacketReceivedDelegate>> _packetHandlers = new();
 
     private readonly ISessionManagerService _sessionManagerService;
+    private readonly DirectoriesConfig _directoriesConfig;
     private readonly IEventLoopService _eventLoopService;
     private readonly MoongateServerConfig _moongateServerConfig;
     private readonly MoonTcpServerOptions _moonTcpServerOptions = new();
@@ -43,7 +47,8 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
 
     public NetworkService(
         MoongateServerConfig moongateServerConfig, IEventBusService eventBusService,
-        ISessionManagerService sessionManagerService, IEventLoopService eventLoopService, IContainer container
+        ISessionManagerService sessionManagerService, IEventLoopService eventLoopService, IContainer container,
+        DirectoriesConfig directoriesConfig
     ) : base(
         Log.ForContext<NetworkService>()
     )
@@ -53,6 +58,7 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
         _sessionManagerService = sessionManagerService;
         _eventLoopService = eventLoopService;
         _container = container;
+        _directoriesConfig = directoriesConfig;
 
         PrepareTcpServers();
     }
@@ -146,6 +152,8 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
             using var packetBuffer = new SpanWriter();
             var bufferToSend = packet.Write(packetBuffer);
 
+            LogPacket(client.Id, bufferToSend, false);
+
             SendBuffer(client, bufferToSend);
         }
         catch (Exception ex)
@@ -235,6 +243,8 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
 
 
             var currentPacketBuffer = remainingBuffer[..packetSize];
+            LogPacket(client.Id, currentPacketBuffer, true);
+
             using var packetBuffer = new SpanReader(currentPacketBuffer.Span);
 
             var packet = handler();
@@ -273,8 +283,8 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
         // Dispatch the packet to the appropriate handler
         // This is where you would implement your packet handling logic
         Logger.Debug(
-            "Dispatching packet with opcode: 0x{Opcode:X2} from client {ClientId}: {Content}",
-            packet.OpCode,
+            "Dispatching packet with opcode: {OpCode} from client {ClientId}: {Content}",
+            packet.OpCode.FormatHexValue(),
             clientId,
             packet.ToString()
         );
@@ -450,6 +460,28 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
         }
 
         return null;
+    }
+
+    private void LogPacket(string sessionId, ReadOnlyMemory<byte> buffer, bool IsReceived)
+    {
+        if (!_moongateServerConfig.Network.LogPackets)
+        {
+            return;
+        }
+
+        var logPath = Path.Combine(_directoriesConfig[DirectoryType.Logs], "packets.log");
+
+        using var sw = new StreamWriter(logPath, true);
+
+        var direction = IsReceived ? "Received" : "Sent";
+        var opCode = "OPCODE: 0x" + buffer.Span[0].ToString("X2");
+
+        sw.WriteLine(
+            $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} | {opCode}  | {direction} | Session ID: {sessionId} | Data size: {buffer.Length} bytes"
+        );
+        sw.FormatBuffer(buffer.Span);
+        sw.WriteLine();
+        sw.WriteLine(new string('-', 50));
     }
 
 

@@ -6,6 +6,7 @@ using Moongate.Core.Data.Metrics.EventLoop;
 using Moongate.Core.Interfaces.Metrics;
 using Moongate.Core.Interfaces.Services.System;
 using Moongate.Core.Types;
+using NanoidDotNet;
 using Serilog;
 
 namespace Moongate.Server.Services.System;
@@ -33,10 +34,10 @@ public class EventLoopService : IEventLoopService, IMetricsProvider
     private readonly ConcurrentDictionary<EventLoopPriority, ConcurrentQueue<QueuedAction>> _priorityQueues = new();
 
     // Tracks actions by ID to allow cancellation
-    private readonly ConcurrentDictionary<Guid, QueuedActionReference> _actionRegistry = new();
+    private readonly ConcurrentDictionary<string, QueuedActionReference> _actionRegistry = new();
 
     // Actions scheduled for future execution
-    private readonly ConcurrentDictionary<Guid, DelayedAction> _delayedActions = new();
+    private readonly ConcurrentDictionary<string, DelayedAction> _delayedActions = new();
 
     private readonly object _tickLock = new();
     private CancellationTokenSource _cancellationTokenSource;
@@ -82,7 +83,9 @@ public class EventLoopService : IEventLoopService, IMetricsProvider
     public async Task StartAsync(CancellationToken cancellationToken = default)
     {
         if (_isRunning)
+        {
             return;
+        }
 
         _isRunning = true;
         _cancellationTokenSource = new CancellationTokenSource();
@@ -141,7 +144,9 @@ public class EventLoopService : IEventLoopService, IMetricsProvider
     public async Task StopAsync(CancellationToken cancellationToken = default)
     {
         if (!_isRunning)
+        {
             return;
+        }
 
         _isRunning = false;
 
@@ -184,7 +189,7 @@ public class EventLoopService : IEventLoopService, IMetricsProvider
     /// <summary>
     /// Enqueues an action to be executed with normal priority.
     /// </summary>
-    public Guid EnqueueAction(string name, Action action)
+    public string EnqueueAction(string name, Action action)
     {
         return EnqueueAction(name, action, EventLoopPriority.Normal);
     }
@@ -192,10 +197,11 @@ public class EventLoopService : IEventLoopService, IMetricsProvider
     /// <summary>
     /// Enqueues an action to be executed with the specified priority.
     /// </summary>
-    public Guid EnqueueAction(string name, Action action, EventLoopPriority priority)
+    public string EnqueueAction(string name, Action action, EventLoopPriority priority)
     {
-        if (action == null)
-            throw new ArgumentNullException(nameof(action));
+        ArgumentNullException.ThrowIfNull(action);
+
+        name = name.ToLowerInvariant();
 
         var queuedAction = new QueuedAction(name, action, priority);
         var queue = _priorityQueues[priority];
@@ -206,7 +212,7 @@ public class EventLoopService : IEventLoopService, IMetricsProvider
 
         UpdatePriorityMetrics();
 
-        _logger.Verbose(
+        _logger.Debug(
             "Action '{Name}' with ID {Id} enqueued with priority {Priority}",
             name,
             queuedAction.Id,
@@ -219,7 +225,7 @@ public class EventLoopService : IEventLoopService, IMetricsProvider
     /// <summary>
     /// Enqueues an action to be executed after the specified delay with normal priority.
     /// </summary>
-    public Guid EnqueueDelayedAction(string name, Action action, TimeSpan delay)
+    public string EnqueueDelayedAction(string name, Action action, TimeSpan delay)
     {
         return EnqueueDelayedAction(name, action, delay, EventLoopPriority.Normal);
     }
@@ -227,7 +233,7 @@ public class EventLoopService : IEventLoopService, IMetricsProvider
     /// <summary>
     /// Enqueues an action to be executed after the specified delay with the specified priority.
     /// </summary>
-    public Guid EnqueueDelayedAction(string name, Action action, TimeSpan delay, EventLoopPriority priority)
+    public string EnqueueDelayedAction(string name, Action action, TimeSpan delay, EventLoopPriority priority)
     {
         if (action == null)
             throw new ArgumentNullException(nameof(action));
@@ -252,7 +258,7 @@ public class EventLoopService : IEventLoopService, IMetricsProvider
     /// <summary>
     /// Tries to cancel a previously enqueued action.
     /// </summary>
-    public bool TryCancelAction(Guid actionId)
+    public bool TryCancelAction(string actionId)
     {
         // First check in delayed actions
         if (_delayedActions.TryRemove(actionId, out var delayedAction))
@@ -561,9 +567,9 @@ public class EventLoopService : IEventLoopService, IMetricsProvider
     private class QueuedActionReference
     {
         public EventLoopPriority Priority { get; }
-        public Guid ActionId { get; }
+        public string ActionId { get; }
 
-        public QueuedActionReference(EventLoopPriority priority, Guid actionId)
+        public QueuedActionReference(EventLoopPriority priority, string actionId)
         {
             Priority = priority;
             ActionId = actionId;
