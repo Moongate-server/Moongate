@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Moongate.Core.Data.Scripts;
 using Moongate.Core.Interfaces.Services.Base;
 
@@ -20,11 +21,22 @@ public interface IScriptEngineService : IMoongateStartStopService
 
     bool ExecuteContextVariable(string name, params object[] args);
 
-    Task<bool> BootstrapAsync();
 
     Task<bool> SeedAsync();
 
-    void AddConstant<T>(T value);
+    void AddEnum<T>(T value) where T : struct, Enum;
 
-    void AddScriptModule(Type type);
+    /// <summary>
+    /// Adds a script module to the engine
+    /// </summary>
+    /// <param name="type">The module type with required members for AOT</param>
+    void AddScriptModule(
+        [DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.PublicConstructors |
+            DynamicallyAccessedMemberTypes.NonPublicConstructors |
+            DynamicallyAccessedMemberTypes.PublicMethods |
+            DynamicallyAccessedMemberTypes.PublicProperties
+        )]
+        Type type
+    );
 }

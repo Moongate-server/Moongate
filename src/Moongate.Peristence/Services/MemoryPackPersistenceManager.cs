@@ -34,7 +34,7 @@ public class MemoryPackPersistenceManager : IPersistenceManager
         ArgumentNullException.ThrowIfNull(filePath);
         ArgumentNullException.ThrowIfNull(entities);
 
-        _logger.Information("Saving {EntityCount} entity types to {FilePath}", entities.Count, filePath);
+        _logger.Debug("Saving {EntityCount} entity types to {FilePath}", entities.Count, filePath);
 
         await using var fileStream = new FileStream(
             filePath,

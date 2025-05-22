@@ -133,32 +133,33 @@ public class ScriptEngineService : IScriptEngineService
         }
     }
 
-    public void AddConstant<T>(T value)
+    public void AddEnum<T>(T value) where T : struct, Enum
     {
         if (typeof(T).IsEnum)
         {
             _logger.Debug("Adding enum {Enum}", value.GetType().Name);
 
-
             var prefix = value.GetType().Name.ToSnakeCase().ToUpper();
 
+            // AOT-safe enum handling
+            var enumNames = Enum.GetNames<T>();
+            var enumValues = Enum.GetValues<T>();
 
-            foreach (var enumValue in Enum.GetValues(value.GetType()))
+            for (int i = 0; i < enumNames.Length; i++)
             {
-                var enumName = Enum.GetName(value.GetType(), enumValue).ToSnakeCase().ToUpper();
-
+                var enumName = enumNames[i].ToSnakeCase().ToUpper();
                 var constantName = $"{prefix}_{enumName}";
+                var enumValue = Convert.ToInt32(enumValues[i]);
 
                 _logger.Debug(
                     "Adding constant {ConstantName} with value {EnumValue} {ValueAsInt} ",
                     constantName,
-                    enumValue,
-                    Convert.ToInt32(enumValue)
+                    enumValues[i],
+                    enumValue
                 );
 
-                _luaEngine[constantName] = Convert.ToInt32(enumValue);
-
-                Constants[constantName] = Convert.ToInt32(enumValue);
+                _luaEngine[constantName] = enumValue;
+                Constants[constantName] = enumValue;
             }
         }
     }
@@ -356,24 +357,12 @@ public class ScriptEngineService : IScriptEngineService
     }
 
 
-    public Task<bool> BootstrapAsync()
-    {
-        if (ExecuteContextVariable("bootstrap"))
-        {
-            return Task.FromResult(true);
-        }
 
-        _logger.Warning(
-            "Bootstrap function not found, you should define a function callback 'on_bootstrap' in your scripts"
-        );
-
-        return Task.FromResult(false);
-    }
 
     private static Delegate CreateLuaEngineDelegate(object obj, MethodInfo method)
     {
         var parameterTypes =
-            method.GetParameters().Select(p => p.ParameterType).Concat(new[] { method.ReturnType }).ToArray();
+            method.GetParameters().Select(p => p.ParameterType).Concat([method.ReturnType]).ToArray();
         return method.CreateDelegate(Expression.GetDelegateType(parameterTypes), obj);
     }
 

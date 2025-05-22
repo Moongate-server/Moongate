@@ -12,7 +12,13 @@
         <SelfContained>true</SelfContained>
         <PublishReadyToRun>true</PublishReadyToRun>
         <PublishSingleFile>true</PublishSingleFile>
-        
+
+        <!-- Suppress AOT warnings for external libraries -->
+        <NoWarn>$(NoWarn);IL2104;IL3053;TA100</NoWarn>
+
+        <!-- Suppress specific reflection warnings that are acceptable -->
+        <NoWarn>$(NoWarn);IL2026;IL3050;IL2070;IL2092</NoWarn>
+
     </PropertyGroup>
 
     <ItemGroup>
@@ -26,13 +32,13 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="9.0.5" />
+        <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="9.0.5"/>
 
         <PackageReference Include="NLua" Version="1.7.5"/>
         <PackageReference Include="Scriban" Version="6.2.1"/>
         <PackageReference Include="Serilog" Version="4.3.0"/>
-        <PackageReference Include="Serilog.Enrichers.Process" Version="3.0.0" />
-        <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
+        <PackageReference Include="Serilog.Enrichers.Process" Version="3.0.0"/>
+        <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0"/>
         <PackageReference Include="Serilog.Formatting.Compact" Version="3.0.0"/>
         <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0"/>
         <PackageReference Include="Serilog.Sinks.File" Version="7.0.0"/>
@@ -44,12 +50,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Moongate.Core.Network\Moongate.Core.Network.csproj" />
-        <ProjectReference Include="..\Moongate.Core.Web\Moongate.Core.Web.csproj" />
+        <ProjectReference Include="..\Moongate.Core.Network\Moongate.Core.Network.csproj"/>
+        <ProjectReference Include="..\Moongate.Core.Web\Moongate.Core.Web.csproj"/>
         <ProjectReference Include="..\Moongate.Core\Moongate.Core.csproj"/>
-        <ProjectReference Include="..\Moongate.Peristence\Moongate.Persistence.csproj" />
-        <ProjectReference Include="..\Moongate.Uo.Network\Moongate.Uo.Network.csproj" />
-        <ProjectReference Include="..\Moongate.Uo.Services\Moongate.Uo.Services.csproj" />
+        <ProjectReference Include="..\Moongate.Peristence\Moongate.Persistence.csproj"/>
+        <ProjectReference Include="..\Moongate.Uo.Network\Moongate.Uo.Network.csproj"/>
+        <ProjectReference Include="..\Moongate.Uo.Services\Moongate.Uo.Services.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -57,12 +63,13 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Remove="Assets\**\*" />
-      <EmbeddedResource Include="Assets\**\*" />
+        <None Remove="Assets\**\*"/>
+        <EmbeddedResource Include="Assets\**\*"/>
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Entities\" />
+        <Folder Include="Entities\"/>
     </ItemGroup>
+
 
 </Project>
