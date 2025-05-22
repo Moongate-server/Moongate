@@ -17,6 +17,7 @@
 ---@field Deconstruct fun(Name: String&, IntervalInSeconds: Int32&, Callback: Action&, DelayInSeconds: Int32&, IsRepeat: Boolean&): nil
 
 ---@section Tables
+console = {}
 include = {}
 logger = {}
 scheduler = {}
@@ -95,4 +96,11 @@ function timers.add_once(register) end
 ---@param timerId string
 ---@return nil
 function timers.delete(timerId) end
+
+---@description Register a new console command
+---@param command string
+---@param description string
+---@param handler Action`1
+---@return nil
+function console.register(command, description, handler) end
 

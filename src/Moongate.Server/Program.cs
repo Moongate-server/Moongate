@@ -90,6 +90,7 @@ await ConsoleApp.RunAsync(
             scriptEngine.AddScriptModule(typeof(IncludeModule));
             scriptEngine.AddScriptModule(typeof(VariableScriptModule));
             scriptEngine.AddScriptModule(typeof(TimerScriptModule));
+            scriptEngine.AddScriptModule(typeof(ConsoleCommandModule));
         };
 
 
