@@ -5,12 +5,22 @@ using NLua;
 
 namespace Moongate.Server.Utils;
 
+/// <summary>
+/// Generates Lua type definitions for script modules and functions
+/// </summary>
 public class LuaTypeDefinitionsGenerator
 {
     private static readonly StringBuilder _builder = new();
     private static readonly HashSet<Type> _processedTypes = new();
     private static readonly HashSet<Type> _typesToProcess = new();
 
+    /// <summary>
+    /// Generates comprehensive Lua type definitions
+    /// </summary>
+    /// <param name="functions">List of script function descriptors</param>
+    /// <param name="contextVariables">Context variables available in Lua</param>
+    /// <param name="constants">Constants available in Lua</param>
+    /// <returns>Generated Lua type definitions as string</returns>
     public static async Task<string> GenerateTypeDefinitionsAsync(
         List<ScriptFunctionDescriptor> functions,
         Dictionary<string, object> contextVariables,
@@ -48,6 +58,9 @@ public class LuaTypeDefinitionsGenerator
         return _builder.ToString();
     }
 
+    /// <summary>
+    /// Generates constant definitions section
+    /// </summary>
     private static async Task GenerateConstantDefinitionsAsync(Dictionary<string, object> constants)
     {
         if (!constants.Any()) return;
@@ -62,6 +75,9 @@ public class LuaTypeDefinitionsGenerator
         _builder.AppendLine();
     }
 
+    /// <summary>
+    /// Generates complex type definitions by analyzing function parameters and return types
+    /// </summary>
     private static async Task GenerateComplexTypesAsync(IEnumerable<ScriptFunctionDescriptor> functions)
     {
         // Discover types from function parameters and return types
@@ -97,6 +113,9 @@ public class LuaTypeDefinitionsGenerator
         }
     }
 
+    /// <summary>
+    /// Recursively discovers types that need definitions
+    /// </summary>
     private static void DiscoverTypes(Type type)
     {
         if (type == null || _processedTypes.Contains(type) || _typesToProcess.Contains(type))
@@ -141,6 +160,9 @@ public class LuaTypeDefinitionsGenerator
         }
     }
 
+    /// <summary>
+    /// Determines if a type is relevant for Lua definition generation
+    /// </summary>
     private static bool IsRelevantType(Type type)
     {
         return (type.IsClass || type.IsEnum || type.IsValueType) &&
@@ -150,6 +172,9 @@ public class LuaTypeDefinitionsGenerator
                type.Namespace?.StartsWith("System") != true;
     }
 
+    /// <summary>
+    /// Generates enum definition with all possible values
+    /// </summary>
     private static void GenerateEnumDefinition(Type enumType)
     {
         _builder.AppendLine($"---@alias {enumType.Name}");
@@ -168,6 +193,9 @@ public class LuaTypeDefinitionsGenerator
         _builder.AppendLine();
     }
 
+    /// <summary>
+    /// Generates class definition with properties and methods
+    /// </summary>
     private static void GenerateClassDefinition(Type type)
     {
         _builder.AppendLine($"---@class {type.Name}");
@@ -186,7 +214,9 @@ public class LuaTypeDefinitionsGenerator
                 continue;
 
             var parameters = method.GetParameters()
-                .Select(p => $"{p.Name}: {LuaTypeConverter.GetDetailedLuaType(p.ParameterType)}")
+                .Select(p =>
+                    $"{LuaTypeConverter.GetLuaParameterName(p.Name, p.ParameterType)}: {LuaTypeConverter.GetDetailedLuaType(p.ParameterType)}"
+                )
                 .ToList();
 
             var returnType = method.ReturnType == typeof(void)
@@ -199,6 +229,9 @@ public class LuaTypeDefinitionsGenerator
         _builder.AppendLine();
     }
 
+    /// <summary>
+    /// Generates context variable definitions
+    /// </summary>
     private static async Task GenerateContextVariablesAsync(Dictionary<string, object> contextVariables)
     {
         foreach (var (name, value) in contextVariables)
@@ -216,6 +249,9 @@ public class LuaTypeDefinitionsGenerator
         }
     }
 
+    /// <summary>
+    /// Generates table definitions for script modules
+    /// </summary>
     private static void GenerateTableDefinitions(IEnumerable<ScriptFunctionDescriptor> functions)
     {
         var tables = functions
@@ -234,6 +270,9 @@ public class LuaTypeDefinitionsGenerator
         _builder.AppendLine();
     }
 
+    /// <summary>
+    /// Generates individual function definition with proper parameter names and types
+    /// </summary>
     private static async Task GenerateFunctionDefinitionAsync(ScriptFunctionDescriptor function)
     {
         if (!string.IsNullOrEmpty(function.Help))
@@ -243,14 +282,17 @@ public class LuaTypeDefinitionsGenerator
 
         foreach (var param in function.Parameters)
         {
-            var paramName = param.ParameterName == "function" ? "fn" : param.ParameterName;
-            _builder.AppendLine($"---@param {paramName} {LuaTypeConverter.GetDetailedLuaType(param.RawParameterType)}");
+            var paramName = LuaTypeConverter.GetLuaParameterName(param.ParameterName, param.RawParameterType);
+            var paramType = LuaTypeConverter.GetDetailedLuaType(param.RawParameterType);
+            _builder.AppendLine($"---@param {paramName} {paramType}");
         }
 
-        _builder.AppendLine($"---@return {LuaTypeConverter.GetDetailedLuaType(function.RawReturnType)}");
+        var returnType = LuaTypeConverter.GetDetailedLuaType(function.RawReturnType);
+        _builder.AppendLine($"---@return {returnType}");
 
         var parameters = function.Parameters
-            .Select(p => p.ParameterName == "function" ? "fn" : p.ParameterName);
+            .Select(p => LuaTypeConverter.GetLuaParameterName(p.ParameterName, p.RawParameterType));
+
         _builder.AppendLine($"function {function.FunctionName}({string.Join(", ", parameters)}) end");
         _builder.AppendLine();
     }

@@ -1,10 +1,17 @@
 using NLua;
-using LuaFunction = KeraLua.LuaFunction;
 
 namespace Moongate.Server.Utils;
 
+/// <summary>
+/// Utility class for converting .NET types to Lua type definitions and handling type conversions
+/// </summary>
 public static class LuaTypeConverter
 {
+    /// <summary>
+    /// Converts a LuaTable to a Dictionary for easier manipulation
+    /// </summary>
+    /// <param name="luaTable">The LuaTable to convert</param>
+    /// <returns>A dictionary representation of the LuaTable</returns>
     public static Dictionary<string, object> LuaTableToDictionary(LuaTable luaTable)
     {
         var dict = new Dictionary<string, object>();
@@ -22,11 +29,30 @@ public static class LuaTypeConverter
         return dict;
     }
 
+    /// <summary>
+    /// Gets the Lua type representation for a .NET Type
+    /// </summary>
+    /// <param name="type">The .NET Type to convert</param>
+    /// <returns>The Lua type representation as string</returns>
     public static string GetLuaType(Type type)
     {
         if (type == null)
         {
             return "nil";
+        }
+
+        // Handle Action types with parameters
+        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Action<>))
+        {
+            var genericArgs = type.GetGenericArguments();
+            var paramTypes = string.Join(", ", genericArgs.Select(GetLuaType));
+            return $"fun({paramTypes})";
+        }
+
+        // Handle Action without parameters
+        if (type == typeof(Action))
+        {
+            return "function";
         }
 
         // Handle Func<> types
@@ -37,9 +63,19 @@ public static class LuaTypeConverter
             return $"fun({GetLuaType(genericArgs[0])}): {GetLuaType(genericArgs[1])}";
         }
 
+        // Handle multi-parameter Func types
+        if (type.IsGenericType && type.Name.StartsWith("Func`"))
+        {
+            var genericArgs = type.GetGenericArguments();
+            var paramTypes = genericArgs.Take(genericArgs.Length - 1).Select(GetLuaType);
+            var returnType = GetLuaType(genericArgs.Last());
+            return $"fun({string.Join(", ", paramTypes)}): {returnType}";
+        }
+
         return type.Name switch
         {
             "String"                                                            => "string",
+            "String[]"                                                          => "string[]",
             "Int32" or "Int64" or "Single" or "Double" or "Decimal" or "Single" => "number",
             "Boolean"                                                           => "boolean",
             "Void"                                                              => "nil",
@@ -56,13 +92,47 @@ public static class LuaTypeConverter
         };
     }
 
+    /// <summary>
+    /// Gets a detailed Lua type representation with additional information
+    /// </summary>
+    /// <param name="type">The .NET Type to convert</param>
+    /// <returns>A detailed Lua type representation</returns>
     public static string GetDetailedLuaType(Type type)
     {
+        // Handle Action types with better descriptions
+        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Action<>))
+        {
+            var genericArgs = type.GetGenericArguments();
+            if (genericArgs.Length == 1 && genericArgs[0] == typeof(string[]))
+            {
+                return "fun(args: string[])";
+            }
+
+            var paramTypes = genericArgs.Select((arg, index) => $"param{index + 1}: {GetLuaType(arg)}");
+            return $"fun({string.Join(", ", paramTypes)})";
+        }
+
+        // Handle Action without parameters
+        if (type == typeof(Action))
+        {
+            return "function";
+        }
+
         // Handle Func<> types with detailed argument information
         if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Func<,>))
         {
             var genericArgs = type.GetGenericArguments();
-            return $"fun(context: {GetLuaType(genericArgs[0])}): {GetLuaType(genericArgs[1])}";
+            return $"fun(param1: {GetLuaType(genericArgs[0])}): {GetLuaType(genericArgs[1])}";
+        }
+
+        // Handle multi-parameter Func types
+        if (type.IsGenericType && type.Name.StartsWith("Func`"))
+        {
+            var genericArgs = type.GetGenericArguments();
+            var paramTypes = genericArgs.Take(genericArgs.Length - 1)
+                .Select((arg, index) => $"param{index + 1}: {GetLuaType(arg)}");
+            var returnType = GetLuaType(genericArgs.Last());
+            return $"fun({string.Join(", ", paramTypes)}): {returnType}";
         }
 
         if (type.IsGenericType)
@@ -90,6 +160,11 @@ public static class LuaTypeConverter
         return GetLuaType(type);
     }
 
+    /// <summary>
+    /// Gets the Lua type for a runtime object value
+    /// </summary>
+    /// <param name="value">The object value to analyze</param>
+    /// <returns>The Lua type representation</returns>
     public static string GetLuaType(object value)
     {
         if (value == null)
@@ -108,7 +183,36 @@ public static class LuaTypeConverter
             Delegate d when d.GetType().IsGenericType &&
                             d.GetType().GetGenericTypeDefinition() == typeof(Func<,>) =>
                 GetLuaType(d.GetType()),
-            _ => value.GetType().Name
+            Delegate d when d.GetType().IsGenericType &&
+                            d.GetType().GetGenericTypeDefinition() == typeof(Action<>) =>
+                GetLuaType(d.GetType()),
+            Action => "function",
+            _      => value.GetType().Name
         };
+    }
+
+    /// <summary>
+    /// Gets a user-friendly parameter name for Lua function definitions
+    /// </summary>
+    /// <param name="parameterName">The original parameter name</param>
+    /// <param name="parameterType">The parameter type</param>
+    /// <returns>A Lua-friendly parameter name</returns>
+    public static string GetLuaParameterName(string parameterName, Type parameterType)
+    {
+        // Handle reserved Lua keywords
+        if (parameterName == "function")
+        {
+            return "fn";
+        }
+
+        // For Action<string[]>, make it more descriptive
+        if (parameterType.IsGenericType &&
+            parameterType.GetGenericTypeDefinition() == typeof(Action<>) &&
+            parameterType.GetGenericArguments()[0] == typeof(string[]))
+        {
+            return "handler";
+        }
+
+        return parameterName;
     }
 }

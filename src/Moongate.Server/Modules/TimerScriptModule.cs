@@ -6,13 +6,30 @@ namespace Moongate.Server.Modules;
 [ScriptModule("timers")]
 public class TimerScriptModule
 {
-    public record TimerRegisterData(
-        string Name,
-        int IntervalInSeconds,
-        Action Callback,
-        int DelayInSeconds,
-        bool IsRepeat
-    );
+    public class TimerRegisterData
+    {
+        public string Name { get; set; }
+
+        public int IntervalInSeconds { get; set; }
+
+        public Action Callback { get; set; }
+
+        public int DelayInSeconds { get; set; }
+
+        public bool IsRepeat { get; set; }
+
+        public TimerRegisterData(
+            string name, int intervalInSeconds, Action callback, int delayInSeconds = 0, bool isRepeat = false
+        )
+        {
+            Name = name;
+            IntervalInSeconds = intervalInSeconds;
+            Callback = callback;
+            DelayInSeconds = delayInSeconds;
+            IsRepeat = isRepeat;
+        }
+    }
+
 
     private readonly ITimerService _timerService;
 
@@ -53,7 +70,13 @@ public class TimerScriptModule
     public string Repeated(TimerRegisterData repeated)
     {
         return Register(
-            repeated with { IsRepeat = true }
+            new TimerRegisterData(
+                repeated.Name + "_repeat",
+                repeated.IntervalInSeconds,
+                repeated.Callback,
+                repeated.DelayInSeconds,
+                true
+            )
         );
     }
 
@@ -62,7 +85,13 @@ public class TimerScriptModule
     public string OneShot(TimerRegisterData register)
     {
         return Register(
-            register with { IsRepeat = false }
+            new TimerRegisterData(
+                register.Name + "_once",
+                register.IntervalInSeconds,
+                register.Callback,
+                register.DelayInSeconds,
+                false
+            )
         );
     }
 

@@ -15,7 +15,7 @@ public class LoggerModule
     }
 
     [ScriptFunction("warn")]
-    public void LogWarning(string message, params object[] args)
+    public void LogWarning(string message, params object[] args )
     {
         _logger.Warning("[LUA] " + message, args);
     }

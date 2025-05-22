@@ -9,12 +9,6 @@
 ---@field Callback function
 ---@field DelayInSeconds number
 ---@field IsRepeat boolean
----@field ToString fun(): string
----@field GetHashCode fun(): number
----@field Equals fun(obj: any): boolean
----@field Equals fun(other: TimerRegisterData): boolean
----@field <Clone>$ fun(): TimerRegisterData
----@field Deconstruct fun(Name: String&, IntervalInSeconds: Int32&, Callback: Action&, DelayInSeconds: Int32&, IsRepeat: Boolean&): nil
 
 ---@section Tables
 console = {}
@@ -59,23 +53,27 @@ function include.file(file) end
 ---@return nil
 function include.dir(directory) end
 
+---@description Add Variable to the text template service and you can find by use {{name}}
 ---@param name string
 ---@param value any
 ---@return nil
-function template.Add Variable to the text template service and you can find by use {{name}}(name, value) end
+function template.add_variable(name, value) end
 
+---@description Add Variable Builder to the text template service and you can find by use {{name}}
 ---@param name string
----@param builder Func`1
+---@param builder fun(): any
 ---@return nil
-function template.Add Variable Builder to the text template service and you can find by use {{name}}(name, builder) end
+function template.add_variabile_builder(name, builder) end
 
+---@description Replaces the text with the variables
 ---@param text string
 ---@param context any
 ---@return string
-function template.Replaces the text with the variables(text, context) end
+function template.translate(text, context) end
 
+---@description  Get all variables
 ---@return string[]
-function template.Get all variables() end
+function template.get_all() end
 
 ---@description Register a timer
 ---@param register TimerRegisterData
@@ -100,7 +98,7 @@ function timers.delete(timerId) end
 ---@description Register a new console command
 ---@param command string
 ---@param description string
----@param handler Action`1
+---@param handler fun(args: string[])
 ---@return nil
 function console.register(command, description, handler) end
 
