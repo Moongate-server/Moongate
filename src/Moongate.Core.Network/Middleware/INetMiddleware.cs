@@ -5,6 +5,7 @@ namespace Moongate.Core.Network.Middleware;
 /// </summary>
 public interface INetMiddleware
 {
+
     /// <summary>
     /// Process data before sending
     /// </summary>

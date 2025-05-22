@@ -1,11 +1,14 @@
 using Moongate.Core.Network.Servers.Tcp;
 using Moongate.Uo.Network.Interfaces.Messages;
+using Moongate.Uo.Network.Middlewares;
 
 namespace Moongate.Uo.Network.Data.Sessions;
 
 public class SessionData : IDisposable
 {
     public delegate void PacketSendDelegate(NetClient client, IUoNetworkPacket packet);
+
+    private readonly OutgoingCompressionMiddleware _outgoingCompressionMiddleware = new();
 
     public event PacketSendDelegate OnSendPacket;
 
@@ -15,6 +18,16 @@ public class SessionData : IDisposable
 
     public NetClient Client { get; set; }
 
+
+    public void EnableCompression()
+    {
+        Client.AddMiddleware(_outgoingCompressionMiddleware);
+    }
+
+    public void DisableCompression()
+    {
+        Client.RemoveMiddleware(_outgoingCompressionMiddleware);
+    }
 
     public void AddData<TEntity>(TEntity entity, string name = "default")
     {
