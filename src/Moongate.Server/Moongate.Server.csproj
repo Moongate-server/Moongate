@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
@@ -32,17 +32,17 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="9.0.5"/>
+        <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="9.0.5" />
 
-        <PackageReference Include="NLua" Version="1.7.5"/>
-        <PackageReference Include="Scriban" Version="6.2.1"/>
-        <PackageReference Include="Serilog" Version="4.3.0"/>
-        <PackageReference Include="Serilog.Enrichers.Process" Version="3.0.0"/>
-        <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0"/>
-        <PackageReference Include="Serilog.Formatting.Compact" Version="3.0.0"/>
-        <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0"/>
-        <PackageReference Include="Serilog.Sinks.File" Version="7.0.0"/>
-        <PackageReference Include="System.Reactive" Version="6.0.1"/>
+        <PackageReference Include="NLua" Version="1.7.5" />
+        <PackageReference Include="Scriban" Version="6.2.1" />
+        <PackageReference Include="Serilog" Version="4.3.0" />
+        <PackageReference Include="Serilog.Enrichers.Process" Version="3.0.0" />
+        <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
+        <PackageReference Include="Serilog.Formatting.Compact" Version="3.0.0" />
+        <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+        <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+        <PackageReference Include="System.Reactive" Version="6.0.1" />
         <PackageReference Include="GitInfo" Version="3.5.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -50,22 +50,22 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Moongate.Core.Network\Moongate.Core.Network.csproj"/>
-        <ProjectReference Include="..\Moongate.Core.Web\Moongate.Core.Web.csproj"/>
-        <ProjectReference Include="..\Moongate.Core\Moongate.Core.csproj"/>
-        <ProjectReference Include="..\Moongate.Peristence\Moongate.Persistence.csproj"/>
+        <ProjectReference Include="..\Moongate.Core.Network\Moongate.Core.Network.csproj" />
+        <ProjectReference Include="..\Moongate.Core.Web\Moongate.Core.Web.csproj" />
+        <ProjectReference Include="..\Moongate.Core\Moongate.Core.csproj" />
+        <ProjectReference Include="..\Moongate.Peristence\Moongate.Persistence.csproj" />
         <ProjectReference Include="..\Moongate.Uo.Data\Moongate.Uo.Data.csproj" />
-        <ProjectReference Include="..\Moongate.Uo.Network\Moongate.Uo.Network.csproj"/>
-        <ProjectReference Include="..\Moongate.Uo.Services\Moongate.Uo.Services.csproj"/>
+        <ProjectReference Include="..\Moongate.Uo.Network\Moongate.Uo.Network.csproj" />
+        <ProjectReference Include="..\Moongate.Uo.Services\Moongate.Uo.Services.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <TrimmerRootDescriptor Include="ILLink.Descriptors.xml"/>
+        <TrimmerRootDescriptor Include="ILLink.Descriptors.xml" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Remove="Assets\**\*"/>
-        <EmbeddedResource Include="Assets\**\*"/>
+        <None Remove="Assets\**\*" />
+        <EmbeddedResource Include="Assets\**\*" />
     </ItemGroup>
 
   
