@@ -21,8 +21,12 @@ public class AccountManagerService : AbstractBaseMoongateStartStopService, IAcco
     private readonly IEventBusService _eventBusService;
 
     private readonly Dictionary<string, AccountEntity> _accounts = new();
+    private readonly Dictionary<string, List<CharacterEntity>> _characters = new();
+
 
     private readonly string _accountsFilePath;
+
+    private readonly string _charactersFilePath;
 
     public AccountManagerService(
         DirectoriesConfig directoriesConfig, IPersistenceManager persistenceManager, IEventBusService eventBusService
@@ -34,6 +38,7 @@ public class AccountManagerService : AbstractBaseMoongateStartStopService, IAcco
         _eventBusService = eventBusService;
 
         _accountsFilePath = Path.Combine(directoriesConfig[DirectoryType.Data], "accounts.moongate");
+        _charactersFilePath = Path.Combine(directoriesConfig[DirectoryType.Data], "characters.moongate");
     }
 
     public async Task<bool> CreateAccount(
@@ -89,6 +94,36 @@ public class AccountManagerService : AbstractBaseMoongateStartStopService, IAcco
     public override async Task StartAsync(CancellationToken cancellationToken = default)
     {
         await LoadAccountsAsync(cancellationToken);
+        await LoadCharactersAsync(cancellationToken);
+    }
+
+    private async Task LoadCharactersAsync(CancellationToken cancellationToken)
+    {
+        if (!File.Exists(_charactersFilePath))
+        {
+            return;
+        }
+
+        var entities = await _persistenceManager.LoadEntitiesAsync(_charactersFilePath, cancellationToken);
+
+        if (entities.TryGetValue(typeof(CharacterEntity), out var characterEntities))
+        {
+            foreach (var entity in characterEntities)
+            {
+                if (entity is CharacterEntity character)
+                {
+                    if (!_characters.TryGetValue(character.AccountId, out List<CharacterEntity>? value))
+                    {
+                        value = new List<CharacterEntity>();
+                        _characters[character.AccountId] = value;
+                    }
+
+                    value.Add(character);
+                }
+            }
+
+            Logger.Information("Loaded {Count} characters.", characterEntities.Count);
+        }
     }
 
     private async Task LoadAccountsAsync(CancellationToken cancellationToken)
@@ -115,6 +150,8 @@ public class AccountManagerService : AbstractBaseMoongateStartStopService, IAcco
                     _accounts.Add(account.Id, account);
                 }
             }
+
+            Logger.Information("Loaded {Count} accounts.", accountEntities.Count);
         }
     }
 
