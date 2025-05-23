@@ -567,3 +567,5 @@ crashlytics-build.properties
 *.dll
 **/**/.DS_Store
 *.world
+docs/_site
+docs/api
