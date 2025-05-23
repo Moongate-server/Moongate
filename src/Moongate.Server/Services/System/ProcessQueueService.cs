@@ -5,8 +5,8 @@ using System.Reactive.Subjects;
 using System.Threading.Tasks.Dataflow;
 
 using Moongate.Core.Data.Configs.Services;
+using Moongate.Core.Data.Metrics.ProcessQueue;
 using Moongate.Core.Interfaces.Services.System;
-using Orion.Core.Server.Data.Metrics.ProcessQueue;
 using Serilog;
 
 namespace Moongate.Server.Services.System;

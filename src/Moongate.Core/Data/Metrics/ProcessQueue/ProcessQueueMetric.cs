@@ -1,4 +1,4 @@
-namespace Orion.Core.Server.Data.Metrics.ProcessQueue;
+namespace Moongate.Core.Data.Metrics.ProcessQueue;
 
 public record ProcessQueueMetric(
     string Context,

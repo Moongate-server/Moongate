@@ -1,4 +1,4 @@
-namespace Orion.Core.Server.Interfaces.Services.System;
+namespace Moongate.Core.Interfaces.Services.System;
 
 public interface ITextTemplateService
 {

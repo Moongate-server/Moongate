@@ -21,7 +21,6 @@ using Moongate.Uo.Network.Interfaces.Services;
 using Moongate.Uo.Network.Packets;
 using Moongate.Uo.Services.Interfaces.Services;
 using Moongate.Uo.Services.Serialization.Entities;
-using Orion.Core.Server.Interfaces.Services.System;
 
 
 await ConsoleApp.RunAsync(

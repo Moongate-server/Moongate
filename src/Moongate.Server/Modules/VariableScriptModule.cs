@@ -1,5 +1,5 @@
 using Moongate.Core.Attributes.Scripts;
-using Orion.Core.Server.Interfaces.Services.System;
+using Moongate.Core.Interfaces.Services.System;
 
 namespace Moongate.Server.Modules;
 

@@ -1,8 +1,7 @@
 using System.Collections.Concurrent;
+using Moongate.Core.Data.Events.TextTemplate;
 using Moongate.Core.Interfaces.EventBus;
 using Moongate.Core.Interfaces.Services.System;
-using Orion.Core.Server.Events.TextTemplate;
-using Orion.Core.Server.Interfaces.Services.System;
 using Scriban;
 using Scriban.Runtime;
 using Scriban.Syntax;

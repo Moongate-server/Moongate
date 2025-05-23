@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Moongate.Core.Buffers;
 
-namespace Orion.Foundations.Collections;
+namespace Moongate.Core.Collections;
 
 // Implements a variable-size List that uses an array of objects to store the
 // elements. A List has a capacity, which is the allocated length

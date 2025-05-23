@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 
-namespace Orion.Core.Server.Data.Metrics.ProcessQueue;
+namespace Moongate.Core.Data.Metrics.ProcessQueue;
 
 public class ProcessStats
 {

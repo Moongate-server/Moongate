@@ -1,5 +1,5 @@
+using Moongate.Core.Data.Metrics.ProcessQueue;
 using Moongate.Core.Interfaces.Services.Base;
-using Orion.Core.Server.Data.Metrics.ProcessQueue;
 
 namespace Moongate.Core.Interfaces.Services.System;
 
