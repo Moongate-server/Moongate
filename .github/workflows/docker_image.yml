@@ -1,4 +1,4 @@
-name: Prima Build docker image
+name: Moongate Build docker image
 
 on:
   push:
@@ -56,7 +56,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t tgiachi/prima-server:latest -t tgiachi/moongate:${{ steps.project-version.outputs.VERSION }} .
+          docker build -t tgiachi/moongate:latest -t tgiachi/moongate:${{ steps.project-version.outputs.VERSION }} .
 
       - name: Push Docker image
         run: |
