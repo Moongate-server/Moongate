@@ -103,7 +103,7 @@ public class MoongateTcpServer
             // Stop all clients, make a copy of the list to avoid modifying it while iterating.
             foreach (var client in _clients.ToArray())
             {
-                client.Stop();
+                client.Disconnect();
             }
 
             _clients.Clear();

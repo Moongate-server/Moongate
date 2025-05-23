@@ -162,7 +162,7 @@ public class NetClient
     /// <summary>
     /// Stop the client
     /// </summary>
-    public void Stop()
+    public void Disconnect()
     {
         if (!IsConnected)
         {
@@ -190,6 +190,8 @@ public class NetClient
             OnError?.Invoke(e);
         }
     }
+
+
 
     /// <summary>
     /// Send data to the remote host
@@ -287,7 +289,7 @@ public class NetClient
     private static void Stop(SocketAsyncEventArgs args)
     {
         NetClient client = (NetClient)args.UserToken!;
-        client.Stop();
+        client.Disconnect();
     }
 
     private static void Receive(SocketAsyncEventArgs args)

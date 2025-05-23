@@ -29,7 +29,7 @@ public class SessionData : IDisposable
         Client.RemoveMiddleware(_outgoingCompressionMiddleware);
     }
 
-    public void AddData<TEntity>(TEntity entity, string name = "default")
+    public void SetData<TEntity>(TEntity entity, string name = "default")
     {
         _sessionData[name] = entity;
     }
