@@ -192,7 +192,6 @@ public class NetClient
     }
 
 
-
     /// <summary>
     /// Send data to the remote host
     /// </summary>
@@ -203,7 +202,7 @@ public class NetClient
     {
         if (!IsConnected)
         {
-            throw new InvalidOperationException("Not connected");
+            return false;
         }
 
         // ensure only one sending operation at a time, no concurrent sending, by using Interlocked
@@ -335,7 +334,6 @@ public class NetClient
                             goto cont_receive;
                         }
                     }
-
 
 
                     // still the original data or partially the original data

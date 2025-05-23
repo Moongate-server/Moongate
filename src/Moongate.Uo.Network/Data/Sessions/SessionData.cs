@@ -34,6 +34,11 @@ public class SessionData : IDisposable
         _sessionData[name] = entity;
     }
 
+    public void Disconnect()
+    {
+        Client.Disconnect();
+    }
+
     public TEntity GetData<TEntity>(string name = "default")
     {
         if (_sessionData.TryGetValue(name, out var value))

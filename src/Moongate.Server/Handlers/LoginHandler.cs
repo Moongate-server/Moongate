@@ -1,4 +1,5 @@
 using Moongate.Uo.Data;
+using Moongate.Uo.Data.Extensions;
 using Moongate.Uo.Network.Data.Sessions;
 using Moongate.Uo.Network.Interfaces.Handlers;
 using Moongate.Uo.Network.Interfaces.Messages;
@@ -16,7 +17,7 @@ public class LoginHandler : IPacketListener
     {
         if (packet is LoginPacket loginPacket)
         {
-            session.SendPacket(new LoginDeniedPacket(LoginDeniedReasonType.AccountBlocked));
+            Login(session, loginPacket);
         }
 
         if (packet is SeedPacket seedPacket)
@@ -25,11 +26,18 @@ public class LoginHandler : IPacketListener
         }
     }
 
+    private void Login(SessionData session, LoginPacket loginPacket)
+    {
+        session.SendPacket(new LoginDeniedPacket(LoginDeniedReasonType.AccountBlocked));
+    }
+
     private void SetSeedVersion(SessionData session, SeedPacket seedPacket)
     {
         _logger.Debug("Client {Session} connected with version {Version}", session.Id, seedPacket.ToString());
         //TODO: Check if the version is supported by the server
 
-        session.SetData(new ClientVersion(seedPacket.Major, seedPacket.Minor, seedPacket.Revision, seedPacket.Prototype));
+        session.SetClientVersion(
+            new ClientVersion(seedPacket.Major, seedPacket.Minor, seedPacket.Revision, seedPacket.Prototype)
+        );
     }
 }
