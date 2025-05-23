@@ -2,7 +2,7 @@ using Moongate.Core.Spans;
 using Moongate.Uo.Network.Interfaces.Messages;
 using Moongate.Uo.Network.Types;
 
-namespace Moongate.Uo.Network.Packets;
+namespace Moongate.Uo.Network.Packets.Connection;
 
 public class LoginDeniedPacket : IUoNetworkPacket
 {

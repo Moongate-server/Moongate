@@ -1,20 +1,25 @@
 using Moongate.Core.Spans;
 using Moongate.Uo.Network.Interfaces.Messages;
 
-namespace Moongate.Uo.Network.Packets;
+namespace Moongate.Uo.Network.Packets.Connection;
 
-public class LoginPacket : IUoNetworkPacket
+public class GameServerLoginPacket : IUoNetworkPacket
 {
-    public int Seed { get; set; }
-    public string Username { get; set; }
+    public byte OpCode => 0x91;
+    public int Length => 65;
+
+    public int AuthId { get; set; }
+
+    public string Sid { get; set; }
+
     public string Password { get; set; }
-    public byte OpCode => 0x80;
-    public int Length => 62;
 
     public bool Read(SpanReader reader)
     {
         reader.ReadByte();
-        Username = reader.ReadAscii(30);
+
+        AuthId = reader.ReadInt32();
+        Sid = reader.ReadAscii(30);
         Password = reader.ReadAscii(30);
 
         return true;
@@ -27,6 +32,6 @@ public class LoginPacket : IUoNetworkPacket
 
     public override string ToString()
     {
-        return $"LoginPacket: Username: {Username}, Password: <HIDDEN CREDENTIAL>";
+        return $"GameServerLoginPacket: AuthId: {AuthId}, Sid: {Sid}, Password: <HIDDEN CREDENTIAL>";
     }
 }

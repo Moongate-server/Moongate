@@ -19,6 +19,7 @@ using Moongate.Server.Services.System;
 using Moongate.Server.Services.Uo;
 using Moongate.Uo.Network.Interfaces.Services;
 using Moongate.Uo.Network.Packets;
+using Moongate.Uo.Network.Packets.Connection;
 using Moongate.Uo.Services.Interfaces.Services;
 using Moongate.Uo.Services.Serialization.Entities;
 

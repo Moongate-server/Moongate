@@ -3,6 +3,7 @@ using Moongate.Uo.Network.Interfaces.Handlers;
 using Moongate.Uo.Network.Interfaces.Messages;
 using Moongate.Uo.Network.Interfaces.Services;
 using Moongate.Uo.Network.Packets;
+using Moongate.Uo.Network.Packets.Connection;
 using Serilog;
 
 namespace Moongate.Server.Handlers;

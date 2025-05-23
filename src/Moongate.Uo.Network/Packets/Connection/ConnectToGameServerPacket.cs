@@ -3,7 +3,7 @@ using Moongate.Core.Extensions.Network;
 using Moongate.Core.Spans;
 using Moongate.Uo.Network.Interfaces.Messages;
 
-namespace Moongate.Uo.Network.Packets;
+namespace Moongate.Uo.Network.Packets.Connection;
 
 public class ConnectToGameServerPacket : IUoNetworkPacket
 {
