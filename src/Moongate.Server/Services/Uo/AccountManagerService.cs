@@ -5,8 +5,10 @@ using Moongate.Core.Types;
 using Moongate.Core.Utils.Hash;
 using Moongate.Persistence.Extensions;
 using Moongate.Persistence.Interfaces.Services;
+using Moongate.Uo.Services.Events.Accounts;
 using Moongate.Uo.Services.Interfaces.Services;
 using Moongate.Uo.Services.Serialization.Entities;
+using Moongate.Uo.Services.Types;
 using Serilog;
 
 namespace Moongate.Server.Services.Uo;
@@ -33,7 +35,9 @@ public class AccountManagerService : AbstractBaseMoongateStartStopService, IAcco
         _accountsFilePath = Path.Combine(directoriesConfig[DirectoryType.Data], "accounts.moongate");
     }
 
-    public async Task<bool> CreateAccount(string username, string password)
+    public async Task<bool> CreateAccount(
+        string username, string password, bool isActive = true, AccountLevelType level = AccountLevelType.Player
+    )
     {
         if (_accounts.ContainsKey(username))
         {
@@ -45,11 +49,13 @@ public class AccountManagerService : AbstractBaseMoongateStartStopService, IAcco
         {
             Username = username,
             PasswordHash = HashUtils.CreatePassword(password),
+            IsActive = isActive,
+            AccountLevel = level
         };
 
         _accounts.Add(account.Id, account);
 
-        await _eventBusService.PublishAsync(new AccountCreatedEvent(account.Id, username));
+        await _eventBusService.PublishAsync(new AccountCreatedEvent(account.Id, username, level));
 
         return true;
     }

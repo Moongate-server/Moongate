@@ -16,9 +16,12 @@ public class SeedPacket : IUoNetworkPacket
 
     public int Prototype { get; set; }
 
+    public int Seed { get; set; }
+
     public bool Read(SpanReader reader)
     {
-        reader.ReadBytes(5);
+        reader.ReadByte();
+        Seed = reader.ReadInt32();
         Major = reader.ReadInt32();
         Minor = reader.ReadInt32();
         Revision = reader.ReadInt32();

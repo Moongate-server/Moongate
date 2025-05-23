@@ -13,8 +13,4 @@
       <ProjectReference Include="..\Moongate.Uo.Network\Moongate.Uo.Network.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Events\Accounts\" />
-    </ItemGroup>
-
 </Project>

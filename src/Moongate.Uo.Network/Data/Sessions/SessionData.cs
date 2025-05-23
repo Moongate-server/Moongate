@@ -16,6 +16,8 @@ public class SessionData : IDisposable
 
     public string Id { get; set; }
 
+    public string AccountId { get; set; }
+
     public NetClient Client { get; set; }
 
 
@@ -39,7 +41,7 @@ public class SessionData : IDisposable
         Client.Disconnect();
     }
 
-    public TEntity GetData<TEntity>(string name = "default")
+    public TEntity? GetData<TEntity>(string name = "default")
     {
         if (_sessionData.TryGetValue(name, out var value))
         {

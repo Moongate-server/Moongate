@@ -13,4 +13,14 @@ public static class SessionDataExtensions
     {
         return session.GetData<ClientVersion>();
     }
+
+    public static int GetSeed(this SessionData session)
+    {
+        return session.GetData<int?>("seed") ?? 0;
+    }
+
+    public static void SetSeed(this SessionData session, int seed)
+    {
+        session.SetData(seed, "seed");
+    }
 }
