@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Moongate.Core.Web", "src\Mo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Moongate.Uo.Services", "src\Moongate.Uo.Services\Moongate.Uo.Services.csproj", "{99DFDE44-8D71-4FA0-ADF9-83AC321786B8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Moongate.Uo.Data", "src\Moongate.Uo.Data\Moongate.Uo.Data.csproj", "{644A6022-C579-4393-BE75-9EE69E312B7B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -127,6 +129,18 @@ Global
 		{99DFDE44-8D71-4FA0-ADF9-83AC321786B8}.Release|x64.Build.0 = Release|Any CPU
 		{99DFDE44-8D71-4FA0-ADF9-83AC321786B8}.Release|x86.ActiveCfg = Release|Any CPU
 		{99DFDE44-8D71-4FA0-ADF9-83AC321786B8}.Release|x86.Build.0 = Release|Any CPU
+		{644A6022-C579-4393-BE75-9EE69E312B7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{644A6022-C579-4393-BE75-9EE69E312B7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{644A6022-C579-4393-BE75-9EE69E312B7B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{644A6022-C579-4393-BE75-9EE69E312B7B}.Debug|x64.Build.0 = Debug|Any CPU
+		{644A6022-C579-4393-BE75-9EE69E312B7B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{644A6022-C579-4393-BE75-9EE69E312B7B}.Debug|x86.Build.0 = Debug|Any CPU
+		{644A6022-C579-4393-BE75-9EE69E312B7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{644A6022-C579-4393-BE75-9EE69E312B7B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{644A6022-C579-4393-BE75-9EE69E312B7B}.Release|x64.ActiveCfg = Release|Any CPU
+		{644A6022-C579-4393-BE75-9EE69E312B7B}.Release|x64.Build.0 = Release|Any CPU
+		{644A6022-C579-4393-BE75-9EE69E312B7B}.Release|x86.ActiveCfg = Release|Any CPU
+		{644A6022-C579-4393-BE75-9EE69E312B7B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
