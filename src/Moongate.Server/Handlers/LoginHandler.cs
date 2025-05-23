@@ -3,6 +3,7 @@ using Moongate.Uo.Network.Data.Sessions;
 using Moongate.Uo.Network.Interfaces.Handlers;
 using Moongate.Uo.Network.Interfaces.Messages;
 using Moongate.Uo.Network.Packets;
+using Moongate.Uo.Network.Types;
 using Serilog;
 
 namespace Moongate.Server.Handlers;
@@ -15,6 +16,7 @@ public class LoginHandler : IPacketListener
     {
         if (packet is LoginPacket loginPacket)
         {
+            session.SendPacket(new LoginDeniedPacket(LoginDeniedReasonType.AccountBlocked));
         }
 
         if (packet is SeedPacket seedPacket)

@@ -149,7 +149,15 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
     {
         try
         {
-            using var packetBuffer = new SpanWriter();
+            var realLength = packet.Length;
+
+            if (realLength == -1)
+            {
+                realLength = 16;
+            }
+
+
+            using var packetBuffer = new SpanWriter(stackalloc byte[packet.Length], true);
             var bufferToSend = packet.Write(packetBuffer);
 
             LogPacket(client.Id, bufferToSend, false);
@@ -473,14 +481,13 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
 
         using var sw = new StreamWriter(logPath, true);
 
-        var direction = IsReceived ? "Received" : "Sent";
+        var direction = IsReceived ? "<-" : "->";
         var opCode = "OPCODE: 0x" + buffer.Span[0].ToString("X2");
 
         sw.WriteLine(
             $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} | {opCode}  | {direction} | Session ID: {sessionId} | Data size: {buffer.Length} bytes"
         );
         sw.FormatBuffer(buffer.Span);
-        sw.WriteLine();
         sw.WriteLine(new string('-', 50));
     }
 

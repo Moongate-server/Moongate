@@ -5,6 +5,7 @@ namespace Moongate.Uo.Network.Packets;
 
 public class LoginPacket : IUoNetworkPacket
 {
+    public int Seed { get; set; }
     public string Username { get; set; }
     public string Password { get; set; }
     public byte OpCode => 0x80;
