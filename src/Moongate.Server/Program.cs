@@ -63,7 +63,11 @@ await ConsoleApp.RunAsync(
             }
         };
 
-        EntityRegistrationBuilder.Instance.Register<AccountEntity>();
+
+        // Register the entity types
+        EntityRegistrationBuilder.Instance
+            .Register<AccountEntity>()
+            .Register<CharacterEntity>();
 
         moongateStartupServer.RegisterServices += container =>
         {
