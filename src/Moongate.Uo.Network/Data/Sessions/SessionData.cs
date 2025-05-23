@@ -10,12 +10,20 @@ public class SessionData : IDisposable
 
     private readonly OutgoingCompressionMiddleware _outgoingCompressionMiddleware = new();
 
+
+    /// <summary>
+    ///  Indicates if the session when disconnected should be put in limbo.
+    ///  (This is used for the login server to keep the session and information until the client connect to game server).
+    /// </summary>
+    public bool PutInLimbo { get; set; }
+
     public event PacketSendDelegate OnSendPacket;
 
     private readonly Dictionary<string, object> _sessionData = new();
 
     public string Id { get; set; }
 
+    public int AuthId { get; set; } = -1;
     public string AccountId { get; set; }
 
     public NetClient Client { get; set; }
@@ -31,9 +39,10 @@ public class SessionData : IDisposable
         Client.RemoveMiddleware(_outgoingCompressionMiddleware);
     }
 
-    public void SetData<TEntity>(TEntity entity, string name = "default")
+    public void SetData<TEntity>(TEntity entity, string? name = null)
     {
-        _sessionData[name] = entity;
+        var uniqueName = name ?? $"default_{typeof(TEntity).Name}";
+        _sessionData[uniqueName] = entity;
     }
 
     public void Disconnect()
@@ -41,9 +50,10 @@ public class SessionData : IDisposable
         Client.Disconnect();
     }
 
-    public TEntity? GetData<TEntity>(string name = "default")
+    public TEntity? GetData<TEntity>(string? name = null)
     {
-        if (_sessionData.TryGetValue(name, out var value))
+        var uniqueName = name ?? $"default_{typeof(TEntity).Name}";
+        if (_sessionData.TryGetValue(uniqueName, out var value))
         {
             return (TEntity)value;
         }
@@ -56,8 +66,37 @@ public class SessionData : IDisposable
         OnSendPacket?.Invoke(Client, packet);
     }
 
+    public void CloneDataFrom(SessionData source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+
+        _sessionData.Clear();
+        foreach (var kvp in source._sessionData)
+        {
+            _sessionData[kvp.Key] = kvp.Value;
+        }
+    }
+
+    public void Clear()
+    {
+        if (!PutInLimbo)
+        {
+            _sessionData.Clear();
+            AuthId = -1;
+            AccountId = string.Empty;
+            Client = null;
+            PutInLimbo = false;
+        }
+    }
+
+    public override string ToString()
+    {
+        return $"SessionData: {Id} - AccountId: {AccountId} - AuthId: {AuthId}";
+    }
+
     public void Dispose()
     {
-        _sessionData.Clear();
+        Clear();
     }
 }

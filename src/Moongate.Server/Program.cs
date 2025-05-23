@@ -118,10 +118,14 @@ await ConsoleApp.RunAsync(
         {
             networkService.RegisterPacket<SeedPacket>();
             networkService.RegisterPacket<LoginPacket>();
+            networkService.RegisterPacket<SelectServerPacket>();
+            networkService.RegisterPacket<GameServerLoginPacket>();
 
 
             networkService.RegisterPacketHandler<SeedPacket, LoginHandler>();
             networkService.RegisterPacketHandler<LoginPacket, LoginHandler>();
+            networkService.RegisterPacketHandler<SelectServerPacket, LoginHandler>();
+            networkService.RegisterPacketHandler<GameServerLoginPacket, GameLoginHandler>();
         };
 
 

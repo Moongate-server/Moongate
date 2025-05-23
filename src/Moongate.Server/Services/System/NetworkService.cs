@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.NetworkInformation;
-using System.Text;
 using DryIoc;
 using Moongate.Core.Data.Configs.Server;
 using Moongate.Core.Data.Events.Network;
@@ -13,6 +12,7 @@ using Moongate.Core.Network.Servers.Tcp;
 using Moongate.Core.Services.Base;
 using Moongate.Core.Spans;
 using Moongate.Core.Types;
+using Moongate.Uo.Network.Data.Sessions;
 using Moongate.Uo.Network.Interfaces.Handlers;
 using Moongate.Uo.Network.Interfaces.Messages;
 using Moongate.Uo.Network.Interfaces.Services;
@@ -27,6 +27,8 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
     public event INetworkService.ClientConnectedDelegate? ClientConnected;
     public event INetworkService.ClientDisconnectedDelegate? ClientDisconnected;
 
+    private readonly ISchedulerSystemService _schedulerSystem;
+
     private readonly Dictionary<byte, List<INetworkService.PacketReceivedDelegate>> _packetHandlers = new();
 
     private readonly ISessionManagerService _sessionManagerService;
@@ -40,6 +42,7 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
     private readonly Dictionary<byte, Func<IUoNetworkPacket>> _packets = new();
     private readonly Dictionary<byte, int> _packetSizes = new();
 
+    private readonly ConcurrentDictionary<int, WaitingLoginSession> _inLoginWaitingSessions = new();
 
     private readonly IContainer _container;
     private readonly ConcurrentDictionary<string, NetClient> _clients = new();
@@ -48,7 +51,7 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
     public NetworkService(
         MoongateServerConfig moongateServerConfig, IEventBusService eventBusService,
         ISessionManagerService sessionManagerService, IEventLoopService eventLoopService, IContainer container,
-        DirectoriesConfig directoriesConfig
+        DirectoriesConfig directoriesConfig, ISchedulerSystemService schedulerSystem
     ) : base(
         Log.ForContext<NetworkService>()
     )
@@ -59,8 +62,31 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
         _eventLoopService = eventLoopService;
         _container = container;
         _directoriesConfig = directoriesConfig;
+        _schedulerSystem = schedulerSystem;
 
         PrepareTcpServers();
+        StartWaitingSessionsCleaner();
+    }
+
+    private void StartWaitingSessionsCleaner()
+    {
+        _schedulerSystem.RegisterJob(
+            "networkWaitingSessionsCleaner",
+            () =>
+            {
+                foreach (var session in _inLoginWaitingSessions)
+                {
+                    if (session.Value.IsExpired)
+                    {
+                        Logger.Debug("Removing expired session with AuthSession: {AuthId}", session.Key);
+                        _inLoginWaitingSessions.TryRemove(session.Key, out _);
+                    }
+                }
+
+                return Task.CompletedTask;
+            },
+            TimeSpan.FromMinutes(1)
+        );
     }
 
     public override Task StartAsync(CancellationToken cancellationToken = default)
@@ -111,6 +137,10 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
                 _moonTcpServerOptions
             );
 
+            gameServer.OnClientDataReceived += (client, memory) => ParsePacket(loginServer, client, memory);
+            gameServer.OnClientConnected += client => OnClientConnected(loginServer, client);
+            gameServer.OnClientDisconnected += client => OnClientDisconnected(loginServer, client);
+
 
             _loginServers.Add(loginServer);
             _gameServers.Add(gameServer);
@@ -125,7 +155,16 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
             Logger.Warning("Client {ClientId} not found in the list of connected clients", obj.Id);
         }
 
-        _sessionManagerService.GetSession(obj.Id).OnSendPacket -= SendPacket;
+        var sessionData = _sessionManagerService.GetSession(obj.Id);
+
+        if (sessionData.PutInLimbo && sessionData.AuthId >= 0)
+        {
+            _inLoginWaitingSessions.TryAdd(sessionData.AuthId, new WaitingLoginSession(sessionData, DateTime.UtcNow));
+
+            Logger.Debug("Client {ClientId} put in limbo with AuthSessionKey: {SessionKey}", obj.Id, sessionData.AuthId);
+        }
+
+        sessionData.OnSendPacket -= SendPacket;
         ClientDisconnected?.Invoke(server.Id, obj.Id);
         _eventBusService.PublishAsync(new ClientDisconnectedEvent(server.Id, obj.Id));
         _sessionManagerService.DeleteSession(obj.Id);
@@ -197,6 +236,12 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
     private void ParsePacket(MoongateTcpServer server, NetClient client, ReadOnlyMemory<byte> buffer)
     {
         var remainingBuffer = buffer;
+
+        /// FIXME: Not beautiful, but it works
+        if (remainingBuffer.Length == 69)
+        {
+            remainingBuffer = remainingBuffer[4..];
+        }
 
         while (remainingBuffer.Length > 0)
         {
@@ -470,6 +515,16 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
         return null;
     }
 
+    public SessionData? GetInLimboSession(int sessionAuthId)
+    {
+        return _inLoginWaitingSessions.GetValueOrDefault(sessionAuthId)?.SessionData;
+    }
+
+    public bool RemoveInLimboSession(int sessionAuthId)
+    {
+        return _inLoginWaitingSessions.Remove(sessionAuthId, out _);
+    }
+
     private void LogPacket(string sessionId, ReadOnlyMemory<byte> buffer, bool IsReceived)
     {
         if (!_moongateServerConfig.Network.LogPackets)
@@ -500,4 +555,9 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
                     .Where(uip => ipep.AddressFamily == uip.Address.AddressFamily)
                     .Select(uip => new IPEndPoint(uip.Address, ipep.Port))
             );
+}
+
+internal record WaitingLoginSession(SessionData SessionData, DateTime CreatedAt)
+{
+    public bool IsExpired => (DateTime.UtcNow - CreatedAt).TotalSeconds > 60;
 }

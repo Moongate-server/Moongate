@@ -23,10 +23,22 @@ public class LoginHandler : IPacketListener
 
     private readonly MoongateServerConfig _moongateServerConfig;
 
+    private readonly List<GameServerEntry> _gameServerEntries = new();
+
     public LoginHandler(IAccountManagerService accountManagerService, MoongateServerConfig moongateServerConfig)
     {
         _accountManagerService = accountManagerService;
         _moongateServerConfig = moongateServerConfig;
+
+        _gameServerEntries.Add(
+            new GameServerEntry()
+            {
+                IP = IPAddress.Parse("127.0.0.1"),
+                LoadPercent = 0x0,
+                Name = _moongateServerConfig.Shard.Name,
+                TimeZone = (byte)TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow).TotalHours
+            }
+        );
     }
 
     public async Task OnPacketReceivedAsync(SessionData session, IUoNetworkPacket packet)
@@ -40,6 +52,30 @@ public class LoginHandler : IPacketListener
         {
             SetSeedVersion(session, seedPacket);
         }
+
+        if (packet is SelectServerPacket selectServerPacket)
+        {
+            await OnSelectServer(session, selectServerPacket);
+        }
+    }
+
+
+    private async Task OnSelectServer(SessionData session, SelectServerPacket selectServerPacket)
+    {
+        var gameServer = _gameServerEntries[selectServerPacket.ShardId];
+        _logger.Debug("User {Session} selected server {ServerId}", session.Id, gameServer.Name);
+        session.AuthId = Random.Shared.Next();
+        session.PutInLimbo = true;
+
+        /// (From Prima project) 05/05/2025 --> Fixed connection bug after 4 days of testing, now i can die in peace! :D
+        var connectToServer = new ConnectToGameServerPacket()
+        {
+            GameServerIP = gameServer.IP,
+            GameServerPort = (ushort)_moongateServerConfig.Network.GamePort,
+            SessionKey = session.AuthId,
+        };
+
+        session.SendPacket(connectToServer);
     }
 
     private async Task Login(SessionData session, LoginPacket loginPacket)
@@ -71,16 +107,11 @@ public class LoginHandler : IPacketListener
     private GameServerListPacket PrepareGameServerList()
     {
         var gameServerList = new GameServerListPacket();
-        gameServerList.AddServer(
-            new GameServerEntry()
-            {
-                IP = IPAddress.Parse("127.0.0.1"),
-                LoadPercent = 0x0,
-                Name = _moongateServerConfig.Shard.Name,
-                TimeZone = (byte)TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow).TotalHours
-            }
-        );
 
+        foreach (var gameServer in _gameServerEntries)
+        {
+            gameServerList.AddServer(gameServer);
+        }
 
         return gameServerList;
     }

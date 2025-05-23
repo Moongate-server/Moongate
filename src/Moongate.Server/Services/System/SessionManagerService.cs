@@ -4,6 +4,7 @@ using Moongate.Core.Services.Base;
 using Moongate.Uo.Network.Data.Sessions;
 using Moongate.Uo.Network.Interfaces.Services;
 using Serilog;
+using ZLinq;
 
 namespace Moongate.Server.Services.System;
 
@@ -62,6 +63,13 @@ public class SessionManagerService : AbstractBaseMoongateService, ISessionManage
         {
             Logger.Warning("Session not found for deletion: {SessionId}", sessionId);
         }
+    }
+
+    public List<SessionData> QuerySessions(Func<SessionData, bool> predicate)
+    {
+        return _sessionData.Values.AsValueEnumerable()
+            .Where(predicate)
+            .ToList();
     }
 
     public void Dispose()

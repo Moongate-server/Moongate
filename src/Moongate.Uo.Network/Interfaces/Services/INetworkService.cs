@@ -26,4 +26,8 @@ public interface INetworkService : IMoongateStartStopService
 
     NetClient? GetClient(string sessionId, bool throwIfNotFound = true);
 
+    SessionData? GetInLimboSession(int sessionAuthId);
+
+    bool RemoveInLimboSession(int sessionAuthId);
+
 }
