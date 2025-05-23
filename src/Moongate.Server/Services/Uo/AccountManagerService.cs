@@ -10,6 +10,7 @@ using Moongate.Uo.Services.Interfaces.Services;
 using Moongate.Uo.Services.Serialization.Entities;
 using Moongate.Uo.Services.Types;
 using Serilog;
+using ZLinq;
 
 namespace Moongate.Server.Services.Uo;
 
@@ -62,7 +63,11 @@ public class AccountManagerService : AbstractBaseMoongateStartStopService, IAcco
 
     public AccountEntity? Login(string username, string password)
     {
-        if (_accounts.TryGetValue(username, out var account))
+        var account = _accounts.Values.AsValueEnumerable()
+            .Where(a => a.Username.Equals(username, StringComparison.OrdinalIgnoreCase))
+            .FirstOrDefault();
+
+        if (account != null)
         {
             if (HashUtils.VerifyPassword(password, account.PasswordHash))
             {

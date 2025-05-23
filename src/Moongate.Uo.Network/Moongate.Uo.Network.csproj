@@ -12,8 +12,4 @@
         <ProjectReference Include="..\Moongate.Core\Moongate.Core.csproj"/>
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Data\" />
-    </ItemGroup>
-
 </Project>

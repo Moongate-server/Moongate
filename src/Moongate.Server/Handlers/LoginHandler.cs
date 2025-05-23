@@ -1,6 +1,9 @@
+using System.Net;
+using Moongate.Core.Data.Configs.Server;
 using Moongate.Core.Instances;
 using Moongate.Uo.Data;
 using Moongate.Uo.Data.Extensions;
+using Moongate.Uo.Network.Data.Entries;
 using Moongate.Uo.Network.Data.Sessions;
 using Moongate.Uo.Network.Interfaces.Handlers;
 using Moongate.Uo.Network.Interfaces.Messages;
@@ -18,9 +21,12 @@ public class LoginHandler : IPacketListener
 
     private readonly IAccountManagerService _accountManagerService;
 
-    public LoginHandler(IAccountManagerService accountManagerService)
+    private readonly MoongateServerConfig _moongateServerConfig;
+
+    public LoginHandler(IAccountManagerService accountManagerService, MoongateServerConfig moongateServerConfig)
     {
         _accountManagerService = accountManagerService;
+        _moongateServerConfig = moongateServerConfig;
     }
 
     public async Task OnPacketReceivedAsync(SessionData session, IUoNetworkPacket packet)
@@ -58,7 +64,27 @@ public class LoginHandler : IPacketListener
         await MoongateInstanceHolder.PublishEvent(new AccountLoginEvent(account.Id, account.Username));
 
         _logger.Information("Login successful for {Username}", loginPacket.Username);
+
+        session.SendPacket(PrepareGameServerList());
     }
+
+    private GameServerListPacket PrepareGameServerList()
+    {
+        var gameServerList = new GameServerListPacket();
+        gameServerList.AddServer(
+            new GameServerEntry()
+            {
+                IP = IPAddress.Parse("127.0.0.1"),
+                LoadPercent = 0x0,
+                Name = _moongateServerConfig.Shard.Name,
+                TimeZone = (byte)TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow).TotalHours
+            }
+        );
+
+
+        return gameServerList;
+    }
+
 
     private void SetSeedVersion(SessionData session, SeedPacket seedPacket)
     {

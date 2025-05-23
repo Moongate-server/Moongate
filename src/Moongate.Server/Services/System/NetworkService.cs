@@ -157,7 +157,7 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
             }
 
 
-            using var packetBuffer = new SpanWriter(stackalloc byte[packet.Length], true);
+            using var packetBuffer = new SpanWriter(stackalloc byte[realLength], realLength == 16);
             var bufferToSend = packet.Write(packetBuffer);
 
             LogPacket(client.Id, bufferToSend, false);
