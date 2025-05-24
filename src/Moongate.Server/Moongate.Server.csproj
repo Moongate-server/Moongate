@@ -25,6 +25,7 @@
         <Content Include="..\..\.dockerignore">
             <Link>.dockerignore</Link>
         </Content>
+        <Content Include="Assets\data\Professions\all-profession-skill-names.txt" />
     </ItemGroup>
 
     <ItemGroup>

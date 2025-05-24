@@ -75,6 +75,16 @@ public static partial class ResourceUtils
         return resourceNames.Where(name => name.Contains(normalizedPath));
     }
 
+    public static string EmbeddedNameToPath(string resourceName, string assemblyPrefix)
+    {
+        if (resourceName.StartsWith(assemblyPrefix + ".", StringComparison.Ordinal))
+        {
+            resourceName = resourceName[(assemblyPrefix.Length + 1)..];
+        }
+
+        return resourceName.Replace('.', '/');
+    }
+
     /// <summary>
     /// Gets a list of all files in a specific embedded directory
     /// </summary>
@@ -171,7 +181,7 @@ public static partial class ResourceUtils
             throw new ArgumentException("Resource name does not contain a valid extension.");
         }
 
-        // Divide in nome senza estensione e estensione
+
         string pathPart = relativeName[..lastDotIndex].Replace('.', Path.DirectorySeparatorChar);
         string extension = relativeName[(lastDotIndex + 1)..];
 

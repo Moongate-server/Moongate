@@ -49,6 +49,7 @@ public class MoongateStartupServer
         _moongateServerArgs = serverArgs;
 
         SetupRootDirectory();
+        CopyEmbeddedAssets();
         CheckEnvFileAndLoad();
         PrintHeader();
         BuildContainer();
@@ -224,6 +225,59 @@ public class MoongateStartupServer
     {
         _moongateServerArgs.RootDirectory = Environment.GetEnvironmentVariable("MOONGATE_ROOT") ??
                                             Path.Combine(Directory.GetCurrentDirectory(), "moongate");
+    }
+
+    private void CopyEmbeddedAssets()
+    {
+        var files = ResourceUtils.GetEmbeddedResourceNames(GetType().Assembly,  "Assets");
+
+        foreach (var file in files)
+        {
+            var normalizedFileName = ResourceUtils.ConvertResourceNameToPath(file, GetType().Assembly.GetName().Name + ".Assets");
+
+            var filePath = Path.Combine(_moongateServerArgs.RootDirectory, normalizedFileName);
+
+            if (!Directory.Exists(Path.GetDirectoryName(filePath)))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+            }
+
+            if (!File.Exists(filePath))
+            {
+                using var stream = GetType().Assembly.GetManifestResourceStream(file);
+                if (stream != null)
+                {
+                    using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
+                    stream.CopyTo(fileStream);
+                    Log.Logger.Debug("Copied embedded asset: {FilePath}", filePath);
+                }
+                else
+                {
+                    Log.Logger.Warning("Failed to find embedded resource: {FileName}", file);
+                }
+            }
+        }
+
+
+
+        // var assembly = typeof(Program).Assembly;
+        // var resourceNames = assembly.GetManifestResourceNames();
+        //
+        // foreach (var resourceName in resourceNames)
+        // {
+        //     if (resourceName.StartsWith("Assets."))
+        //     {
+        //         var fileName = resourceName.Substring("Assets.".Length);
+        //         var filePath = Path.Combine(assetsDirectory, fileName);
+        //
+        //         using var stream = assembly.GetManifestResourceStream(resourceName);
+        //         if (stream != null)
+        //         {
+        //             using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
+        //             stream.CopyTo(fileStream);
+        //         }
+        //     }
+        // }
     }
 
     private void PrintHeader()
