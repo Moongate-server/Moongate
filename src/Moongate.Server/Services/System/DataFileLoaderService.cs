@@ -5,6 +5,7 @@ using Moongate.Core.Interfaces.Services.System;
 using Moongate.Core.Services.Base;
 using Moongate.Uo.Services.Files;
 using Serilog;
+using ZLinq;
 
 namespace Moongate.Server.Services.System;
 
@@ -14,13 +15,15 @@ public class DataFileLoaderService : AbstractBaseMoongateService, IDataFileLoade
 
     private readonly Dictionary<int, List<IDataFileLoader>> _dataFileLoaders = new();
 
-    public DataFileLoaderService( IContainer container, MoongateServerConfig serverConfig) : base(Log.ForContext<DataFileLoaderService>())
+    public DataFileLoaderService(IContainer container, MoongateServerConfig serverConfig) : base(
+        Log.ForContext<DataFileLoaderService>()
+    )
     {
         _container = container;
 
         UoFiles.ScanForFiles(serverConfig.Shard.UoDirectory);
 
-        Logger.Information("Found {Count} data files",UoFiles.MulPath.Values.Count);
+        Logger.Information("Found {Count} data files", UoFiles.MulPath.Values.Count);
     }
 
 
@@ -38,9 +41,41 @@ public class DataFileLoaderService : AbstractBaseMoongateService, IDataFileLoade
 
         if (!_dataFileLoaders.ContainsKey(priority))
         {
-            _dataFileLoaders[priority] = new List<IDataFileLoader>();
+            _dataFileLoaders[priority] = [];
         }
 
+        var dataLoaderInstance = _container.Resolve(dataLoader) as IDataFileLoader;
+
+        _dataFileLoaders[priority].Add(dataLoaderInstance);
+
         Logger.Debug("Registered data loader: {DataLoader} with priority {Priority}", dataLoader.Name, priority);
+    }
+
+    public async Task LoadDataLoadersAsync(CancellationToken cancellationToken = default)
+    {
+        Logger.Information("Loading data loaders...");
+
+        var orderedLoaders = _dataFileLoaders.AsValueEnumerable()
+            .OrderBy(kv => kv.Key)
+            .SelectMany(kv => kv.Value)
+            .ToList();
+
+        foreach (var loader in orderedLoaders)
+        {
+            Logger.Information("Loading data with {DataLoader}", loader.GetType().Name);
+            await loader.LoadAsync();
+        }
+
+        Logger.Information("Data loaders loaded successfully.");
+    }
+
+    public Task StartAsync(CancellationToken cancellationToken = default)
+    {
+        return LoadDataLoadersAsync(cancellationToken);
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken = default)
+    {
+        return Task.CompletedTask;
     }
 }
