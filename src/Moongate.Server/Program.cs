@@ -144,6 +144,7 @@ await ConsoleApp.RunAsync(
             dataLoaderService.AddDataLoaderType(typeof(ServerClientVersionLoader), 0);
             dataLoaderService.AddDataLoaderType(typeof(ExpansionLoader), 1);
             dataLoaderService.AddDataLoaderType(typeof(SkillInfoLoader), 2);
+            dataLoaderService.AddDataLoaderType(typeof(ProfessionsLoader), 3);
         };
 
 
