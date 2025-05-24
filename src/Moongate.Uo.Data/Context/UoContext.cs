@@ -7,4 +7,8 @@ public static class UoContext
     public static ClientVersion ServerVersion { get; set; }
 
     public static Expansion Expansion { get; set; }
+
+    public static ExpansionInfo ExpansionInfo { get; set; }
+
+
 }

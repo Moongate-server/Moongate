@@ -142,6 +142,8 @@ await ConsoleApp.RunAsync(
             var dataLoaderService = container.Resolve<IDataFileLoaderService>();
 
             dataLoaderService.AddDataLoaderType(typeof(ServerClientVersionLoader), 0);
+            dataLoaderService.AddDataLoaderType(typeof(ExpansionLoader), 1);
+            dataLoaderService.AddDataLoaderType(typeof(SkillInfoLoader), 2);
         };
 
 
