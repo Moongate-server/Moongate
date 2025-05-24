@@ -1,7 +1,7 @@
 using System.Buffers.Binary;
 using Moongate.Core.Interfaces.DataLoader;
 using Moongate.Uo.Data;
-using Moongate.Uo.Services.Context;
+using Moongate.Uo.Data.Context;
 using Moongate.Uo.Services.Files;
 using Serilog;
 
@@ -9,14 +9,8 @@ namespace Moongate.Server.DataLoaders;
 
 public class ServerClientVersionLoader : IDataFileLoader
 {
-    private readonly UoContext _uoContext;
-
     private readonly ILogger _logger = Log.ForContext<ServerClientVersionLoader>();
 
-    public ServerClientVersionLoader(UoContext uoContext)
-    {
-        _uoContext = uoContext;
-    }
 
     public async Task<bool> LoadAsync()
     {
@@ -73,7 +67,7 @@ public class ServerClientVersionLoader : IDataFileLoader
         }
 
         _logger.Information("Client version found: {ClientVersion}", clientVersion);
-        _uoContext.ServerVersion = clientVersion;
+        UoContext.ServerVersion = clientVersion;
 
         return true;
     }

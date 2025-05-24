@@ -21,7 +21,6 @@ using Moongate.Server.Services.Uo;
 using Moongate.Uo.Network.Interfaces.Services;
 using Moongate.Uo.Network.Packets;
 using Moongate.Uo.Network.Packets.Connection;
-using Moongate.Uo.Services.Context;
 using Moongate.Uo.Services.Interfaces.Services;
 using Moongate.Uo.Services.Serialization.Entities;
 
@@ -102,7 +101,6 @@ await ConsoleApp.RunAsync(
 
             container.RegisterInstance(new ScriptEngineConfig());
 
-            container.RegisterInstance(new UoContext());
 
             container.RegisterInstance(new EventLoopConfig());
             container.RegisterInstance(
@@ -144,8 +142,6 @@ await ConsoleApp.RunAsync(
             var dataLoaderService = container.Resolve<IDataFileLoaderService>();
 
             dataLoaderService.AddDataLoaderType(typeof(ServerClientVersionLoader), 0);
-
-
         };
 
 
