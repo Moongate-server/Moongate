@@ -28,7 +28,8 @@ await ConsoleApp.RunAsync(
     args,
     async (
         LogLevelType defaultLogLevel = LogLevelType.Debug, bool logToFile = true, bool loadFromEnv = false,
-        string? rootDirectory = null, bool printHeader = true, string configName = "moongate.json"
+        string? rootDirectory = null, bool printHeader = true, string configName = "moongate.json",
+        string ultimaOnlineDirectory = ""
     ) =>
     {
         var cts = new CancellationTokenSource();
@@ -44,6 +45,7 @@ await ConsoleApp.RunAsync(
                 LoadFromEnv = loadFromEnv,
                 PrintHeader = printHeader,
                 ConfigName = configName,
+                UltimaOnlineDirectory = ultimaOnlineDirectory,
                 DefaultLogLevel = defaultLogLevel
             }
         );
@@ -136,7 +138,6 @@ await ConsoleApp.RunAsync(
         moongateStartupServer.BeforeStart += container =>
         {
             var dataLoaderService = container.Resolve<IDataFileLoaderService>();
-
         };
 
 

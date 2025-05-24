@@ -13,7 +13,7 @@ public class UoFiles
     /// <summary>
     ///     Should a Hashfile be used to speed up loading
     /// </summary>
-    public static bool UseHashFile { get; set; }
+    public static bool UseHashFile { get; set; } = true;
 
     public static string RootDir { get; set; }
 
@@ -44,14 +44,11 @@ public class UoFiles
         "unifont9.mul", "unifont10.mul", "unifont11.mul", "unifont12.mul", "uotd.exe", "verdata.mul"
     ];
 
-
     public static void ReLoadDirectory()
     {
         MulPath.Clear();
-
         ScanForFiles(RootDir);
     }
-
 
     public static void ScanForFiles(string path = "")
     {
@@ -62,7 +59,6 @@ public class UoFiles
         foreach (var file in files)
         {
             var exists = _files.Any(f => f.Equals(Path.GetFileName(file), StringComparison.OrdinalIgnoreCase));
-
             if (exists)
             {
                 var fileName = Path.GetFileName(file);
@@ -74,13 +70,17 @@ public class UoFiles
                 }
             }
         }
+
+        var hashed = ComputeAllMulHashes();
+        _logger.Information("Computed hashes for {Count} files", hashed.Count);
+
+        if (UseHashFile)
+        {
+            SaveHashFile(Path.Combine(RootDir, "UOFiddlerHashes.hash"), hashed);
+            _logger.Information("Saved hash file to {Path}", Path.Combine(RootDir, "UOFiddlerHashes.hash"));
+        }
     }
 
-    /// <summary>
-    ///     Sets <see cref="MulPath" /> key to path
-    /// </summary>
-    /// <param name="path"></param>
-    /// <param name="key"></param>
     public static void SetMulPath(string path, string key)
     {
         MulPath[key] = path;
@@ -102,71 +102,86 @@ public class UoFiles
         return filePath;
     }
 
-    /// <summary>
-    ///     Compares given MD5 hash with hash of given file
-    /// </summary>
-    /// <param name="file"></param>
-    /// <param name="hash"></param>
-    /// <returns></returns>
-    public static bool CompareMD5(string file, string hash)
+    public static byte[] GetSHA256(string? file)
     {
-        if (file == null)
-        {
-            return false;
-        }
-
-        var FileCheck = File.OpenRead(file);
-        using MD5 md5 = MD5.Create();
-        byte[] md5Hash = md5.ComputeHash(FileCheck);
-        FileCheck.Close();
-        string md5string = BitConverter.ToString(md5Hash).Replace("-", "").ToLower();
-        return md5string == hash;
-    }
-
-    /// <summary>
-    ///     Returns MD5 hash from given file
-    /// </summary>
-    /// <param name="file"></param>
-    /// <returns></returns>
-    public static byte[] GetMD5(string? file)
-    {
-        if (file == null)
+        if (file == null || !File.Exists(file))
         {
             return null;
         }
 
-        var FileCheck = File.OpenRead(file);
-        using MD5 md5 = MD5.Create();
-        byte[] md5Hash = md5.ComputeHash(FileCheck);
-        FileCheck.Close();
-        return md5Hash;
+        using var stream = File.OpenRead(file);
+        using var sha256 = SHA256.Create();
+        return sha256.ComputeHash(stream);
     }
 
-    /// <summary>
-    ///     Compares MD5 hash from given mul file with hash in responsible hash-file
-    /// </summary>
-    /// <param name="what"></param>
-    /// <returns></returns>
-    public static bool CompareHashFile(string what, string path)
+    public static string GetSHA256Hex(string? file)
     {
-        string FileName = Path.Combine(path, $"UOFiddler{what}.hash");
-        if (File.Exists(FileName))
+        var hash = GetSHA256(file);
+        return hash != null ? Convert.ToHexStringLower(hash) : null;
+    }
+
+    public static bool CompareSHA256(string file, string expectedHash)
+    {
+        var actualHash = GetSHA256Hex(file);
+        return string.Equals(actualHash, expectedHash, StringComparison.OrdinalIgnoreCase);
+    }
+
+    public static Dictionary<string, string> ComputeAllMulHashes()
+    {
+        var result = new Dictionary<string, string>();
+
+        foreach (var fileName in _files)
         {
-            try
+            var filePath = GetFilePath(fileName);
+            if (filePath != null && File.Exists(filePath))
             {
-                using var bin = new BinaryReader(new FileStream(FileName, FileMode.Open, FileAccess.Read, FileShare.Read));
-                int length = bin.ReadInt32();
-                var buffer = new byte[length];
-                bin.Read(buffer, 0, length);
-                string hashold = Convert.ToHexStringLower(buffer);
-                return CompareMD5(GetFilePath($"{what}.mul"), hashold);
-            }
-            catch
-            {
-                return false;
+                var hash = GetSHA256Hex(filePath);
+                if (hash != null)
+                {
+                    _logger.Debug("Computed hash for {File}: {Hash}", fileName, hash);
+                    result[fileName] = hash;
+                }
             }
         }
 
-        return false;
+        if (UseHashFile)
+        {
+            SaveHashFile(Path.Combine(RootDir, "UOFiddlerHashes.hash"), result);
+        }
+
+        return result;
+    }
+
+    public static void SaveHashFile(string outputPath, Dictionary<string, string> hashes)
+    {
+        using var writer = new StreamWriter(outputPath);
+        foreach (var (file, hash) in hashes)
+        {
+            writer.WriteLine($"{file}|{hash}");
+        }
+    }
+
+    public static bool CompareHashFile(string what, string path)
+    {
+        string hashFileName = Path.Combine(path, $"UOFiddler{what}.hash");
+        if (!File.Exists(hashFileName))
+        {
+            return false;
+        }
+
+        try
+        {
+            using var bin = new BinaryReader(new FileStream(hashFileName, FileMode.Open, FileAccess.Read, FileShare.Read));
+            int length = bin.ReadInt32();
+            var buffer = new byte[length];
+            bin.Read(buffer, 0, length);
+            string storedHash = Convert.ToHexString(buffer).ToLowerInvariant();
+
+            return CompareSHA256(GetFilePath($"{what}.mul"), storedHash);
+        }
+        catch
+        {
+            return false;
+        }
     }
 }

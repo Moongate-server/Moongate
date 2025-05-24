@@ -21,15 +21,19 @@ namespace Moongate.Server;
 public class MoongateStartupServer
 {
     public delegate void RegisterServicesDelegate(IContainer container);
+
     public event RegisterServicesDelegate RegisterServices;
 
     public delegate void RegisterScriptModulesDelegate(IScriptEngineService container);
+
     public event RegisterScriptModulesDelegate RegisterScriptModules;
 
     public delegate void RegisterPacketsAndHandlersDelegate(INetworkService networkService);
+
     public event RegisterPacketsAndHandlersDelegate RegisterPacketsAndHandlers;
 
     public delegate void BeforeStartDelegate(IContainer container);
+
     public event BeforeStartDelegate BeforeStart;
 
 
@@ -54,7 +58,7 @@ public class MoongateStartupServer
 
     public void Init()
     {
-        var config = CheckAndLoadConfig(_container, _container.Resolve<DirectoriesConfig>(), _moongateServerArgs.ConfigName);
+        var config = CheckAndLoadConfig(_container.Resolve<DirectoriesConfig>(), _moongateServerArgs.ConfigName);
 
         _container.RegisterInstance(config);
 
@@ -284,8 +288,8 @@ public class MoongateStartupServer
         }
     }
 
-    private static MoongateServerConfig CheckAndLoadConfig(
-        IContainer container, DirectoriesConfig directoriesConfig, string configName
+    private MoongateServerConfig CheckAndLoadConfig(
+        DirectoriesConfig directoriesConfig, string configName
     )
     {
         Log.Logger.Information("Loading config: {ConfigName}", configName);
@@ -304,6 +308,8 @@ public class MoongateStartupServer
         );
 
         JsonUtils.SerializeToFile(config, configPath, MoongateJsonContext.Default);
+
+        config.Shard.UoDirectory ??= _moongateServerArgs.UltimaOnlineDirectory;
 
         return config;
     }
