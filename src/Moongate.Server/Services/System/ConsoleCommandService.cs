@@ -3,6 +3,7 @@ using Moongate.Core.Data.Commands;
 using Moongate.Core.Instances;
 using Moongate.Core.Interfaces.Services.System;
 using Moongate.Core.Services.Base;
+using Moongate.Core.Services.Hosted;
 using Serilog;
 using ZLinq;
 

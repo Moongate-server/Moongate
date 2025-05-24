@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using DryIoc;
 using Moongate.Core.Data.Configs.Server;
 using Moongate.Core.Data.Options;
@@ -8,9 +7,9 @@ using Moongate.Core.Extensions.Services;
 using Moongate.Core.Instances;
 using Moongate.Core.Interfaces.Services.System;
 using Moongate.Core.Json;
+using Moongate.Core.Services.Hosted;
 using Moongate.Core.Types;
 using Moongate.Core.Utils.Resources;
-using Moongate.Persistence.Interfaces.Services;
 using Moongate.Server.Json;
 using Moongate.Server.Services.System;
 using Moongate.Uo.Network.Interfaces.Services;
@@ -28,8 +27,11 @@ public class MoongateStartupServer
     public event RegisterScriptModulesDelegate RegisterScriptModules;
 
     public delegate void RegisterPacketsAndHandlersDelegate(INetworkService networkService);
-
     public event RegisterPacketsAndHandlersDelegate RegisterPacketsAndHandlers;
+
+    public delegate void BeforeStartDelegate(IContainer container);
+    public event BeforeStartDelegate BeforeStart;
+
 
     private IContainer _container;
 
@@ -93,6 +95,7 @@ public class MoongateStartupServer
 
         RegisterPacketsAndHandlers?.Invoke(networkService);
 
+        BeforeStart?.Invoke(_container);
         try
         {
             await startupService.StartAsync(_cancellationTokenSource.Token);
@@ -307,6 +310,18 @@ public class MoongateStartupServer
 
     public static bool CheckUltimaOnlineDirectory(MoongateServerConfig config)
     {
+        if (string.IsNullOrEmpty(config.Shard.UoDirectory))
+        {
+            Log.Logger.Error("Ultima Online directory is not set in the configuration.");
+            return false;
+        }
+
+        if (!Directory.Exists(config.Shard.UoDirectory))
+        {
+            Log.Logger.Error("Ultima Online directory not found: {UltimaOnlineDirectory}", config.Shard.UoDirectory);
+            return false;
+        }
+
         return true;
     }
 }

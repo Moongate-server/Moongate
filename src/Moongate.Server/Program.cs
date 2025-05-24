@@ -83,6 +83,7 @@ await ConsoleApp.RunAsync(
                 .AddService(typeof(IEventDispatcherService), typeof(EventDispatcherService))
                 .AddService(typeof(IScriptEngineService), typeof(ScriptEngineService))
                 .AddService(typeof(IWebServerService), typeof(WebServerService))
+                .AddService(typeof(IDataFileLoaderService), typeof(DataFileLoaderService), -1)
                 .AddService(typeof(ISessionManagerService), typeof(SessionManagerService), 99)
                 .AddService(typeof(INetworkService), typeof(NetworkService), 100)
                 ;
@@ -130,6 +131,12 @@ await ConsoleApp.RunAsync(
             networkService.RegisterPacketHandler<LoginPacket, LoginHandler>();
             networkService.RegisterPacketHandler<SelectServerPacket, LoginHandler>();
             networkService.RegisterPacketHandler<GameServerLoginPacket, GameLoginHandler>();
+        };
+
+        moongateStartupServer.BeforeStart += container =>
+        {
+            var dataLoaderService = container.Resolve<IDataFileLoaderService>();
+
         };
 
 

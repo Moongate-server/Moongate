@@ -1,6 +1,7 @@
 {
   "shard": {
-    "name": "Moongate Shard"
+    "name": "Moongate Shard",
+    "uoDirectory": "/Users/squid/uo/"
   },
   "network": {
     "loginPort": 2593,

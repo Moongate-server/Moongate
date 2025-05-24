@@ -1,11 +1,8 @@
 namespace Moongate.Core.Interfaces.DataLoader;
 
-public interface IDataLoader<T>
+public interface IDataFileLoader
 {
     Task<bool> LoadAsync();
-    Task<T?> GetAsync(int index);
-    Task<IReadOnlyList<T>> GetAllAsync();
     bool IsLoaded { get; }
-    int Count { get; }
     string[] RequiredFiles { get; }
 }

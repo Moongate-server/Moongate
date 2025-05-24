@@ -2,9 +2,10 @@ using DryIoc;
 using Moongate.Core.Data.Events.Server;
 using Moongate.Core.Data.Services;
 using Moongate.Core.Interfaces.Services.Base;
+using Moongate.Core.Interfaces.Services.System;
 using Serilog;
 
-namespace Moongate.Core.Interfaces.Services.System;
+namespace Moongate.Core.Services.Hosted;
 
 public class MoongateStartupService
 {

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
@@ -14,10 +14,6 @@
       <PackageReference Include="DryIoc.Dll" Version="5.4.3" />
       <PackageReference Include="Serilog" Version="4.3.0" />
       <PackageReference Include="ZLinq" Version="1.4.7" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Services\Hosted\" />
     </ItemGroup>
 
     <ItemGroup>
