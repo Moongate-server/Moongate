@@ -19,7 +19,6 @@ using Moongate.Server.Modules;
 using Moongate.Server.Services.System;
 using Moongate.Server.Services.Uo;
 using Moongate.Uo.Network.Interfaces.Services;
-using Moongate.Uo.Network.Packets;
 using Moongate.Uo.Network.Packets.Connection;
 using Moongate.Uo.Services.Interfaces.Services;
 using Moongate.Uo.Services.Serialization.Entities;
@@ -86,6 +85,7 @@ await ConsoleApp.RunAsync(
                 .AddService(typeof(IEventDispatcherService), typeof(EventDispatcherService))
                 .AddService(typeof(IScriptEngineService), typeof(ScriptEngineService))
                 .AddService(typeof(IWebServerService), typeof(WebServerService))
+                .AddService(typeof(ILocalizedTextService), typeof(LocalizedTextService))
                 .AddService(typeof(IDataFileLoaderService), typeof(DataFileLoaderService), -1)
                 .AddService(typeof(ISessionManagerService), typeof(SessionManagerService), 99)
                 .AddService(typeof(INetworkService), typeof(NetworkService), 100)

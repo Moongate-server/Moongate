@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using DryIoc;
 using Moongate.Core.Data.Configs.Server;
 using Moongate.Core.Interfaces.DataLoader;
@@ -39,14 +40,14 @@ public class DataFileLoaderService : AbstractBaseMoongateService, IDataFileLoade
             _container.Register(dataLoader, Reuse.Singleton);
         }
 
-        if (!_dataFileLoaders.ContainsKey(priority))
+        if (!_dataFileLoaders.TryGetValue(priority, out List<IDataFileLoader>? value))
         {
-            _dataFileLoaders[priority] = [];
+            value = ( []);
+            _dataFileLoaders[priority] = value;
         }
 
         var dataLoaderInstance = _container.Resolve(dataLoader) as IDataFileLoader;
-
-        _dataFileLoaders[priority].Add(dataLoaderInstance);
+        value.Add(dataLoaderInstance);
 
         Logger.Debug("Registered data loader: {DataLoader} with priority {Priority}", dataLoader.Name, priority);
     }
@@ -54,6 +55,8 @@ public class DataFileLoaderService : AbstractBaseMoongateService, IDataFileLoade
     public async Task LoadDataLoadersAsync(CancellationToken cancellationToken = default)
     {
         Logger.Information("Loading data loaders...");
+
+        var startTime = Stopwatch.GetTimestamp();
 
         var orderedLoaders = _dataFileLoaders.AsValueEnumerable()
             .OrderBy(kv => kv.Key)
@@ -66,7 +69,7 @@ public class DataFileLoaderService : AbstractBaseMoongateService, IDataFileLoade
             await loader.LoadAsync();
         }
 
-        Logger.Information("Data loaders loaded successfully.");
+        Logger.Information("Data loaders loaded successfully in {ElapsedMs} ms ", Stopwatch.GetElapsedTime(startTime));
     }
 
     public Task StartAsync(CancellationToken cancellationToken = default)
