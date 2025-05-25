@@ -2,7 +2,7 @@ using System.Buffers.Binary;
 using Moongate.Core.Interfaces.DataLoader;
 using Moongate.Uo.Data;
 using Moongate.Uo.Data.Context;
-using Moongate.Uo.Services.Files;
+using Moongate.Uo.Data.Files;
 using Serilog;
 
 namespace Moongate.Server.DataLoaders;

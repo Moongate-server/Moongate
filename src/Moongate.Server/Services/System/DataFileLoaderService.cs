@@ -4,7 +4,7 @@ using Moongate.Core.Data.Configs.Server;
 using Moongate.Core.Interfaces.DataLoader;
 using Moongate.Core.Interfaces.Services.System;
 using Moongate.Core.Services.Base;
-using Moongate.Uo.Services.Files;
+using Moongate.Uo.Data.Files;
 using Serilog;
 using ZLinq;
 
