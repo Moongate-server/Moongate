@@ -1,7 +1,8 @@
 {
   "shard": {
     "name": "Moongate Shard",
-    "uoDirectory": "/Users/squid/uo/"
+    "uoDirectory": "/Users/squid/uo/",
+    "language": "enu"
   },
   "network": {
     "loginPort": 2593,
