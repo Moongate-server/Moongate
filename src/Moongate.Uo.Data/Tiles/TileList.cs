@@ -22,7 +22,7 @@ namespace Moongate.Uo.Data.Tiles;
 
 public class TileList
 {
-    private static readonly StaticTile[] _emptyTiles = Array.Empty<StaticTile>();
+    private static readonly StaticTile[] _emptyTiles = [];
     private StaticTile[] _tiles;
 
     public int Count { get; private set; }
