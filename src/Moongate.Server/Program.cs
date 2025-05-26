@@ -95,12 +95,12 @@ await ConsoleApp.RunAsync(
             container
                 .AddService(typeof(IPersistenceManager), typeof(MemoryPackPersistenceManager));
 
-
             container
-                .AddService(typeof(IAccountManagerService), typeof(AccountManagerService));
+                .AddService(typeof(IAccountManagerService), typeof(AccountManagerService))
+                .AddService(typeof(IMapService), typeof(MapService))
+                ;
 
             container.RegisterInstance(new ScriptEngineConfig());
-
 
             container.RegisterInstance(new EventLoopConfig());
             container.RegisterInstance(

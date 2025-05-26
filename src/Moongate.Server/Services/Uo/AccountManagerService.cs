@@ -90,6 +90,39 @@ public class AccountManagerService : AbstractBaseMoongateStartStopService, IAcco
         return null;
     }
 
+    public List<CharacterEntity> GetCharactersByAccountId(string accountId)
+    {
+        if (_characters.TryGetValue(accountId, out List<CharacterEntity>? characters))
+        {
+            return characters;
+        }
+
+        Logger.Warning("No characters found for account ID {AccountId}.", accountId);
+        return [];
+    }
+
+    public Task AddCharacterToAccountAsync(string accountId, CharacterEntity character)
+    {
+        if (!_accounts.ContainsKey(accountId))
+        {
+            Logger.Warning("Account ID {AccountId} does not exist.", accountId);
+            return Task.CompletedTask;
+        }
+
+        if (!_characters.TryGetValue(accountId, out List<CharacterEntity>? characters))
+        {
+            characters = new List<CharacterEntity>();
+            _characters[accountId] = characters;
+        }
+
+        characters.Add(character);
+        character.AccountId = accountId;
+
+        Logger.Information("Added character {CharacterName} to account {AccountId}.", character.Name, accountId);
+
+        return SaveAllAsync(CancellationToken.None);
+    }
+
 
     public override async Task StartAsync(CancellationToken cancellationToken = default)
     {
@@ -163,6 +196,17 @@ public class AccountManagerService : AbstractBaseMoongateStartStopService, IAcco
     private Task SaveAccountsAsync(CancellationToken cancellationToken)
     {
         return _persistenceManager.SaveEntitiesAsync(_accountsFilePath, _accounts.Values, cancellationToken);
+    }
+
+    private Task SaveCharactersAsync(CancellationToken cancellationToken)
+    {
+        var allCharacters = _characters.Values.SelectMany(c => c).ToList();
+        return _persistenceManager.SaveEntitiesAsync(_charactersFilePath, allCharacters, cancellationToken);
+    }
+
+    private Task SaveAllAsync(CancellationToken cancellationToken)
+    {
+        return Task.WhenAll(SaveAccountsAsync(cancellationToken), SaveCharactersAsync(cancellationToken));
     }
 
     public void Dispose()

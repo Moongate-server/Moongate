@@ -6,7 +6,7 @@ using Moongate.Uo.Network.Interfaces.Messages;
 
 namespace Moongate.Uo.Data.Network.Packets.Characters;
 
-public class CharactersStartingLocations : IUoNetworkPacket
+public class CharactersStartingLocationsPacket : IUoNetworkPacket
 {
     public byte OpCode => 0xA9;
     public int Length => -1;
@@ -18,7 +18,7 @@ public class CharactersStartingLocations : IUoNetworkPacket
     public List<CharacterEntry> Characters { get; } = new();
 
 
-    public CharactersStartingLocations(ProtocolChanges protocolChanges = ProtocolChanges.None)
+    public CharactersStartingLocationsPacket(ProtocolChanges protocolChanges = ProtocolChanges.None)
     {
         ProtocolChanges = protocolChanges;
     }

@@ -13,9 +13,12 @@ public class UoFiles
     /// <summary>
     ///     Should a Hashfile be used to speed up loading
     /// </summary>
-    public static bool UseHashFile { get; set; } = true;
+    public static bool UseHashFile { get; set; } = false;
 
     public static string RootDir { get; set; }
+
+
+    private const string _hashFileName = "uofiles.hash";
 
     private static readonly ILogger _logger = Log.ForContext<UoFiles>();
 
@@ -71,13 +74,12 @@ public class UoFiles
             }
         }
 
-        var hashed = ComputeAllMulHashes();
-        _logger.Information("Computed hashes for {Count} files", hashed.Count);
-
         if (UseHashFile)
         {
-            SaveHashFile(Path.Combine(RootDir, "UOFiddlerHashes.hash"), hashed);
-            _logger.Information("Saved hash file to {Path}", Path.Combine(RootDir, "UOFiddlerHashes.hash"));
+            var hashed = ComputeAllMulHashes();
+            _logger.Information("Computed hashes for {Count} files", hashed.Count);
+            SaveHashFile(Path.Combine(RootDir, _hashFileName), hashed);
+            _logger.Information("Saved hash file to {Path}", Path.Combine(RootDir, _hashFileName));
         }
     }
 
@@ -146,7 +148,7 @@ public class UoFiles
 
         if (UseHashFile)
         {
-            SaveHashFile(Path.Combine(RootDir, "UOFiddlerHashes.hash"), result);
+            SaveHashFile(Path.Combine(RootDir, _hashFileName), result);
         }
 
         return result;
@@ -158,30 +160,6 @@ public class UoFiles
         foreach (var (file, hash) in hashes)
         {
             writer.WriteLine($"{file}|{hash}");
-        }
-    }
-
-    public static bool CompareHashFile(string what, string path)
-    {
-        string hashFileName = Path.Combine(path, $"UOFiddler{what}.hash");
-        if (!File.Exists(hashFileName))
-        {
-            return false;
-        }
-
-        try
-        {
-            using var bin = new BinaryReader(new FileStream(hashFileName, FileMode.Open, FileAccess.Read, FileShare.Read));
-            int length = bin.ReadInt32();
-            var buffer = new byte[length];
-            bin.Read(buffer, 0, length);
-            string storedHash = Convert.ToHexString(buffer).ToLowerInvariant();
-
-            return CompareSHA256(GetFilePath($"{what}.mul"), storedHash);
-        }
-        catch
-        {
-            return false;
         }
     }
 }

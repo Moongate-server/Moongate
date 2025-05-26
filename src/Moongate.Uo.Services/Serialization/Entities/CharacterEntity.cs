@@ -10,5 +10,7 @@ public partial class CharacterEntity
 {
     public string AccountId { get; set; }
 
-    public string CharacterName { get; set; }
+    public string Name { get; set; }
+
+    public int MobileId { get; set; }
 }
