@@ -293,8 +293,8 @@ public static class TileData
 {
     public static LandData[] LandTable { get; } = new LandData[0x4000];
     public static ItemData[] ItemTable { get; } = new ItemData[0x10000];
-    public static int MaxLandValue { get; private set; }
-    public static int MaxItemValue { get; private set; }
+    public static int MaxLandValue { get; set; }
+    public static int MaxItemValue { get;  set; }
 
 
     public static unsafe void Configure()
