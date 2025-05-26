@@ -7,10 +7,12 @@ public class OutgoingCompressionMiddleware : INetMiddleware
 {
     public void ProcessSend(ref ReadOnlyMemory<byte> input, out ReadOnlyMemory<byte> output)
     {
-        var outputBuffer = new Span<byte>();
-        NetworkCompression.Compress(input.Span, outputBuffer);
+        var inputBuffer = input.Span.ToArray();
 
-        output = outputBuffer.ToArray();
+        Span<byte> outputBuffer = stackalloc byte[inputBuffer.Length];
+        var compressionSize = NetworkCompression.Compress(inputBuffer, outputBuffer);
+
+        output = outputBuffer[..compressionSize].ToArray();
     }
 
     public (bool halt, int consumedFromOrigin) ProcessReceive(

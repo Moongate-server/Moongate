@@ -3,9 +3,9 @@ using Moongate.Uo.Data.Network.Packets.Data;
 
 namespace Moongate.Uo.Services.Interfaces.Services;
 
-public interface IMapService : IMoongateService
+public interface IMapService : IMoongateStartStopService
 {
 
-    List<CityInfo> GetCities();
+    List<CityInfo> GetStartingCities();
 
 }

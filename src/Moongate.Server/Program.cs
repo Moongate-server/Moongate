@@ -18,6 +18,7 @@ using Moongate.Server.Handlers;
 using Moongate.Server.Modules;
 using Moongate.Server.Services.System;
 using Moongate.Server.Services.Uo;
+using Moongate.Uo.Data.Network.Packets.Characters;
 using Moongate.Uo.Network.Interfaces.Services;
 using Moongate.Uo.Network.Packets.Connection;
 using Moongate.Uo.Services.Interfaces.Services;
@@ -129,12 +130,14 @@ await ConsoleApp.RunAsync(
             networkService.RegisterPacket<LoginPacket>();
             networkService.RegisterPacket<SelectServerPacket>();
             networkService.RegisterPacket<GameServerLoginPacket>();
+            networkService.RegisterPacket<CharacterCreationPacket>();
 
 
             networkService.RegisterPacketHandler<SeedPacket, LoginHandler>();
             networkService.RegisterPacketHandler<LoginPacket, LoginHandler>();
             networkService.RegisterPacketHandler<SelectServerPacket, LoginHandler>();
             networkService.RegisterPacketHandler<GameServerLoginPacket, GameLoginHandler>();
+            networkService.RegisterPacketHandler<CharacterCreationPacket, CharacterHandler>();
         };
 
         moongateStartupServer.BeforeStart += container =>

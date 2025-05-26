@@ -45,7 +45,7 @@ public class CharactersStartingLocationsPacket : IUoNetworkPacket
         return false;
     }
 
-    public ReadOnlyMemory<byte> Write(SpanWriter packetWriter)
+    public ReadOnlyMemory<byte> Write(SpanWriter writer)
     {
         var client70130 = ProtocolChanges.HasFlag(ProtocolChanges.NewCharacterList);
         var textLength = client70130 ? 32 : 31;
@@ -75,7 +75,6 @@ public class CharactersStartingLocationsPacket : IUoNetworkPacket
             (client70130 ? 11 + (textLength * 2 + 25) * cityInfo.Count : 9 + (textLength * 2 + 1) * cityInfo.Count) +
             count * 60;
 
-        var writer = new SpanWriter(stackalloc byte[length]);
 
         writer.Write(OpCode);
         writer.Write((ushort)length);
@@ -137,8 +136,8 @@ public class CharactersStartingLocationsPacket : IUoNetworkPacket
         }
 
         // 169 4 208
-        packetWriter.Write(writer.Span.ToArray());
 
-        return packetWriter.ToSpan().Span.ToArray();
+
+        return writer.ToSpan().Span.ToArray();
     }
 }

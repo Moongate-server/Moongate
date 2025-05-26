@@ -66,6 +66,11 @@ public class NetClient
         _middlewares.Add(middleware);
     }
 
+    public bool ContainsMiddleware<T>() where T : INetMiddleware
+    {
+        return _middlewares.Any(m => m is T);
+    }
+
     public void AddInterceptor(INetInterceptor interceptor)
     {
         _interceptors.Add(interceptor);

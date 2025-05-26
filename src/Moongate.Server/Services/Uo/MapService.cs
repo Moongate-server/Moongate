@@ -54,14 +54,8 @@ public class MapService : IMapService
         new("Royal City", "Royal City Inn", 1150169, 738, 3486, -19, Map.TerMur)
     ];
 
-    private readonly CityInfo[] _availableStartingCities;
+    private CityInfo[] _availableStartingCities;
 
-
-    public MapService()
-    {
-        _availableStartingCities = ConstructAvailableStartingCities();
-        _logger.Information("Available starting cities: {AvailableCities}", _availableStartingCities.Length);
-    }
 
     private CityInfo[] ConstructAvailableStartingCities()
     {
@@ -95,7 +89,7 @@ public class MapService : IMapService
     }
 
 
-    public List<CityInfo> GetCities()
+    public List<CityInfo> GetStartingCities()
     {
         var cities = _availableStartingCities.Length > 0 ? _availableStartingCities : ConstructAvailableStartingCities();
 
@@ -103,6 +97,16 @@ public class MapService : IMapService
     }
 
     public void Dispose()
+    {
+    }
+
+    public async Task StartAsync(CancellationToken cancellationToken = default)
+    {
+        _availableStartingCities = ConstructAvailableStartingCities();
+        _logger.Information("Available starting cities: {AvailableCities}", _availableStartingCities.Length);
+    }
+
+    public async Task StopAsync(CancellationToken cancellationToken = default)
     {
     }
 }

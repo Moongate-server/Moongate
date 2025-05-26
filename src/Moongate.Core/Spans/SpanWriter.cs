@@ -92,6 +92,28 @@ public ref struct SpanWriter : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public byte[] ToArray()
+    {
+        if (_position == 0)
+        {
+            return Array.Empty<byte>();
+        }
+
+        var toReturn = _arrayToReturnToPool;
+        if (toReturn != null)
+        {
+            var result = new byte[_position];
+            _buffer[.._position].CopyTo(result);
+            this = default; // Don't allow two references to the same buffer
+            return result;
+        }
+
+        var array = new byte[_position];
+        _buffer[.._position].CopyTo(array);
+        return array;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public SpanWriter(Span<byte> initialBuffer, bool resize = false)
     {
         _resize = resize;
@@ -273,7 +295,8 @@ public ref struct SpanWriter : IDisposable
     public void WriteAscii(char chr) => Write((byte)chr);
 
     public void WriteAscii(
-        ref RawInterpolatedStringHandler handler)
+        ref RawInterpolatedStringHandler handler
+    )
     {
         Write(handler.Text, Encoding.ASCII);
         handler.Clear();
@@ -282,7 +305,8 @@ public ref struct SpanWriter : IDisposable
     public void WriteAscii(
         IFormatProvider? formatProvider,
         [InterpolatedStringHandlerArgument("formatProvider")]
-        ref RawInterpolatedStringHandler handler)
+        ref RawInterpolatedStringHandler handler
+    )
     {
         Write(handler.Text, Encoding.ASCII);
         handler.Clear();
@@ -290,7 +314,8 @@ public ref struct SpanWriter : IDisposable
 
     public void Write(
         Encoding encoding,
-        ref RawInterpolatedStringHandler handler)
+        ref RawInterpolatedStringHandler handler
+    )
     {
         Write(handler.Text, encoding);
         handler.Clear();
@@ -300,7 +325,8 @@ public ref struct SpanWriter : IDisposable
         Encoding encoding,
         IFormatProvider? formatProvider,
         [InterpolatedStringHandlerArgument("formatProvider")]
-        ref RawInterpolatedStringHandler handler)
+        ref RawInterpolatedStringHandler handler
+    )
     {
         Write(handler.Text, encoding);
         handler.Clear();
@@ -405,7 +431,6 @@ public ref struct SpanWriter : IDisposable
 
         Debug.Assert(
             origin != SeekOrigin.End || offset >= -_buffer.Length,
-
             "Attempting to seek to a negative position using SeekOrigin.End"
         );
 
@@ -429,12 +454,15 @@ public ref struct SpanWriter : IDisposable
             "Attempting to seek to a position beyond the capacity using SeekOrigin.Current without resize"
         );
 
-        var newPosition = Math.Max(0, origin switch
-        {
-            SeekOrigin.Current => _position + offset,
-            SeekOrigin.End     => BytesWritten + offset,
-            _                  => offset // Begin
-        });
+        var newPosition = Math.Max(
+            0,
+            origin switch
+            {
+                SeekOrigin.Current => _position + offset,
+                SeekOrigin.End     => BytesWritten + offset,
+                _                  => offset // Begin
+            }
+        );
 
         if (newPosition > _buffer.Length)
         {

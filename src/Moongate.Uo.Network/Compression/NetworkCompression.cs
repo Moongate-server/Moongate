@@ -62,6 +62,7 @@ public static class NetworkCompression
     {
         if (input.Length > DefiniteOverflow)
         {
+            output = default;
             return 0;
         }
 

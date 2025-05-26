@@ -2,6 +2,7 @@ using System.Net;
 using Moongate.Core.Data.Configs.Server;
 using Moongate.Core.Instances;
 using Moongate.Uo.Data;
+using Moongate.Uo.Data.Context;
 using Moongate.Uo.Data.Extensions;
 using Moongate.Uo.Network.Data.Entries;
 using Moongate.Uo.Network.Data.Sessions;
@@ -125,9 +126,23 @@ public class LoginHandler : IPacketListener
 
         //TODO: Check if the version is supported by the server
 
+
         session.SetClientVersion(
             new ClientVersion(seedPacket.Major, seedPacket.Minor, seedPacket.Revision, seedPacket.Prototype)
         );
+
+        if (UoContext.ServerVersion != session.GetClientVersion())
+        {
+            _logger.Warning(
+                "Client {Session} connected with unsupported version {Version}, expected {ExpectedVersion}, disconnecting",
+                session.Id,
+                session.GetClientVersion(),
+                UoContext.ServerVersion
+            );
+            session.SendPacket(new LoginDeniedPacket(LoginDeniedReasonType.IgrGeneralError));
+            session.Disconnect();
+            return;
+        }
 
         session.SetSeed(seedPacket.Seed);
     }

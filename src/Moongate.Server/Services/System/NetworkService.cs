@@ -539,6 +539,14 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
         var direction = IsReceived ? "<-" : "->";
         var opCode = "OPCODE: 0x" + buffer.Span[0].ToString("X2");
 
+        Logger.Debug(
+            "{Direction} {SessionId} {OpCode} | Data size: {DataSize} bytes",
+            direction,
+            sessionId,
+            opCode,
+            buffer.Length
+        );
+
         sw.WriteLine(
             $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} | {opCode}  | {direction} | Session ID: {sessionId} | Data size: {buffer.Length} bytes"
         );
