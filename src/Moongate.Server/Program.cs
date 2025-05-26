@@ -131,13 +131,17 @@ await ConsoleApp.RunAsync(
             networkService.RegisterPacket<SelectServerPacket>();
             networkService.RegisterPacket<GameServerLoginPacket>();
             networkService.RegisterPacket<CharacterCreationPacket>();
+            networkService.RegisterPacket<CharacterSelectPacket>();
+            networkService.RegisterPacket<ClientVersionPacket>();
 
 
             networkService.RegisterPacketHandler<SeedPacket, LoginHandler>();
             networkService.RegisterPacketHandler<LoginPacket, LoginHandler>();
+            networkService.RegisterPacketHandler<ClientVersionPacket, LoginHandler>();
             networkService.RegisterPacketHandler<SelectServerPacket, LoginHandler>();
             networkService.RegisterPacketHandler<GameServerLoginPacket, GameLoginHandler>();
             networkService.RegisterPacketHandler<CharacterCreationPacket, CharacterHandler>();
+            networkService.RegisterPacketHandler<CharacterSelectPacket, CharacterHandler>();
         };
 
         moongateStartupServer.BeforeStart += container =>

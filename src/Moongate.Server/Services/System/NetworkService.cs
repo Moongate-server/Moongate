@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -278,8 +279,8 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
                     break;
                 }
 
-                headerSize = 2;
-                packetSize = span[1] + headerSize;
+                headerSize = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(1, 3));
+                packetSize = headerSize;
 
                 if (span.Length < packetSize)
                 {

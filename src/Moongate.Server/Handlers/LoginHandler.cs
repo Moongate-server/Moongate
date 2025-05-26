@@ -58,6 +58,11 @@ public class LoginHandler : IPacketListener
         {
             await OnSelectServer(session, selectServerPacket);
         }
+
+        if (packet is ClientVersionPacket clientVersionPacket)
+        {
+            // Drop packet,we already handled it in SetSeedVersion
+        }
     }
 
 

@@ -8,6 +8,7 @@ using Moongate.Uo.Network.Data.Sessions;
 using Moongate.Uo.Network.Interfaces.Handlers;
 using Moongate.Uo.Network.Interfaces.Messages;
 using Moongate.Uo.Network.Interfaces.Services;
+using Moongate.Uo.Network.Packets.Connection;
 using Moongate.Uo.Services.Events.Characters;
 using Moongate.Uo.Services.Interfaces.Services;
 using Moongate.Uo.Services.Serialization.Entities;
@@ -44,6 +45,18 @@ public class CharacterHandler : IPacketListener
         {
             await ProcessCharacterCreation(session, characterCreation);
         }
+
+        if (packet is CharacterSelectPacket characterSelect)
+        {
+            await ProcessCharacterSelect(session, characterSelect);
+        }
+    }
+
+    private async Task ProcessCharacterSelect(SessionData session, CharacterSelectPacket packet)
+    {
+        _logger.Debug("Processing character select for {CharacterName} slot n: {Slot}", packet.Name, packet.Slot);
+
+        session.SendPacket(new ClientVersionPacket());
     }
 
     private async Task ProcessCharacterCreation(SessionData session, CharacterCreationPacket packet)
