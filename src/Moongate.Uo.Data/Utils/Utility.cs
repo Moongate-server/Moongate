@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Moongate.Core.Extensions.Collections;
 using Moongate.Core.Extensions.Strings;
 using Moongate.Uo.Data.Geometry;
 
@@ -275,8 +276,8 @@ public static partial class Utility
         }
     }
 
-    // public static T RandomList<T>(params T[] array)
-    // {
-    //     return array.ToList().RandomElement();
-    // }
+    public static T RandomList<T>(params T[] array)
+    {
+        return array.ToList().RandomElement();
+    }
 }
