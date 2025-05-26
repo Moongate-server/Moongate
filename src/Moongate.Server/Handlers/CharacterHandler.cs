@@ -10,6 +10,7 @@ using Moongate.Uo.Network.Interfaces.Messages;
 using Moongate.Uo.Network.Interfaces.Services;
 using Moongate.Uo.Services.Events.Characters;
 using Moongate.Uo.Services.Interfaces.Services;
+using Moongate.Uo.Services.Serialization.Entities;
 using Serilog;
 
 namespace Moongate.Server.Handlers;
@@ -45,10 +46,16 @@ public class CharacterHandler : IPacketListener
         }
     }
 
-    private Task ProcessCharacterCreation(SessionData session, CharacterCreationPacket packet)
+    private async Task ProcessCharacterCreation(SessionData session, CharacterCreationPacket packet)
     {
-
-        return Task.CompletedTask;
+        _logger.Debug("Processing character creation");
+        var characterEntity = new CharacterEntity()
+        {
+            AccountId = session.AccountId,
+            MobileId = Random.Shared.Next(),
+            Name = packet.Name
+        };
+        await _accountManagerService.AddCharacterToAccountAsync(session.AccountId, characterEntity);
     }
 
     private async Task OnSendCharacterListEvent(SendCharacterListEvent @event)
@@ -81,6 +88,4 @@ public class CharacterHandler : IPacketListener
         session.SendPacket(packet);
         session.SendPacket(new FeatureFlagsResponse(UoContext.ExpansionInfo.SupportedFeatures));
     }
-
-
 }
