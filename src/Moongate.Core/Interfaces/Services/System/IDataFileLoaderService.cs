@@ -5,7 +5,7 @@ namespace Moongate.Core.Interfaces.Services.System;
 
 public interface IDataFileLoaderService : IMoongateStartStopService
 {
-    void AddDataLoaderType(Type dataLoader, int priority);
+    void AddDataLoaderType(Type dataLoader, int priority = -1);
 
     Task LoadDataLoadersAsync(CancellationToken cancellationToken = default);
 }

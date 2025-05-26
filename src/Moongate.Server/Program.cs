@@ -141,10 +141,15 @@ await ConsoleApp.RunAsync(
         {
             var dataLoaderService = container.Resolve<IDataFileLoaderService>();
 
-            dataLoaderService.AddDataLoaderType(typeof(ServerClientVersionLoader), 0);
-            dataLoaderService.AddDataLoaderType(typeof(ExpansionLoader), 1);
-            dataLoaderService.AddDataLoaderType(typeof(SkillInfoLoader), 2);
-            dataLoaderService.AddDataLoaderType(typeof(ProfessionsLoader), 3);
+            dataLoaderService.AddDataLoaderType(typeof(ServerClientVersionLoader));
+            dataLoaderService.AddDataLoaderType(typeof(ExpansionLoader));
+            dataLoaderService.AddDataLoaderType(typeof(SkillInfoLoader));
+            dataLoaderService.AddDataLoaderType(typeof(ProfessionsLoader));
+            dataLoaderService.AddDataLoaderType(typeof(TileDataLoader));
+            dataLoaderService.AddDataLoaderType(typeof(RaceLoader));
+            dataLoaderService.AddDataLoaderType(typeof(MultiDataLoader));
+
+            dataLoaderService.AddDataLoaderType(typeof(MapLoader));
         };
 
 

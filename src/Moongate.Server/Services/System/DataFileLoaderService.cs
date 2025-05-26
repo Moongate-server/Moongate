@@ -28,8 +28,13 @@ public class DataFileLoaderService : AbstractBaseMoongateService, IDataFileLoade
     }
 
 
-    public void AddDataLoaderType(Type dataLoader, int priority)
+    public void AddDataLoaderType(Type dataLoader, int priority = -1)
     {
+        if (priority == -1)
+        {
+            priority = _dataFileLoaders.Keys.Count + 1;
+        }
+
         if (!typeof(IDataFileLoader).IsAssignableFrom(dataLoader))
         {
             throw new InvalidOperationException($"Type {dataLoader.Name} does not implement IDataFileLoader.");
