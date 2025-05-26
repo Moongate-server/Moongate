@@ -133,8 +133,7 @@ await ConsoleApp.RunAsync(
             networkService.RegisterPacket<CharacterCreationPacket>();
             networkService.RegisterPacket<CharacterSelectPacket>();
             networkService.RegisterPacket<ClientVersionPacket>();
-
-
+            
             networkService.RegisterPacketHandler<SeedPacket, LoginHandler>();
             networkService.RegisterPacketHandler<LoginPacket, LoginHandler>();
             networkService.RegisterPacketHandler<ClientVersionPacket, LoginHandler>();
