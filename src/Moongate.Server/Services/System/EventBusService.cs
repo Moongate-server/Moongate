@@ -1,57 +1,50 @@
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Reactive.Subjects;
-using System.Threading.Tasks.Dataflow;
+using System.Threading.Channels;
 using Moongate.Core.Data.Internal;
 using Moongate.Core.Interfaces.EventBus;
 using Moongate.Core.Interfaces.Services.System;
 using Serilog;
 using ILogger = Serilog.ILogger;
 
-
 namespace Moongate.Server.Services.System;
 
-public class EventBusService : IEventBusService
+public class EventBusService : IEventBusService, IDisposable
 {
     private readonly ILogger _logger = Log.ForContext<EventBusService>();
     private readonly ConcurrentDictionary<Type, object> _listeners = new();
-    private readonly ActionBlock<EventDispatchJob> _dispatchBlock;
+    private readonly Channel<EventDispatchJob> _channel;
     private readonly CancellationTokenSource _cts = new();
+    private readonly Task _processingTask;
+    private readonly Subject<object> _allEventsSubject = new();
 
-    private readonly Subject<object> _allEventsSubject = new Subject<object>();
-
-    /// <summary>();
-    /// Observable  that emits all events
+    /// <summary>
+    /// Observable that emits all events
     /// </summary>
     public IObservable<object> AllEventsObservable => _allEventsSubject;
 
     public EventBusService()
     {
-
-        var executionOptions = new ExecutionDataflowBlockOptions
-        {
-            MaxDegreeOfParallelism = 1,
-            CancellationToken = _cts.Token
-        };
-
-        _dispatchBlock = new ActionBlock<EventDispatchJob>(
-            job => job.ExecuteAsync(),
-            executionOptions
+        _channel = Channel.CreateUnbounded<EventDispatchJob>(
+            new UnboundedChannelOptions
+            {
+                SingleReader = true,
+                SingleWriter = false
+            }
         );
 
-        _logger.Information(
-            "Signal emitter initialized with {ParallelTasks} dispatch tasks",
-            1
-        );
+        _processingTask = Task.Run(ProcessEventsAsync, _cts.Token);
+
+        _logger.Information("EventBusService initialized with Channel");
     }
 
     /// <summary>
-    /// Register a listener for a specific event type
+    /// Registers a listener for a specific event type
     /// </summary>
     public void Subscribe<TEvent>(IEventBusListener<TEvent> listener) where TEvent : class
     {
         var eventType = typeof(TEvent);
-
-        // Get or create a list of listeners for this event type
         var listeners = (ConcurrentBag<IEventBusListener<TEvent>>)_listeners.GetOrAdd(
             eventType,
             _ => new ConcurrentBag<IEventBusListener<TEvent>>()
@@ -67,32 +60,26 @@ public class EventBusService : IEventBusService
     }
 
     /// <summary>
-    /// Register a function as a listener for a specific event type
+    /// Registers a function as a listener for a specific event type
     /// </summary>
     public void Subscribe<TEvent>(Func<TEvent, Task> handler) where TEvent : class
     {
         var listener = new FunctionSignalListener<TEvent>(handler);
-        Subscribe<TEvent>(listener);
+        Subscribe(listener);
 
-        _logger.Verbose(
-            "Registered function handler for event {EventType}",
-            typeof(TEvent).Name
-        );
+        _logger.Verbose("Registered function handler for event {EventType}", typeof(TEvent).Name);
     }
 
     /// <summary>
     /// Unregisters a listener for a specific event type
     /// </summary>
-    public void Unsubscribe<TEvent>(IEventBusListener<TEvent> listener)
-        where TEvent : class
+    public void Unsubscribe<TEvent>(IEventBusListener<TEvent> listener) where TEvent : class
     {
         var eventType = typeof(TEvent);
 
         if (_listeners.TryGetValue(eventType, out var listenersObj))
         {
             var listeners = (ConcurrentBag<IEventBusListener<TEvent>>)listenersObj;
-
-            // Create a new bag without the listener
             var updatedListeners = new ConcurrentBag<IEventBusListener<TEvent>>(
                 listeners.Where(l => !ReferenceEquals(l, listener))
             );
@@ -110,16 +97,13 @@ public class EventBusService : IEventBusService
     /// <summary>
     /// Unregisters a function handler for a specific event type
     /// </summary>
-    public void Unsubscribe<TEvent>(Func<TEvent, Task> handler)
-        where TEvent : class
+    public void Unsubscribe<TEvent>(Func<TEvent, Task> handler) where TEvent : class
     {
         var eventType = typeof(TEvent);
 
         if (_listeners.TryGetValue(eventType, out var listenersObj))
         {
             var listeners = (ConcurrentBag<IEventBusListener<TEvent>>)listenersObj;
-
-            // Create a new bag without the function handler
             var updatedListeners = new ConcurrentBag<IEventBusListener<TEvent>>(
                 listeners.Where(l => !(l is FunctionSignalListener<TEvent> functionListener) ||
                                      !functionListener.HasSameHandler(handler)
@@ -128,15 +112,12 @@ public class EventBusService : IEventBusService
 
             _listeners.TryUpdate(eventType, updatedListeners, listeners);
 
-            _logger.Verbose(
-                "Unregistered function handler for event {EventType}",
-                eventType.Name
-            );
+            _logger.Verbose("Unregistered function handler for event {EventType}", eventType.Name);
         }
     }
 
     /// <summary>
-    /// Emits an event to all registered listeners asynchronously
+    /// Publishes an event to all registered listeners asynchronously
     /// </summary>
     public async Task PublishAsync<TEvent>(TEvent eventData, CancellationToken cancellationToken = default)
         where TEvent : class
@@ -154,41 +135,39 @@ public class EventBusService : IEventBusService
         var listeners = (ConcurrentBag<IEventBusListener<TEvent>>)listenersObj;
 
         _logger.Verbose(
-            "Emitting event {EventType} to {ListenerCount} listeners",
+            "Publishing event {EventType} to {ListenerCount} listeners",
             eventType.Name,
             listeners.Count
         );
 
-        // Dispatch jobs to process the event for each listener
         foreach (var listener in listeners)
         {
-            try
-            {
-                var job = new EventDispatchJob<TEvent>(listener, eventData);
-                await _dispatchBlock.SendAsync(job, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(
-                    ex,
-                    "Error dispatching event {EventType} to listener {ListenerType}",
-                    eventType.Name,
-                    listener.GetType().Name
-                );
-
-                throw;
-            }
+            var job = new EventDispatchJob<TEvent>(listener, eventData);
+            await _channel.Writer.WriteAsync(job, cancellationToken);
         }
     }
 
+    /// <summary>
+    /// Returns total listener count
+    /// </summary>
     public int GetListenerCount()
     {
-        var totalCount = 0;
+        int total = 0;
 
+        foreach (var kvp in _listeners)
+        {
+            if (kvp.Value is ICollection collection)
+            {
+                total += collection.Count;
+            }
+        }
 
-        return totalCount;
+        return total;
     }
 
+    /// <summary>
+    /// Returns listener count for a specific event type
+    /// </summary>
     public int GetListenerCount<TEvent>() where TEvent : class
     {
         if (_listeners.TryGetValue(typeof(TEvent), out var listenersObj))
@@ -201,17 +180,48 @@ public class EventBusService : IEventBusService
     }
 
     /// <summary>
-    /// Waits for all queued events to be processed
+    /// Waits for all pending events to be processed
     /// </summary>
     public async Task WaitForCompletionAsync()
     {
-        _dispatchBlock.Complete();
-        await _dispatchBlock.Completion;
+        _channel.Writer.Complete();
+        await _processingTask;
+    }
+
+    /// <summary>
+    /// Background processor for event dispatch jobs
+    /// </summary>
+    private async Task ProcessEventsAsync()
+    {
+        try
+        {
+            await foreach (var job in _channel.Reader.ReadAllAsync(_cts.Token))
+            {
+                try
+                {
+                    await job.ExecuteAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(ex, "Error while executing job {JobType}", job.GetType().Name);
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.Information("Event processing was cancelled");
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "Unexpected error in event processing task");
+        }
     }
 
     public void Dispose()
     {
         _cts.Cancel();
+        _channel.Writer.TryComplete();
+        _processingTask.Wait();
         _cts.Dispose();
     }
 }

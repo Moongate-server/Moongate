@@ -18,7 +18,6 @@ using Moongate.Uo.Network.Data.Sessions;
 using Moongate.Uo.Network.Interfaces.Handlers;
 using Moongate.Uo.Network.Interfaces.Messages;
 using Moongate.Uo.Network.Interfaces.Services;
-using Moongate.Uo.Network.Middlewares;
 using Serilog;
 
 namespace Moongate.Server.Services.System;
