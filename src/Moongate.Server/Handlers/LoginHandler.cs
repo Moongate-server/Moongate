@@ -8,7 +8,6 @@ using Moongate.Uo.Network.Data.Entries;
 using Moongate.Uo.Network.Data.Sessions;
 using Moongate.Uo.Network.Interfaces.Handlers;
 using Moongate.Uo.Network.Interfaces.Messages;
-using Moongate.Uo.Network.Packets;
 using Moongate.Uo.Network.Packets.Connection;
 using Moongate.Uo.Network.Types;
 using Moongate.Uo.Services.Events.Accounts;

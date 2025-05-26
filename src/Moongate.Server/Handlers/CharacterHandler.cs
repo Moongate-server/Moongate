@@ -37,6 +37,20 @@ public class CharacterHandler : IPacketListener
         eventBusService.Subscribe<SendCharacterListEvent>(OnSendCharacterListEvent);
     }
 
+    public async Task OnPacketReceivedAsync(SessionData session, IUoNetworkPacket packet)
+    {
+        if (packet is CharacterCreationPacket characterCreation)
+        {
+            await ProcessCharacterCreation(session, characterCreation);
+        }
+    }
+
+    private Task ProcessCharacterCreation(SessionData session, CharacterCreationPacket packet)
+    {
+
+        return Task.CompletedTask;
+    }
+
     private async Task OnSendCharacterListEvent(SendCharacterListEvent @event)
     {
         var session = _sessionManagerService.GetSession(@event.SessionId);
@@ -68,7 +82,5 @@ public class CharacterHandler : IPacketListener
         session.SendPacket(new FeatureFlagsResponse(UoContext.ExpansionInfo.SupportedFeatures));
     }
 
-    public async Task OnPacketReceivedAsync(SessionData session, IUoNetworkPacket packet)
-    {
-    }
+
 }

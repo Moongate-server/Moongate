@@ -49,7 +49,7 @@ public class GameLoginHandler : IPacketListener
 
             _logger.Information("Game server login: {SessionId} - {Username}", session.Id, gameServerLoginPacket.Sid);
 
-            await _eventBusService.PublishAsync(new SendCharacterListEvent(session.Id));
+            _eventBusService.PublishAsync(new SendCharacterListEvent(session.Id));
         }
     }
 }

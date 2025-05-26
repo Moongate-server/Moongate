@@ -311,7 +311,7 @@ public class EventLoopService : IEventLoopService, IMetricsProvider
                 double timeSinceLastTick =
                     Stopwatch.GetElapsedTime(_lastTickTimestamp, tickStartTimestamp).TotalMilliseconds;
 
-                if (Math.Abs(timeSinceLastTick - TickIntervalMs) > TickIntervalMs * 0.5)
+                if (Math.Abs(timeSinceLastTick - TickIntervalMs) > TickIntervalMs)
                 {
                     _logger.Warning(
                         "Irregular tick detected: {TimeSinceLastTick}ms since last tick (expected {TickIntervalMs}ms)",

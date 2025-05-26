@@ -47,6 +47,8 @@ public class NetClient
     /// </summary>
     public string Ip { get; private set; }
 
+    public bool HaveCompression { get; set; }
+
     private readonly List<INetMiddleware> _middlewares = new();
     private readonly List<INetInterceptor> _interceptors = new();
     private Socket _socket;
@@ -316,29 +318,31 @@ public class NetClient
                 // repeat until all data is processed
                 while (!processedData.IsEmpty)
                 {
-                    int index = 0;
-                    // reverse order - last middleware first
-                    for (int i = client._middlewares.Count - 1; i >= 0; i--)
-                    {
-                        var middleware = client._middlewares[i];
-                        try
-                        {
-                            var (halt, consumed) = middleware.ProcessReceive(ref processedData, out processedData);
-                            // some middlewares might halt the processing
-                            if (halt)
-                            {
-                                goto cont_receive;
-                            }
 
-                            index += consumed;
-                        }
-                        catch (Exception e)
-                        {
-                            client._receivedData.Clear();
-                            client.OnError?.Invoke(e);
-                            goto cont_receive;
-                        }
-                    }
+                    /// FIXME: Fix the middleware processing logic
+                    int index = 0;
+                    // // reverse order - last middleware first
+                    // for (int i = client._middlewares.Count - 1; i >= 0; i--)
+                    // {
+                    //     var middleware = client._middlewares[i];
+                    //     try
+                    //     {
+                    //         var (halt, consumed) = middleware.ProcessReceive(ref processedData, out processedData);
+                    //         // some middlewares might halt the processing
+                    //         if (halt)
+                    //         {
+                    //             goto cont_receive;
+                    //         }
+                    //
+                    //         index += consumed;
+                    //     }
+                    //     catch (Exception e)
+                    //     {
+                    //         client._receivedData.Clear();
+                    //         client.OnError?.Invoke(e);
+                    //         goto cont_receive;
+                    //     }
+                    // }
 
 
                     // still the original data or partially the original data

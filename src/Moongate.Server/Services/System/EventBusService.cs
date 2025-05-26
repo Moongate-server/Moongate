@@ -26,7 +26,6 @@ public class EventBusService : IEventBusService
 
     public EventBusService()
     {
-
         var executionOptions = new ExecutionDataflowBlockOptions
         {
             MaxDegreeOfParallelism = 1,
@@ -164,8 +163,10 @@ public class EventBusService : IEventBusService
         {
             try
             {
-                var job = new EventDispatchJob<TEvent>(listener, eventData);
-                await _dispatchBlock.SendAsync(job, cancellationToken);
+                // var job = new EventDispatchJob<TEvent>(listener, eventData);
+                //
+                // _dispatchBlock.Post(job);
+                listener.HandleAsync(eventData, cancellationToken);
             }
             catch (Exception ex)
             {

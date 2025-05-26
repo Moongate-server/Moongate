@@ -12,10 +12,12 @@ using Moongate.Core.Network.Servers.Tcp;
 using Moongate.Core.Services.Base;
 using Moongate.Core.Spans;
 using Moongate.Core.Types;
+using Moongate.Uo.Network.Compression;
 using Moongate.Uo.Network.Data.Sessions;
 using Moongate.Uo.Network.Interfaces.Handlers;
 using Moongate.Uo.Network.Interfaces.Messages;
 using Moongate.Uo.Network.Interfaces.Services;
+using Moongate.Uo.Network.Middlewares;
 using Serilog;
 
 namespace Moongate.Server.Services.System;
@@ -199,7 +201,7 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
             using var packetBuffer = new SpanWriter(stackalloc byte[realLength], realLength == 16);
             var bufferToSend = packet.Write(packetBuffer);
 
-            LogPacket(client.Id, bufferToSend, false);
+            LogPacket(client.Id, bufferToSend, false, client.HaveCompression);
 
             SendBuffer(client, bufferToSend);
         }
@@ -525,7 +527,7 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
         return _inLoginWaitingSessions.Remove(sessionAuthId, out _);
     }
 
-    private void LogPacket(string sessionId, ReadOnlyMemory<byte> buffer, bool IsReceived)
+    private void LogPacket(string sessionId, ReadOnlyMemory<byte> buffer, bool IsReceived, bool haveCompression = false)
     {
         if (!_moongateServerConfig.Network.LogPackets)
         {
@@ -539,12 +541,22 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
         var direction = IsReceived ? "<-" : "->";
         var opCode = "OPCODE: 0x" + buffer.Span[0].ToString("X2");
 
+        int compressionSize = 0;
+        if (haveCompression)
+        {
+            var tmpInBuffer = buffer.Span.ToArray();
+            Span<byte> tmpOutBuffer = stackalloc byte[tmpInBuffer.Length];
+            compressionSize = NetworkCompression.Compress(tmpInBuffer, tmpOutBuffer);
+        }
+
         Logger.Debug(
-            "{Direction} {SessionId} {OpCode} | Data size: {DataSize} bytes",
+            "{Direction} {SessionId} {OpCode} | Data size: {DataSize} bytes | Compression: {Compression}, Compression Size: {CompressionSize}",
             direction,
             sessionId,
             opCode,
-            buffer.Length
+            buffer.Length,
+            haveCompression,
+            compressionSize
         );
 
         sw.WriteLine(

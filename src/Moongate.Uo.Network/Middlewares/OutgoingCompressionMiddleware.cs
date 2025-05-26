@@ -12,14 +12,19 @@ public class OutgoingCompressionMiddleware : INetMiddleware
         Span<byte> outputBuffer = stackalloc byte[inputBuffer.Length];
         var compressionSize = NetworkCompression.Compress(inputBuffer, outputBuffer);
 
-        output = outputBuffer[..compressionSize].ToArray();
+        if (compressionSize == 0)
+        {
+            output = inputBuffer;
+        }
+
+        output = new Memory<byte>(outputBuffer[..compressionSize].ToArray());
     }
 
     public (bool halt, int consumedFromOrigin) ProcessReceive(
         ref ReadOnlyMemory<byte> input, out ReadOnlyMemory<byte> output
     )
     {
-        output = default;
-        return (true, 0);
+        output = input;
+        return (true, input.Length);
     }
 }
