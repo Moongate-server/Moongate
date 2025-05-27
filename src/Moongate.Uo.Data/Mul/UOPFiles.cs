@@ -1,6 +1,4 @@
-using Moongate.Uo.Data.Mul;
-
-namespace Prima.UOData.Mul;
+namespace Moongate.Uo.Data.Mul;
 
 public static class UOPFiles
 {

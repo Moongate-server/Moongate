@@ -1,5 +1,3 @@
-using Prima.UOData.Mul;
-
 namespace Moongate.Uo.Data.Mul;
 
 public class Art

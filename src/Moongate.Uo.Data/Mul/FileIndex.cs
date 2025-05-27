@@ -1,6 +1,5 @@
 using System.Runtime.InteropServices;
 using Moongate.Uo.Data.Files;
-using Prima.UOData.Mul;
 
 namespace Moongate.Uo.Data.Mul;
 
