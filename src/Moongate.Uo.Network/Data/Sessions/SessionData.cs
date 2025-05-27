@@ -31,12 +31,18 @@ public class SessionData : IDisposable
 
     public void EnableCompression()
     {
-        Client.AddMiddleware(_outgoingCompressionMiddleware);
+        if (!Client.ContainsMiddleware<OutgoingCompressionMiddleware>())
+        {
+            Client.AddMiddleware(_outgoingCompressionMiddleware);
+            Client.HaveCompression = true;
+        }
     }
 
     public void DisableCompression()
     {
         Client.RemoveMiddleware(_outgoingCompressionMiddleware);
+        Client.HaveCompression = false;
+
     }
 
     public void SetData<TEntity>(TEntity entity, string? name = null)

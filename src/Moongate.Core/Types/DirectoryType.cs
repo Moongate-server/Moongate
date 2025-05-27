@@ -5,6 +5,7 @@ public enum DirectoryType
     Data,
     Scripts,
     ScriptModules,
+    Dictionaries,
     Logs,
     WwwRoot,
 }

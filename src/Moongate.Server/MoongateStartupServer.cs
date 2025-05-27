@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using DryIoc;
 using Moongate.Core.Data.Configs.Server;
 using Moongate.Core.Data.Options;
@@ -8,9 +7,9 @@ using Moongate.Core.Extensions.Services;
 using Moongate.Core.Instances;
 using Moongate.Core.Interfaces.Services.System;
 using Moongate.Core.Json;
+using Moongate.Core.Services.Hosted;
 using Moongate.Core.Types;
 using Moongate.Core.Utils.Resources;
-using Moongate.Persistence.Interfaces.Services;
 using Moongate.Server.Json;
 using Moongate.Server.Services.System;
 using Moongate.Uo.Network.Interfaces.Services;
@@ -22,14 +21,21 @@ namespace Moongate.Server;
 public class MoongateStartupServer
 {
     public delegate void RegisterServicesDelegate(IContainer container);
+
     public event RegisterServicesDelegate RegisterServices;
 
     public delegate void RegisterScriptModulesDelegate(IScriptEngineService container);
+
     public event RegisterScriptModulesDelegate RegisterScriptModules;
 
     public delegate void RegisterPacketsAndHandlersDelegate(INetworkService networkService);
 
     public event RegisterPacketsAndHandlersDelegate RegisterPacketsAndHandlers;
+
+    public delegate void BeforeStartDelegate(IContainer container);
+
+    public event BeforeStartDelegate BeforeStart;
+
 
     private IContainer _container;
 
@@ -43,6 +49,7 @@ public class MoongateStartupServer
         _moongateServerArgs = serverArgs;
 
         SetupRootDirectory();
+        CopyEmbeddedAssets();
         CheckEnvFileAndLoad();
         PrintHeader();
         BuildContainer();
@@ -52,7 +59,7 @@ public class MoongateStartupServer
 
     public void Init()
     {
-        var config = CheckAndLoadConfig(_container, _container.Resolve<DirectoriesConfig>(), _moongateServerArgs.ConfigName);
+        var config = CheckAndLoadConfig(_container.Resolve<DirectoriesConfig>(), _moongateServerArgs.ConfigName);
 
         _container.RegisterInstance(config);
 
@@ -93,6 +100,7 @@ public class MoongateStartupServer
 
         RegisterPacketsAndHandlers?.Invoke(networkService);
 
+        BeforeStart?.Invoke(_container);
         try
         {
             await startupService.StartAsync(_cancellationTokenSource.Token);
@@ -219,6 +227,59 @@ public class MoongateStartupServer
                                             Path.Combine(Directory.GetCurrentDirectory(), "moongate");
     }
 
+    private void CopyEmbeddedAssets()
+    {
+        var files = ResourceUtils.GetEmbeddedResourceNames(GetType().Assembly,  "Assets");
+
+        foreach (var file in files)
+        {
+            var normalizedFileName = ResourceUtils.ConvertResourceNameToPath(file, GetType().Assembly.GetName().Name + ".Assets");
+
+            var filePath = Path.Combine(_moongateServerArgs.RootDirectory, normalizedFileName);
+
+            if (!Directory.Exists(Path.GetDirectoryName(filePath)))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+            }
+
+            if (!File.Exists(filePath))
+            {
+                using var stream = GetType().Assembly.GetManifestResourceStream(file);
+                if (stream != null)
+                {
+                    using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
+                    stream.CopyTo(fileStream);
+                    Log.Logger.Debug("Copied embedded asset: {FilePath}", filePath);
+                }
+                else
+                {
+                    Log.Logger.Warning("Failed to find embedded resource: {FileName}", file);
+                }
+            }
+        }
+
+
+
+        // var assembly = typeof(Program).Assembly;
+        // var resourceNames = assembly.GetManifestResourceNames();
+        //
+        // foreach (var resourceName in resourceNames)
+        // {
+        //     if (resourceName.StartsWith("Assets."))
+        //     {
+        //         var fileName = resourceName.Substring("Assets.".Length);
+        //         var filePath = Path.Combine(assetsDirectory, fileName);
+        //
+        //         using var stream = assembly.GetManifestResourceStream(resourceName);
+        //         if (stream != null)
+        //         {
+        //             using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
+        //             stream.CopyTo(fileStream);
+        //         }
+        //     }
+        // }
+    }
+
     private void PrintHeader()
     {
         if (_moongateServerArgs.PrintHeader)
@@ -281,8 +342,8 @@ public class MoongateStartupServer
         }
     }
 
-    private static MoongateServerConfig CheckAndLoadConfig(
-        IContainer container, DirectoriesConfig directoriesConfig, string configName
+    private MoongateServerConfig CheckAndLoadConfig(
+        DirectoriesConfig directoriesConfig, string configName
     )
     {
         Log.Logger.Information("Loading config: {ConfigName}", configName);
@@ -302,11 +363,25 @@ public class MoongateStartupServer
 
         JsonUtils.SerializeToFile(config, configPath, MoongateJsonContext.Default);
 
+        config.Shard.UoDirectory ??= _moongateServerArgs.UltimaOnlineDirectory;
+
         return config;
     }
 
     public static bool CheckUltimaOnlineDirectory(MoongateServerConfig config)
     {
+        if (string.IsNullOrEmpty(config.Shard.UoDirectory))
+        {
+            Log.Logger.Error("Ultima Online directory is not set in the configuration.");
+            return false;
+        }
+
+        if (!Directory.Exists(config.Shard.UoDirectory))
+        {
+            Log.Logger.Error("Ultima Online directory not found: {UltimaOnlineDirectory}", config.Shard.UoDirectory);
+            return false;
+        }
+
         return true;
     }
 }

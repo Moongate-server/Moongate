@@ -1,3 +1,5 @@
+using Serilog;
+
 namespace Moongate.Core.Interfaces.EventBus;
 
 /// <summary>
@@ -15,7 +17,18 @@ public class FunctionSignalListener<TEvent> : IEventBusListener<TEvent>
 
     public Task HandleAsync(TEvent signalEvent, CancellationToken cancellationToken = default)
     {
-        return _handler(signalEvent);
+        try
+        {
+            return _handler(signalEvent);
+        }
+        catch (Exception ex)
+        {
+            Log.Logger.ForContext(GetType()).Error(ex, ex.Message);
+            throw new InvalidOperationException(
+                $"Error executing handler for event {typeof(TEvent).Name}",
+                ex
+            );
+        }
     }
 
     /// <summary>

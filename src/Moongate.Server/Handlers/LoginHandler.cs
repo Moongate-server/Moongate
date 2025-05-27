@@ -2,12 +2,13 @@ using System.Net;
 using Moongate.Core.Data.Configs.Server;
 using Moongate.Core.Instances;
 using Moongate.Uo.Data;
+using Moongate.Uo.Data.Context;
 using Moongate.Uo.Data.Extensions;
 using Moongate.Uo.Network.Data.Entries;
 using Moongate.Uo.Network.Data.Sessions;
 using Moongate.Uo.Network.Interfaces.Handlers;
 using Moongate.Uo.Network.Interfaces.Messages;
-using Moongate.Uo.Network.Packets;
+using Moongate.Uo.Network.Packets.Connection;
 using Moongate.Uo.Network.Types;
 using Moongate.Uo.Services.Events.Accounts;
 using Moongate.Uo.Services.Interfaces.Services;
@@ -56,6 +57,11 @@ public class LoginHandler : IPacketListener
         if (packet is SelectServerPacket selectServerPacket)
         {
             await OnSelectServer(session, selectServerPacket);
+        }
+
+        if (packet is ClientVersionPacket clientVersionPacket)
+        {
+            // Drop packet,we already handled it in SetSeedVersion
         }
     }
 
@@ -124,9 +130,23 @@ public class LoginHandler : IPacketListener
 
         //TODO: Check if the version is supported by the server
 
+
         session.SetClientVersion(
             new ClientVersion(seedPacket.Major, seedPacket.Minor, seedPacket.Revision, seedPacket.Prototype)
         );
+
+        if (UoContext.ServerVersion != session.GetClientVersion())
+        {
+            _logger.Warning(
+                "Client {Session} connected with unsupported version {Version}, expected {ExpectedVersion}, disconnecting",
+                session.Id,
+                session.GetClientVersion(),
+                UoContext.ServerVersion
+            );
+            session.SendPacket(new LoginDeniedPacket(LoginDeniedReasonType.IgrGeneralError));
+            session.Disconnect();
+            return;
+        }
 
         session.SetSeed(seedPacket.Seed);
     }

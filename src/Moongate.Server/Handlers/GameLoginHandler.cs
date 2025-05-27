@@ -1,8 +1,11 @@
+using Moongate.Core.Interfaces.Services.System;
 using Moongate.Uo.Network.Data.Sessions;
 using Moongate.Uo.Network.Interfaces.Handlers;
 using Moongate.Uo.Network.Interfaces.Messages;
 using Moongate.Uo.Network.Interfaces.Services;
 using Moongate.Uo.Network.Packets;
+using Moongate.Uo.Network.Packets.Connection;
+using Moongate.Uo.Services.Events.Characters;
 using Serilog;
 
 namespace Moongate.Server.Handlers;
@@ -11,13 +14,19 @@ public class GameLoginHandler : IPacketListener
 {
     private readonly ILogger _logger = Log.ForContext<GameLoginHandler>();
 
+
     private readonly INetworkService _networkService;
     private readonly ISessionManagerService _sessionManagerService;
 
-    public GameLoginHandler(INetworkService networkService, ISessionManagerService sessionManagerService)
+    private readonly IEventBusService _eventBusService;
+
+    public GameLoginHandler(
+        INetworkService networkService, ISessionManagerService sessionManagerService, IEventBusService eventBusService
+    )
     {
         _networkService = networkService;
         _sessionManagerService = sessionManagerService;
+        _eventBusService = eventBusService;
     }
 
     public async Task OnPacketReceivedAsync(SessionData session, IUoNetworkPacket packet)
@@ -39,6 +48,8 @@ public class GameLoginHandler : IPacketListener
             limboSession.Dispose();
 
             _logger.Information("Game server login: {SessionId} - {Username}", session.Id, gameServerLoginPacket.Sid);
+
+            _eventBusService.PublishAsync(new SendCharacterListEvent(session.Id));
         }
     }
 }

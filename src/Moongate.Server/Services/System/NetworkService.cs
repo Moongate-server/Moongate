@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -12,6 +13,7 @@ using Moongate.Core.Network.Servers.Tcp;
 using Moongate.Core.Services.Base;
 using Moongate.Core.Spans;
 using Moongate.Core.Types;
+using Moongate.Uo.Network.Compression;
 using Moongate.Uo.Network.Data.Sessions;
 using Moongate.Uo.Network.Interfaces.Handlers;
 using Moongate.Uo.Network.Interfaces.Messages;
@@ -195,11 +197,11 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
                 realLength = 16;
             }
 
-
             using var packetBuffer = new SpanWriter(stackalloc byte[realLength], realLength == 16);
+
             var bufferToSend = packet.Write(packetBuffer);
 
-            LogPacket(client.Id, bufferToSend, false);
+            LogPacket(client.Id, bufferToSend, false, client.HaveCompression);
 
             SendBuffer(client, bufferToSend);
         }
@@ -276,8 +278,8 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
                     break;
                 }
 
-                headerSize = 2;
-                packetSize = span[1] + headerSize;
+                headerSize = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(1, 3));
+                packetSize = headerSize;
 
                 if (span.Length < packetSize)
                 {
@@ -525,7 +527,7 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
         return _inLoginWaitingSessions.Remove(sessionAuthId, out _);
     }
 
-    private void LogPacket(string sessionId, ReadOnlyMemory<byte> buffer, bool IsReceived)
+    private void LogPacket(string sessionId, ReadOnlyMemory<byte> buffer, bool IsReceived, bool haveCompression = false)
     {
         if (!_moongateServerConfig.Network.LogPackets)
         {
@@ -538,6 +540,24 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
 
         var direction = IsReceived ? "<-" : "->";
         var opCode = "OPCODE: 0x" + buffer.Span[0].ToString("X2");
+
+        int compressionSize = 0;
+        if (haveCompression)
+        {
+            var tmpInBuffer = buffer.Span.ToArray();
+            Span<byte> tmpOutBuffer = stackalloc byte[tmpInBuffer.Length];
+            compressionSize = NetworkCompression.Compress(tmpInBuffer, tmpOutBuffer);
+        }
+
+        Logger.Debug(
+            "{Direction} {SessionId} {OpCode} | Data size: {DataSize} bytes | Compression: {Compression}, Compression Size: {CompressionSize}",
+            direction,
+            sessionId,
+            opCode,
+            buffer.Length,
+            haveCompression,
+            compressionSize
+        );
 
         sw.WriteLine(
             $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} | {opCode}  | {direction} | Session ID: {sessionId} | Data size: {buffer.Length} bytes"

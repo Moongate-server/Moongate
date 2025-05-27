@@ -18,12 +18,7 @@ public class ProcessStats
     {
         get
         {
-            if (_processingTimes.IsEmpty)
-            {
-                return TimeSpan.Zero;
-            }
-
-            return TimeSpan.FromTicks((long)_processingTimes.Average(t => t.Ticks));
+            return _processingTimes.IsEmpty ? TimeSpan.Zero : TimeSpan.FromTicks((long)_processingTimes.Average(t => t.Ticks));
         }
     }
 

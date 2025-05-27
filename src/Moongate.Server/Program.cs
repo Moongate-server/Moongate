@@ -13,12 +13,14 @@ using Moongate.Persistence.Builders;
 using Moongate.Persistence.Interfaces.Services;
 using Moongate.Persistence.Services;
 using Moongate.Server;
+using Moongate.Server.DataLoaders;
 using Moongate.Server.Handlers;
 using Moongate.Server.Modules;
 using Moongate.Server.Services.System;
 using Moongate.Server.Services.Uo;
+using Moongate.Uo.Data.Network.Packets.Characters;
 using Moongate.Uo.Network.Interfaces.Services;
-using Moongate.Uo.Network.Packets;
+using Moongate.Uo.Network.Packets.Connection;
 using Moongate.Uo.Services.Interfaces.Services;
 using Moongate.Uo.Services.Serialization.Entities;
 
@@ -27,7 +29,8 @@ await ConsoleApp.RunAsync(
     args,
     async (
         LogLevelType defaultLogLevel = LogLevelType.Debug, bool logToFile = true, bool loadFromEnv = false,
-        string? rootDirectory = null, bool printHeader = true, string configName = "moongate.json"
+        string? rootDirectory = null, bool printHeader = true, string configName = "moongate.json",
+        string ultimaOnlineDirectory = ""
     ) =>
     {
         var cts = new CancellationTokenSource();
@@ -43,6 +46,7 @@ await ConsoleApp.RunAsync(
                 LoadFromEnv = loadFromEnv,
                 PrintHeader = printHeader,
                 ConfigName = configName,
+                UltimaOnlineDirectory = ultimaOnlineDirectory,
                 DefaultLogLevel = defaultLogLevel
             }
         );
@@ -62,7 +66,11 @@ await ConsoleApp.RunAsync(
             }
         };
 
-        EntityRegistrationBuilder.Instance.Register<AccountEntity>();
+
+        // Register the entity types
+        EntityRegistrationBuilder.Instance
+            .Register<AccountEntity>()
+            .Register<CharacterEntity>();
 
         moongateStartupServer.RegisterServices += container =>
         {
@@ -78,6 +86,8 @@ await ConsoleApp.RunAsync(
                 .AddService(typeof(IEventDispatcherService), typeof(EventDispatcherService))
                 .AddService(typeof(IScriptEngineService), typeof(ScriptEngineService))
                 .AddService(typeof(IWebServerService), typeof(WebServerService))
+                .AddService(typeof(ILocalizedTextService), typeof(LocalizedTextService))
+                .AddService(typeof(IDataFileLoaderService), typeof(DataFileLoaderService), -1)
                 .AddService(typeof(ISessionManagerService), typeof(SessionManagerService), 99)
                 .AddService(typeof(INetworkService), typeof(NetworkService), 100)
                 ;
@@ -86,9 +96,10 @@ await ConsoleApp.RunAsync(
             container
                 .AddService(typeof(IPersistenceManager), typeof(MemoryPackPersistenceManager));
 
-
             container
-                .AddService(typeof(IAccountManagerService), typeof(AccountManagerService));
+                .AddService(typeof(IAccountManagerService), typeof(AccountManagerService))
+                .AddService(typeof(IMapService), typeof(MapService))
+                ;
 
             container.RegisterInstance(new ScriptEngineConfig());
 
@@ -119,12 +130,32 @@ await ConsoleApp.RunAsync(
             networkService.RegisterPacket<LoginPacket>();
             networkService.RegisterPacket<SelectServerPacket>();
             networkService.RegisterPacket<GameServerLoginPacket>();
-
-
+            networkService.RegisterPacket<CharacterCreationPacket>();
+            networkService.RegisterPacket<CharacterSelectPacket>();
+            networkService.RegisterPacket<ClientVersionPacket>();
+            
             networkService.RegisterPacketHandler<SeedPacket, LoginHandler>();
             networkService.RegisterPacketHandler<LoginPacket, LoginHandler>();
+            networkService.RegisterPacketHandler<ClientVersionPacket, LoginHandler>();
             networkService.RegisterPacketHandler<SelectServerPacket, LoginHandler>();
             networkService.RegisterPacketHandler<GameServerLoginPacket, GameLoginHandler>();
+            networkService.RegisterPacketHandler<CharacterCreationPacket, CharacterHandler>();
+            networkService.RegisterPacketHandler<CharacterSelectPacket, CharacterHandler>();
+        };
+
+        moongateStartupServer.BeforeStart += container =>
+        {
+            var dataLoaderService = container.Resolve<IDataFileLoaderService>();
+
+            dataLoaderService.AddDataLoaderType(typeof(ServerClientVersionLoader));
+            dataLoaderService.AddDataLoaderType(typeof(ExpansionLoader));
+            dataLoaderService.AddDataLoaderType(typeof(SkillInfoLoader));
+            dataLoaderService.AddDataLoaderType(typeof(ProfessionsLoader));
+            dataLoaderService.AddDataLoaderType(typeof(TileDataLoader));
+            dataLoaderService.AddDataLoaderType(typeof(RaceLoader));
+            dataLoaderService.AddDataLoaderType(typeof(MultiDataLoader));
+
+            dataLoaderService.AddDataLoaderType(typeof(MapLoader));
         };
 
 

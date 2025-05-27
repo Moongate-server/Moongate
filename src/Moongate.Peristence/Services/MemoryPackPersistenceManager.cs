@@ -139,7 +139,7 @@ public class MemoryPackPersistenceManager : IPersistenceManager
             var finalHeaderBytes = MemoryPackSerializer.Serialize(header);
             await fileStream.WriteAsync(finalHeaderBytes, cancellationToken);
 
-            _logger.Information(
+            _logger.Debug(
                 "Successfully saved {TotalEntities} entities across {TypeCount} types to {FilePath} ({FileSize} bytes)",
                 entities.Sum(kvp => kvp.Value.Count),
                 entities.Count,

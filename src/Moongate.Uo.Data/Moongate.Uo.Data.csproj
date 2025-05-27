@@ -1,15 +1,24 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
         <Version>0.1.0</Version>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\Moongate.Core\Moongate.Core.csproj" />
       <ProjectReference Include="..\Moongate.Uo.Network\Moongate.Uo.Network.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Interfaces\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="LibDeflate.Bindings" Version="1.0.2.120" />
     </ItemGroup>
 
 </Project>
