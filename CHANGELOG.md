@@ -1,6 +1,13 @@
 # Change Log
 
 
+<a name="0.4.0"></a>
+## [0.4.0](https://www.github.com/Moongate-server/Moongate/releases/tag/v0.4.0) (2025-05-27)
+
+### Features
+
+* **Entity.cs:** add MemoryPackable attribute to Entity class for serialization support ([2c70a0d](https://www.github.com/Moongate-server/Moongate/commit/2c70a0d99789ffa2784bef2874b7b2dad4ca9856))
+
 <a name="0.3.0"></a>
 ## [0.3.0](https://www.github.com/Moongate-server/Moongate/releases/tag/v0.3.0) (2025-05-27)
 
