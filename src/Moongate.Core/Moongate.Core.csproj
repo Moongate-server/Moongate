@@ -13,7 +13,7 @@
       <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.4.0" />
       <PackageReference Include="DryIoc.Dll" Version="5.4.3" />
       <PackageReference Include="Serilog" Version="4.3.0" />
-      <PackageReference Include="ZLinq" Version="1.4.8" />
+      <PackageReference Include="ZLinq" Version="1.4.9" />
     </ItemGroup>
 
     <ItemGroup>
