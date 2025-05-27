@@ -1,6 +1,17 @@
 # Change Log
 
 
+<a name="0.3.0"></a>
+## [0.3.0](https://www.github.com/Moongate-server/Moongate/releases/tag/v0.3.0) (2025-05-27)
+
+### Features
+
+* **data:** add body type table configuration file for different body types ([b282936](https://www.github.com/Moongate-server/Moongate/commit/b28293613f0cb808841dc4d44ba8f85bdb0afd16))
+* **data:** add bodyTable.cfg file with body type mappings for entities ([8099f90](https://www.github.com/Moongate-server/Moongate/commit/8099f907ace9a85eea9e4d2f793bc7fd7d30b96c))
+* **GeneralInformationFactory.cs:** add GeneralInformationFactory class to create ([7bf69ac](https://www.github.com/Moongate-server/Moongate/commit/7bf69ac089fa403b3ee80cb1e6aa5dbdb6f1100c))
+* **GeneralInformationPacket.cs:** add GeneralInformationPacket class implementing IUoNetworkPacket ([ac5c4ec](https://www.github.com/Moongate-server/Moongate/commit/ac5c4ecdc527e359d776954b394f833ad1a603d7))
+* **Moongate.Server:** add support for new ItemEntity and MobileEntity classes ([ab6add9](https://www.github.com/Moongate-server/Moongate/commit/ab6add9bb018cbc8f7b82e1ba992444fab473fef))
+
 <a name="0.2.0"></a>
 ## [0.2.0](https://www.github.com/Moongate-server/Moongate/releases/tag/v0.2.0) (2025-05-27)
 
