@@ -133,7 +133,7 @@ await ConsoleApp.RunAsync(
             networkService.RegisterPacket<CharacterCreationPacket>();
             networkService.RegisterPacket<CharacterSelectPacket>();
             networkService.RegisterPacket<ClientVersionPacket>();
-            
+
             networkService.RegisterPacketHandler<SeedPacket, LoginHandler>();
             networkService.RegisterPacketHandler<LoginPacket, LoginHandler>();
             networkService.RegisterPacketHandler<ClientVersionPacket, LoginHandler>();
@@ -154,6 +154,7 @@ await ConsoleApp.RunAsync(
             dataLoaderService.AddDataLoaderType(typeof(TileDataLoader));
             dataLoaderService.AddDataLoaderType(typeof(RaceLoader));
             dataLoaderService.AddDataLoaderType(typeof(MultiDataLoader));
+            dataLoaderService.AddDataLoaderType(typeof(BodyDataLoader));
 
             dataLoaderService.AddDataLoaderType(typeof(MapLoader));
         };

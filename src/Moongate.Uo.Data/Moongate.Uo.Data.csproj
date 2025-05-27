@@ -14,10 +14,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Interfaces\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <PackageReference Include="LibDeflate.Bindings" Version="1.0.2.120" />
     </ItemGroup>
 
