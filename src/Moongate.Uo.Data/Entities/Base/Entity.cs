@@ -4,16 +4,14 @@ using Moongate.Uo.Data.Interfaces.Geometry;
 
 namespace Moongate.Uo.Data.Entities.Base;
 
-public class Entity : IEntity
+public class Entity : IEntity, IPosition3DEntity
 {
-    public Point3D Location { get; set; }
-
     public int X => Location.X;
     public int Y => Location.Y;
     public int Z => Location.Z;
+    public Point3D Location { get; set; }
 
     public Map Map { get; private set; }
-
 
     public bool InRange(Point2D p, int range) =>
         p.X >= Location.X - range

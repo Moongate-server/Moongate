@@ -18,6 +18,7 @@ using Moongate.Server.Handlers;
 using Moongate.Server.Modules;
 using Moongate.Server.Services.System;
 using Moongate.Server.Services.Uo;
+using Moongate.Uo.Data.Entities;
 using Moongate.Uo.Data.Network.Packets.Characters;
 using Moongate.Uo.Network.Interfaces.Services;
 using Moongate.Uo.Network.Packets.Connection;
@@ -70,7 +71,11 @@ await ConsoleApp.RunAsync(
         // Register the entity types
         EntityRegistrationBuilder.Instance
             .Register<AccountEntity>()
-            .Register<CharacterEntity>();
+            .Register<CharacterEntity>()
+            .Register<ItemEntity>()
+            .Register<MobileEntity>()
+            ;
+
 
         moongateStartupServer.RegisterServices += container =>
         {
