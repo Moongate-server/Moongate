@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace Prima.UOData.Data.Tiles;
+namespace Moongate.Uo.Data.Tiles;
 
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]

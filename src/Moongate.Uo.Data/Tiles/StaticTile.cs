@@ -1,8 +1,7 @@
 using System.Runtime.InteropServices;
 using Moongate.Uo.Data.Mul;
-using Prima.UOData.Mul;
 
-namespace Prima.UOData.Data.Tiles;
+namespace Moongate.Uo.Data.Tiles;
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct StaticTile
