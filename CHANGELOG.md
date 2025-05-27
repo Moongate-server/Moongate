@@ -1,6 +1,47 @@
 # Change Log
 
 
+<a name="0.2.0"></a>
+## [0.2.0](https://www.github.com/Moongate-server/Moongate/releases/tag/v0.2.0) (2025-05-27)
+
+### Features
+
+* added dictionary from UOX3 (thank you guys!) ([9ce3710](https://www.github.com/Moongate-server/Moongate/commit/9ce371015a372d1c7c22d8854092f190a7618915))
+* added files from ModernUO ([b099d43](https://www.github.com/Moongate-server/Moongate/commit/b099d43b8e711773f123510ae4428c446a36168f))
+* **CharacterHandler.cs:** add IMapService dependency to CharacterHandler constructor ([01b5224](https://www.github.com/Moongate-server/Moongate/commit/01b52249dd68f525a350ee43610cbac1145fcb75))
+* **CollectionExtensions.cs:** add CollectionExtensions class with RandomElement method ([a32daea](https://www.github.com/Moongate-server/Moongate/commit/a32daea807dc020d6f6d72487486bf2b565e2ca9))
+* **core:** add IDataFileLoaderService interface to support loading data files asynchronously ([6853479](https://www.github.com/Moongate-server/Moongate/commit/6853479a7be5664795c7eb6d66f33b03783bc20c))
+* **data:** add new characters.moongate file to store character data ([0571f44](https://www.github.com/Moongate-server/Moongate/commit/0571f442303bf9bbe17c36e972542589c0b7acde))
+* **DataLoader:** add IDataLoader interface to define data loading operations for generic types ([585d902](https://www.github.com/Moongate-server/Moongate/commit/585d90262f9eebb2bb88a43f833fed41d688c5b7))
+* **DataLoaders:** add ExpansionLoader and SkillInfoLoader classes to load expansion and skill information from JSON files ([9acd418](https://www.github.com/Moongate-server/Moongate/commit/9acd418e5a08a701370fa75cf20a6c4697999b33))
+* **Deflate.cs:** add Deflate class for compression using LibDeflateBinding ([53e5bb8](https://www.github.com/Moongate-server/Moongate/commit/53e5bb8818d262ef45ed558b52b4071f81a4189e))
+* **Entry3D.cs, Entry5D.cs, UoFiles.cs:** add new data structures Entry3D and Entry5D for handling 3D and 5D entries in Moongate.Uo.Data.Files namespace ([8aa892f](https://www.github.com/Moongate-server/Moongate/commit/8aa892f8283f1ef2e1f81b637b4d57da5f0f2482))
+* **Json:** add FlagsConverter class to handle JSON serialization of flag enums ([fb27362](https://www.github.com/Moongate-server/Moongate/commit/fb2736243f4eded3a13f6eeb17a7a4421271c47f))
+* **Map.cs:** add new Map class to handle map data and registration ([ffd6434](https://www.github.com/Moongate-server/Moongate/commit/ffd6434b7f2b576e571f3618f3c5e582f0b00fc3))
+* **moongate:** add support for specifying Ultima Online directory in Moongate ([9a8fd18](https://www.github.com/Moongate-server/Moongate/commit/9a8fd184ce4d276864a6838d9e56dd067e256eea))
+* **Moongate:** add support for new packets CharacterSelectPacket and ClientVersionPacket ([6084b0b](https://www.github.com/Moongate-server/Moongate/commit/6084b0b146bc7d4fd2ce5a8b4fc6943e5ed1f73f))
+* **Moongate.Core.csproj:** update ZLinq package version to 1.4.8 ([4e848e3](https://www.github.com/Moongate-server/Moongate/commit/4e848e3d50001f378725a178381d39fbe179eb5f))
+* **Moongate.Uo.Data:** add new classes Skills, TileData, UOPEntry, UOPFiles, and Verdata to handle game data structures and files ([d632021](https://www.github.com/Moongate-server/Moongate/commit/d6320218f7f78b3bdd2a86ec3b188bd273c03f36))
+* **Moongate.Uo.Data:** add new structs HuedTile, LandTile, MTile, MultiData, MultiTileEntry, MultiComponentList to handle tile data for Moongate game engine ([e9eade6](https://www.github.com/Moongate-server/Moongate/commit/e9eade6752333437088df24ca9ea42437da0f972))
+* **Moongate.Uo.Data.csproj:** add AllowUnsafeBlocks property to enable unsafe code ([edea5bc](https://www.github.com/Moongate-server/Moongate/commit/edea5bc6534b59e771099f758f5072a788809e5e))
+* **Mul:** add new Art class to handle art-related functionalities ([2cbe42a](https://www.github.com/Moongate-server/Moongate/commit/2cbe42a2d9b7bca99811875b6ae614ce90a69093))
+* **Mul:** add support for loading and configuring multi data from UOP and MUL files ([3894e27](https://www.github.com/Moongate-server/Moongate/commit/3894e27537bffb8570b9c14c41f305f8bc476abf))
+* **MultiDataLoader.cs:** add MultiDataLoader class to handle loading of ([a6d2e1d](https://www.github.com/Moongate-server/Moongate/commit/a6d2e1d217a9a329a6939f19af1a791ad9a69fe7))
+* **NetClient.cs:** add HaveCompression property to NetClient class for compression support ([e39e591](https://www.github.com/Moongate-server/Moongate/commit/e39e5917f7ddb50ad5675a5c3312c742249886fd))
+* **Network:** add CharacterCreationPacket to handle character creation process ([5467cee](https://www.github.com/Moongate-server/Moongate/commit/5467cee286fd41d5e924cd1d5b5cfb2b1db32755))
+* **NewItemTileDataMul.cs, StaticTile.cs:** add new data structures for handling item tile data and static tiles in the game to improve organization and efficiency ([3a7cc1d](https://www.github.com/Moongate-server/Moongate/commit/3a7cc1d0c6cdd39b0277e39fe9a77042ca4fec5f))
+* **Point2D.cs:** add a new file for the Point2D struct to represent 2D points ([1d15b93](https://www.github.com/Moongate-server/Moongate/commit/1d15b93b5f44342a72349e5f827fdaf478f5177d))
+* **ProcessStats.cs:** simplify calculation of average processing time ([78f107b](https://www.github.com/Moongate-server/Moongate/commit/78f107b12787c13bd274a9b6bbcd3c5035a1590b))
+* **ProfessionsLoader.cs:** add ProfessionsLoader class to load profession data from file ([6b98e16](https://www.github.com/Moongate-server/Moongate/commit/6b98e1605dab73dd5c40dee3d02548af3fba1842))
+* **Program.cs:** register CharacterEntity type in addition to AccountEntity for serialization ([bb0f843](https://www.github.com/Moongate-server/Moongate/commit/bb0f8438364ad12e165a6e2b46c3f1476a02449c))
+* **Program.cs:** remove unnecessary blank lines for better code readability ([2ebd40c](https://www.github.com/Moongate-server/Moongate/commit/2ebd40ccb0355e382c4aaa6aa8b8851141ddc87e))
+* **ResourceUtils.cs:** add method EmbeddedNameToPath to convert embedded resource ([51ebe91](https://www.github.com/Moongate-server/Moongate/commit/51ebe91bfdc014f83256e2518cfb16cab6f0313c))
+* **ServerClientVersionLoader.cs:** update namespace reference for UoContext in ServerClientVersionLoader to match new location ([a3deb7e](https://www.github.com/Moongate-server/Moongate/commit/a3deb7e923e04ec79273a316c21d92a9e83b629b))
+* **ShardConfig.cs:** add Language property with default value "eng" for ShardConfig ([e5d1e04](https://www.github.com/Moongate-server/Moongate/commit/e5d1e04d5f18eb71c99bc6567062e62c22d52149))
+* **SkillGroup.cs, SkillInfo.cs:** add new classes SkillGroup and SkillInfo to handle skill-related data in the application ([958d107](https://www.github.com/Moongate-server/Moongate/commit/958d1070a56cafac8d4006c8b4d332a1d0fa210e))
+* **TileMatrix.cs:** add new TileMatrix class to manage tile data for improved organization and efficiency ([db704e7](https://www.github.com/Moongate-server/Moongate/commit/db704e7d95b08195aa0757016ba25d4b439e5721))
+* **Utility.cs:** add Utility class with various helper methods for string ([232bdd8](https://www.github.com/Moongate-server/Moongate/commit/232bdd83f226cd9296f622e1c5da03f3c39f18d8))
+
 <a name="0.1.0"></a>
 ## [0.1.0](https://www.github.com/Moongate-server/Moongate/releases/tag/v0.1.0) (2025-05-23)
 
