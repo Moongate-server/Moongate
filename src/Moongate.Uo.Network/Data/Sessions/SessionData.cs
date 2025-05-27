@@ -25,13 +25,12 @@ public class SessionData : IDisposable
 
     public int AuthId { get; set; } = -1;
     public string AccountId { get; set; }
-
-    public NetClient Client { get; set; }
+    public NetClient? Client { get; set; }
 
 
     public void EnableCompression()
     {
-        if (!Client.ContainsMiddleware<OutgoingCompressionMiddleware>())
+        if (!Client.ContainsMiddleware(typeof(OutgoingCompressionMiddleware)))
         {
             Client.AddMiddleware(_outgoingCompressionMiddleware);
             Client.HaveCompression = true;
@@ -42,7 +41,6 @@ public class SessionData : IDisposable
     {
         Client.RemoveMiddleware(_outgoingCompressionMiddleware);
         Client.HaveCompression = false;
-
     }
 
     public void SetData<TEntity>(TEntity entity, string? name = null)
