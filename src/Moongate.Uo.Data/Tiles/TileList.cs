@@ -16,7 +16,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Moongate.Core.Buffers;
-using Prima.UOData.Data.Tiles;
 
 namespace Moongate.Uo.Data.Tiles;
 

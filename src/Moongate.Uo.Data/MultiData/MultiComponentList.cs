@@ -1,7 +1,6 @@
 using Moongate.Uo.Data.Geometry;
 using Moongate.Uo.Data.Mul;
 using Moongate.Uo.Data.Tiles;
-using Prima.UOData.Data.Tiles;
 
 namespace Moongate.Uo.Data.MultiData;
 

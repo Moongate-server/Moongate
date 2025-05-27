@@ -68,9 +68,9 @@ public class NetClient
         _middlewares.Add(middleware);
     }
 
-    public bool ContainsMiddleware<T>() where T : INetMiddleware
+    public bool ContainsMiddleware(Type type)
     {
-        return _middlewares.Any(m => m is T);
+        return _middlewares.Any(m => m.GetType() == type);
     }
 
     public void AddInterceptor(INetInterceptor interceptor)
@@ -318,7 +318,6 @@ public class NetClient
                 // repeat until all data is processed
                 while (!processedData.IsEmpty)
                 {
-
                     /// FIXME: Fix the middleware processing logic
                     int index = 0;
                     // // reverse order - last middleware first

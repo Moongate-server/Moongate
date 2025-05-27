@@ -18,6 +18,12 @@ public class SelectServerPacket : IUoNetworkPacket
         return true;
     }
 
+
+    public override string ToString()
+    {
+        return $"SelectServerPacket: ShardId: {ShardId}";
+    }
+
     public ReadOnlyMemory<byte> Write(SpanWriter writer)
     {
         return ReadOnlyMemory<byte>.Empty;

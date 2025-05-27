@@ -1,6 +1,5 @@
 using Moongate.Uo.Data.Context;
 using Moongate.Uo.Data.Files;
-using Prima.UOData.Data.Tiles;
 
 namespace Moongate.Uo.Data.Tiles;
 

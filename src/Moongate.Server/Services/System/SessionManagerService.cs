@@ -20,10 +20,23 @@ public class SessionManagerService : AbstractBaseMoongateService, ISessionManage
     {
     }
 
-    public SessionData? GetSession(string sessionId, bool throwIfNotFound = true)
+    public SessionData? GetSession(string sessionId, bool throwIfNotFound = true, bool waitForNetClient = false)
     {
         if (_sessionData.TryGetValue(sessionId, out var session))
         {
+            if (waitForNetClient && session.Client == null)
+            {
+                /// FIXME: This is a blocking call, consider using async/await pattern
+                SpinWait.SpinUntil(() => session.Client != null, TimeSpan.FromSeconds(2));
+
+                if (session.Client == null)
+                {
+                    throw new InvalidOperationException(
+                        $"Session with ID {sessionId} does not have a NetClient associated with it."
+                    );
+                }
+            }
+
             return session;
         }
 

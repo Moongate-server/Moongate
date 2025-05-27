@@ -1,7 +1,6 @@
 using System.Text;
 using Moongate.Uo.Data.Files;
 using Moongate.Uo.Data.Skills;
-using Prima.UOData.Mul;
 
 namespace Moongate.Uo.Data.Mul;
 

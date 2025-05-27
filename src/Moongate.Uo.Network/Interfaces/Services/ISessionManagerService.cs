@@ -5,7 +5,7 @@ namespace Moongate.Uo.Network.Interfaces.Services;
 
 public interface ISessionManagerService : IMoongateService
 {
-    SessionData? GetSession(string sessionId, bool throwIfNotFound = true);
+    SessionData? GetSession(string sessionId, bool throwIfNotFound = true, bool waitForNetClient = true);
     SessionData CreateSession(string sessionId);
     void DeleteSession(string sessionId);
 

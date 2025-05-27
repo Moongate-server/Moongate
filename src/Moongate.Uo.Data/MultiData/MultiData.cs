@@ -4,7 +4,6 @@ using Moongate.Core.Spans;
 using Moongate.Uo.Data.Compression;
 using Moongate.Uo.Data.Files;
 using Moongate.Uo.Data.Mul;
-using Prima.UOData.Mul;
 
 namespace Moongate.Uo.Data.MultiData;
 

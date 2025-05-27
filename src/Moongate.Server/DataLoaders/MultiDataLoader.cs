@@ -6,7 +6,6 @@ using Moongate.Uo.Data.Compression;
 using Moongate.Uo.Data.Files;
 using Moongate.Uo.Data.Mul;
 using Moongate.Uo.Data.MultiData;
-using Prima.UOData.Mul;
 
 namespace Moongate.Server.DataLoaders;
 

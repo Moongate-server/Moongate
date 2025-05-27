@@ -1,8 +1,6 @@
 using Moongate.Uo.Data.Context;
 using Moongate.Uo.Data.Files;
 using Moongate.Uo.Data.Mul;
-using Prima.UOData.Data.Tiles;
-using Prima.UOData.Mul;
 using Serilog;
 
 namespace Moongate.Uo.Data.Tiles;

@@ -18,6 +18,7 @@ using Moongate.Server.Handlers;
 using Moongate.Server.Modules;
 using Moongate.Server.Services.System;
 using Moongate.Server.Services.Uo;
+using Moongate.Uo.Data.Entities;
 using Moongate.Uo.Data.Network.Packets.Characters;
 using Moongate.Uo.Network.Interfaces.Services;
 using Moongate.Uo.Network.Packets.Connection;
@@ -70,7 +71,11 @@ await ConsoleApp.RunAsync(
         // Register the entity types
         EntityRegistrationBuilder.Instance
             .Register<AccountEntity>()
-            .Register<CharacterEntity>();
+            .Register<CharacterEntity>()
+            .Register<ItemEntity>()
+            .Register<MobileEntity>()
+            ;
+
 
         moongateStartupServer.RegisterServices += container =>
         {
@@ -133,7 +138,7 @@ await ConsoleApp.RunAsync(
             networkService.RegisterPacket<CharacterCreationPacket>();
             networkService.RegisterPacket<CharacterSelectPacket>();
             networkService.RegisterPacket<ClientVersionPacket>();
-            
+
             networkService.RegisterPacketHandler<SeedPacket, LoginHandler>();
             networkService.RegisterPacketHandler<LoginPacket, LoginHandler>();
             networkService.RegisterPacketHandler<ClientVersionPacket, LoginHandler>();
@@ -154,6 +159,7 @@ await ConsoleApp.RunAsync(
             dataLoaderService.AddDataLoaderType(typeof(TileDataLoader));
             dataLoaderService.AddDataLoaderType(typeof(RaceLoader));
             dataLoaderService.AddDataLoaderType(typeof(MultiDataLoader));
+            dataLoaderService.AddDataLoaderType(typeof(BodyDataLoader));
 
             dataLoaderService.AddDataLoaderType(typeof(MapLoader));
         };
