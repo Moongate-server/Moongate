@@ -21,6 +21,7 @@ using Moongate.Server.Services.System;
 using Moongate.Server.Services.Uo;
 using Moongate.Uo.Data.Entities;
 using Moongate.Uo.Data.Network.Packets.Characters;
+using Moongate.Uo.Data.Network.Packets.GeneralInformation;
 using Moongate.Uo.Data.Serializers;
 using Moongate.Uo.Network.Interfaces.Services;
 using Moongate.Uo.Network.Packets.Connection;
@@ -150,6 +151,7 @@ await ConsoleApp.RunAsync(
             networkService.RegisterPacket<CharacterCreationPacket>();
             networkService.RegisterPacket<CharacterSelectPacket>();
             networkService.RegisterPacket<ClientVersionPacket>();
+            networkService.RegisterPacket<GeneralInformationPacket>();
 
             networkService.RegisterPacketHandler<SeedPacket, LoginHandler>();
             networkService.RegisterPacketHandler<LoginPacket, LoginHandler>();

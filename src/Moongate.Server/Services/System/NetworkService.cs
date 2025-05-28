@@ -201,7 +201,7 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
 
             var bufferToSend = packet.Write(packetBuffer);
 
-            LogPacket(client.Id, bufferToSend, false, client.HaveCompression);
+            LogPacket(client.Id, new ReadOnlyMemory<byte>(bufferToSend.ToArray()), false, client.HaveCompression);
 
             SendBuffer(client, bufferToSend);
         }

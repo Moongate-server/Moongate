@@ -39,7 +39,7 @@ public class CharacterDrawPacket : IUoNetworkPacket
         writer.Write(length);
 
         writer.Write(Mobile.Serial.Value);
-        writer.Write((short)Mobile.ModelId);
+        writer.Write((short)Mobile.Race.MaleBody);
         writer.Write((short)Mobile.X);
         writer.Write((short)Mobile.Y);
         writer.Write((byte)Mobile.Z);
@@ -47,6 +47,7 @@ public class CharacterDrawPacket : IUoNetworkPacket
         writer.Write((short)Mobile.Hue);
         writer.Write((byte)Mobile.Status);
         writer.Write((byte)Mobile.Notoriety);
+
         foreach (var (layer, item) in Mobile.GetItems())
         {
             var modelId = item.ModelId & 0x7FFF;
@@ -67,9 +68,6 @@ public class CharacterDrawPacket : IUoNetworkPacket
         }
 
         writer.Write((byte)0);
-
-        var innerData = writer.ToArray();
-        length += innerData.Length;
 
 
         return writer.ToArray();
