@@ -30,7 +30,7 @@ public class Map : IComparable<Map>, IComparable
     public string Name { get; }
     public MapRules Rules { get; }
 
-    private readonly TileMatrix _tiles;
+    private TileMatrix? _tiles;
 
 
     private Map(int index, int mapId, int fileIndex, int width, int height, Season season, string name, MapRules rules)
@@ -78,6 +78,9 @@ public class Map : IComparable<Map>, IComparable
     {
         return _tiles.GetLandTile(x, y);
     }
+
+    public TileMatrix Tiles => _tiles ??= new TileMatrix(FileIndex, MapID, Width, Height);
+
 
     // public StaticTile[] GetStaticTiles(int x, int y)
     // {

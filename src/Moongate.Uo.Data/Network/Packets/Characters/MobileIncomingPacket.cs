@@ -4,14 +4,14 @@ using Moongate.Uo.Network.Interfaces.Messages;
 
 namespace Moongate.Uo.Data.Network.Packets.Characters;
 
-public class CharacterDrawPacket : IUoNetworkPacket
+public class MobileIncomingPacket : IUoNetworkPacket
 {
     public byte OpCode => 0x78;
     public int Length => -1;
 
     public MobileEntity Mobile { get; set; }
 
-    public CharacterDrawPacket(MobileEntity mobile = null)
+    public MobileIncomingPacket(MobileEntity mobile = null)
     {
         Mobile = mobile;
     }

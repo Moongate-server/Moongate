@@ -223,7 +223,7 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
                     {
                         Logger.Debug("Sending buffer to client {ClientId} via eventloop", client.Id);
                         client.Send(buffer);
-                    }
+                    }, EventLoopPriority.High
                 );
             }
             else

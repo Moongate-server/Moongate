@@ -6,6 +6,7 @@ using Moongate.Uo.Data.Context;
 using Moongate.Uo.Data.Extensions;
 using Moongate.Uo.Data.Network.Packets.Characters;
 using Moongate.Uo.Data.Network.Packets.Data;
+using Moongate.Uo.Data.Network.Packets.Features;
 using Moongate.Uo.Data.Network.Packets.Flags;
 using Moongate.Uo.Data.Network.Packets.GeneralInformation;
 using Moongate.Uo.Data.Network.Packets.GeneralInformation.SubCommands;
@@ -69,9 +70,6 @@ public class CharacterHandler : IPacketListener
 
     private async Task ProcessCharacterSelect(SessionData session, CharacterSelectPacket packet)
     {
-
-
-
         var character = _accountManagerService.GetCharactersByAccountId(session.AccountId)
             .FirstOrDefault(c => c.Slot == packet.Slot);
 
@@ -85,24 +83,59 @@ public class CharacterHandler : IPacketListener
         }
 
         var mobile = _mobileService.GetMobileBySerial(character.MobileId);
-        _logger.Debug("Processing character select for {CharacterName} slot n: {Slot} (Serial: {Serial})", packet.Name, packet.Slot, mobile.Serial);
+        _logger.Debug(
+            "Processing character select for {CharacterName} slot n: {Slot} (Serial: {Serial})",
+            packet.Name,
+            packet.Slot,
+            mobile.Serial
+        );
 
 
         session.SetMobile(mobile);
 
         session.SendPacket(new ClientVersionPacket());
 
+        await Task.Delay(4000);
+
         session.SendPacket(new LoginConfirmPacket(mobile));
-        session.SendPacket(new GeneralInformationPacket(SubcommandType.SetCursorHueSetMap, new SetCursorHueSetMapData(mobile.Map)));
-        session.SendPacket(new SeasonalInformationPacket(Season.Spring, true));
-        session.SendPacket(new DrawGamePlayerPacket(mobile));
-        session.SendPacket(new CharacterDrawPacket(mobile));
+
+        session.SendPacket(new MapChangePacket(mobile.Map));
+
+        session.SendPacket(new MapPatchesPacket(Map.Maps));
+
+        session.SendPacket(new SeasonPacket(mobile.Map.Season, true));
+
+        session.SendPacket(new SupportedFeaturesPacket(session));
+
+
+        session.SendPacket(new MobileUpdatePacket(mobile));
+        session.SendPacket(new MobileUpdatePacket(mobile));
+
         session.SendPacket(new OverallLightLevelPacket(LightLevelType.Day));
         session.SendPacket(new PersonalLightLevelPacket(mobile, LightLevelType.Day));
-        session.SendPacket(new FeatureFlagsResponse(UoContext.ExpansionInfo.SupportedFeatures));
-        session.SendPacket(new CharacterWarModePacket());
-        session.SendPacket(new LoginCompletePacket());
 
+        session.SendPacket(new MobileUpdatePacket(mobile));
+
+        session.SendPacket(new MobileIncomingPacket(mobile));
+
+        //CreateMobileStatus
+
+        session.SendPacket(new MobileUpdatePacket(mobile));
+
+        session.SendPacket(new CharacterWarModePacket());
+        session.SendPacket(new SupportedFeaturesPacket(session));
+
+        session.SendPacket(new MobileUpdatePacket(mobile));
+        session.SendPacket(new CharacterWarModePacket());
+        session.SendPacket(new MobileIncomingPacket(mobile));
+        session.SendPacket(new LoginCompletePacket());
+        session.SendPacket(new CurrentTimePacket());
+        session.SendPacket(new SeasonPacket(Season.Spring, true));
+        session.SendPacket(
+            new GeneralInformationPacket(SubcommandType.SetCursorHueSetMap, new SetCursorHueSetMapData(mobile.Map))
+        );
+
+        session.SendPacket(new SetMusicPacket(MusicName.Britain1));
     }
 
     private async Task ProcessCharacterCreation(SessionData session, CharacterCreationPacket packet)
@@ -124,6 +157,10 @@ public class CharacterHandler : IPacketListener
         mobile.Location = startingLocation.Location;
         mobile.Alive = true;
         mobile.Female = packet.IsFemale;
+        mobile.ClientFlags = packet.ClientFlags;
+
+        session.SetClientFlags(packet.ClientFlags);
+
 
         var characterEntity = new CharacterEntity()
         {

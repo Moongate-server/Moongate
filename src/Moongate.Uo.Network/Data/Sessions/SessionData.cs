@@ -10,7 +10,6 @@ public class SessionData : IDisposable
 
     private readonly OutgoingCompressionMiddleware _outgoingCompressionMiddleware = new();
 
-
     /// <summary>
     ///  Indicates if the session when disconnected should be put in limbo.
     ///  (This is used for the login server to keep the session and information until the client connect to game server).

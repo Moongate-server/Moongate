@@ -4,7 +4,7 @@ using Moongate.Uo.Network.Interfaces.Messages;
 
 namespace Moongate.Uo.Data.Network.Packets.Seasons;
 
-public class SeasonalInformationPacket : IUoNetworkPacket
+public class SeasonPacket : IUoNetworkPacket
 {
     public byte OpCode => 0xBC;
     public int Length => 3;
@@ -12,7 +12,7 @@ public class SeasonalInformationPacket : IUoNetworkPacket
     public Season Season { get; set; }
     public bool PlaySounds { get; set; }
 
-    public SeasonalInformationPacket(Season season = Season.Spring, bool playSounds = false)
+    public SeasonPacket(Season season = Season.Spring, bool playSounds = false)
     {
         Season = season;
         PlaySounds = playSounds;

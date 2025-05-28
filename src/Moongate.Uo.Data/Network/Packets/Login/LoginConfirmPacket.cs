@@ -51,6 +51,7 @@ public class LoginConfirmPacket : IUoNetworkPacket
         writer.Write((byte)Direction);
         writer.Write((byte)0);
         writer.Write(-1);
+
         writer.Write(0);
 
         writer.Write((short)(Map?.Width ?? Map.Felucca.Width));

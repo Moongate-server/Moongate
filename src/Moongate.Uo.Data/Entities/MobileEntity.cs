@@ -18,6 +18,8 @@ public partial class MobileEntity : Entity, IDrawableEntity
 
     public bool Female { get; set; }
 
+    public ClientFlags ClientFlags { get; set; }
+
     public bool Alive { get; set; }
 
     public string Name { get; set; }

@@ -7,7 +7,7 @@ using Moongate.Uo.Network.Interfaces.Messages;
 
 namespace Moongate.Uo.Data.Network.Packets.Players;
 
-public class DrawGamePlayerPacket : IUoNetworkPacket
+public class MobileUpdatePacket : IUoNetworkPacket
 {
     public byte OpCode => 0x20;
     public int Length => 19;
@@ -20,7 +20,7 @@ public class DrawGamePlayerPacket : IUoNetworkPacket
         return false;
     }
 
-    public DrawGamePlayerPacket(MobileEntity? mobileEntity = null)
+    public MobileUpdatePacket(MobileEntity? mobileEntity = null)
     {
         if (mobileEntity != null)
         {
