@@ -6,6 +6,10 @@ using Moongate.Uo.Data.Network.Packets.Characters;
 using Moongate.Uo.Data.Network.Packets.Data;
 using Moongate.Uo.Data.Network.Packets.Flags;
 using Moongate.Uo.Data.Network.Packets.Login;
+using Moongate.Uo.Data.Network.Packets.Players;
+using Moongate.Uo.Data.Network.Packets.Seasons;
+using Moongate.Uo.Data.Network.Packets.World;
+using Moongate.Uo.Data.Types;
 using Moongate.Uo.Network.Data.Sessions;
 using Moongate.Uo.Network.Interfaces.Handlers;
 using Moongate.Uo.Network.Interfaces.Messages;
@@ -61,7 +65,7 @@ public class CharacterHandler : IPacketListener
     private async Task ProcessCharacterSelect(SessionData session, CharacterSelectPacket packet)
     {
 
-        _logger.Debug("Processing character select for {CharacterName} slot n: {Slot}", packet.Name, packet.Slot);
+
 
         var character = _accountManagerService.GetCharactersByAccountId(session.AccountId)
             .FirstOrDefault(c => c.Slot == packet.Slot);
@@ -76,11 +80,23 @@ public class CharacterHandler : IPacketListener
         }
 
         var mobile = _mobileService.GetMobileBySerial(character.MobileId);
+        _logger.Debug("Processing character select for {CharacterName} slot n: {Slot} (Serial: {Serial})", packet.Name, packet.Slot, mobile.Serial);
+
 
         session.SetMobile(mobile);
 
         session.SendPacket(new ClientVersionPacket());
-        session.SendPacket(new LoginConfirmPacket());
+        session.SendPacket(new LoginConfirmPacket(mobile));
+
+        session.SendPacket(new SeasonalInformationPacket(Season.Spring, true));
+        session.SendPacket(new DrawGamePlayerPacket(mobile));
+        session.SendPacket(new CharacterDrawPacket(mobile));
+        session.SendPacket(new OverallLightLevelPacket(LightLevelType.Day));
+        session.SendPacket(new PersonalLightLevelPacket(mobile, LightLevelType.Day));
+        session.SendPacket(new FeatureFlagsResponse(UoContext.ExpansionInfo.SupportedFeatures));
+        session.SendPacket(new CharacterWarModePacket());
+        session.SendPacket(new LoginCompletePacket());
+
     }
 
     private async Task ProcessCharacterCreation(SessionData session, CharacterCreationPacket packet)

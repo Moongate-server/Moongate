@@ -46,7 +46,7 @@ public class MobileService : IMobileService
             return;
         }
 
-        _logger.Debug("Added mobile {MobileName} with serial {Serial}.", mobile.Name, mobile.Serial);
+        _logger.Debug("Added mobile with serial {Serial}.", mobile.Serial);
     }
 
     public MobileEntity? CreateMobile()

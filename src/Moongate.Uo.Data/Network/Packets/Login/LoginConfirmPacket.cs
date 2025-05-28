@@ -27,7 +27,7 @@ public class LoginConfirmPacket : IUoNetworkPacket
         if (mobileEntity != null)
         {
             CharacterSerial = mobileEntity.Serial;
-            ModelId = (short)mobileEntity.ModelId;
+            ModelId = (short)mobileEntity.Race.MaleBody;
             Location = mobileEntity.Location;
             Direction = mobileEntity.Direction;
             Map = mobileEntity.Map;
@@ -45,10 +45,10 @@ public class LoginConfirmPacket : IUoNetworkPacket
         writer.Write(CharacterSerial.Value);
         writer.Write(0);
         writer.Write(ModelId);
-        writer.Write(Location.X);
-        writer.Write(Location.Y);
+        writer.Write((short)Location.X);
+        writer.Write((short)Location.Y);
         writer.Write((byte)0);
-        writer.Write(Location.Z);
+        writer.Write((short)Location.Z);
         writer.Write((byte)Direction);
         writer.Write(0);
         writer.Write(0);

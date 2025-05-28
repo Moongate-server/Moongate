@@ -1,5 +1,6 @@
 using Moongate.Core.Data.Ids;
 using Moongate.Core.Spans;
+using Moongate.Uo.Data.Entities;
 using Moongate.Uo.Data.Geometry;
 using Moongate.Uo.Data.Types;
 using Moongate.Uo.Network.Interfaces.Messages;
@@ -24,6 +25,17 @@ public class DrawGamePlayerPacket : IUoNetworkPacket
     public bool Read(SpanReader reader)
     {
         return false;
+    }
+
+    public DrawGamePlayerPacket(MobileEntity? mobileEntity = null)
+    {
+        if (mobileEntity != null)
+        {
+            MobileId = mobileEntity.Serial;
+            BodyType = mobileEntity.Race.MaleBody;
+            Position = mobileEntity.Location;
+            Direction = mobileEntity.Direction;
+        }
     }
 
     public ReadOnlyMemory<byte> Write(SpanWriter writer)

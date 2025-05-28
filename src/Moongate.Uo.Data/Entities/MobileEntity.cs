@@ -11,6 +11,7 @@ namespace Moongate.Uo.Data.Entities;
 
 [MemoryPackable]
 [EntityType(0x04, Description = "Mobile Entity")]
+
 public partial class MobileEntity : Entity, IDrawableEntity
 {
     private readonly Dictionary<Layer, ItemEntity> _items = new();
@@ -21,7 +22,6 @@ public partial class MobileEntity : Entity, IDrawableEntity
     public string Title { get; set; }
 
     public int ModelId { get; set; }
-
     public int Hue { get; set; }
 
     public CharacterStatus Status { get; set; }
