@@ -116,9 +116,11 @@ public class CharacterHandler : IPacketListener
 
         session.SendPacket(new MobileUpdatePacket(mobile));
 
+        // TODO: Refactor SendMobileIncoming
         session.SendPacket(new MobileIncomingPacket(mobile));
 
-        //CreateMobileStatus
+        //TODO: Missing  CreateMobileStatus
+
 
         session.SendPacket(new MobileUpdatePacket(mobile));
 
