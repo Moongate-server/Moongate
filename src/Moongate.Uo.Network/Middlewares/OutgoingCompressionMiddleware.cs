@@ -12,9 +12,11 @@ public class OutgoingCompressionMiddleware : INetMiddleware
         Span<byte> outputBuffer = stackalloc byte[inputBuffer.Length];
         var compressionSize = NetworkCompression.Compress(inputBuffer, outputBuffer);
 
-        if (compressionSize == 0)
+        if (compressionSize == 0 || compressionSize == inputBuffer.Length)
         {
-            output = inputBuffer;
+            // No compression or no change in size, return original input
+            output = input;
+            return;
         }
 
         output = new Memory<byte>(outputBuffer[..compressionSize].ToArray());

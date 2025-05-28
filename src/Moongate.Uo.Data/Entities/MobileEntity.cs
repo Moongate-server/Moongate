@@ -11,17 +11,24 @@ namespace Moongate.Uo.Data.Entities;
 
 [MemoryPackable]
 [EntityType(0x04, Description = "Mobile Entity")]
-
 public partial class MobileEntity : Entity, IDrawableEntity
 {
     private readonly Dictionary<Layer, ItemEntity> _items = new();
     public Serial Serial { get; set; }
 
+    public bool Female { get; set; }
+
+    public bool Alive { get; set; }
+
     public string Name { get; set; }
 
     public string Title { get; set; }
 
-    public int ModelId { get; set; }
+    public int SolidHueOverride { get; set; }
+
+    [MemoryPackAllowSerialize]
+    public Body Body => Race.Body(this);
+
     public int Hue { get; set; }
 
     public CharacterStatus Status { get; set; }
@@ -34,12 +41,10 @@ public partial class MobileEntity : Entity, IDrawableEntity
 
     public int Intelligence { get; set; }
 
-    [MemoryPackAllowSerialize]
-    public Race Race { get; set; }
+    [MemoryPackAllowSerialize] public Race Race { get; set; }
 
 
-    [MemoryPackAllowSerialize]
-    public ProfessionInfo Profession { get; set;}
+    [MemoryPackAllowSerialize] public ProfessionInfo Profession { get; set; }
 
     public int Dexterity { get; set; }
 

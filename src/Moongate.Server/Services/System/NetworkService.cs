@@ -24,7 +24,7 @@ namespace Moongate.Server.Services.System;
 
 public class NetworkService : AbstractBaseMoongateStartStopService, INetworkService
 {
-    private const bool _useEventLoop = true;
+    private const bool _useEventLoop = false;
 
     public event INetworkService.ClientConnectedDelegate? ClientConnected;
     public event INetworkService.ClientDisconnectedDelegate? ClientDisconnected;
@@ -219,7 +219,11 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
             {
                 _eventLoopService.EnqueueAction(
                     $" network_send_{client.Id}",
-                    () => client.Send(buffer)
+                    () =>
+                    {
+                        Logger.Debug("Sending buffer to client {ClientId} via eventloop", client.Id);
+                        client.Send(buffer);
+                    }
                 );
             }
             else
@@ -227,7 +231,7 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
                 client.Send(buffer);
             }
 
-            client.Send(buffer);
+            //client.Send(buffer);
         }
         catch (Exception ex)
         {

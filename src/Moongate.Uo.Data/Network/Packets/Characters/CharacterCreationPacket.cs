@@ -76,8 +76,12 @@ public class CharacterCreationPacket : IUoNetworkPacket
 
         IsFemale = genderRace % 2 != 0;
 
+
+
         var raceID = UoContext.StygianAbyss ? (byte)(genderRace < 4 ? 0 : genderRace / 2 - 1) : (byte)(genderRace / 2);
         Race = Race.Races[raceID] ?? Race.DefaultRace;
+
+
 
         Str = reader.ReadByte();
         Dex = reader.ReadByte();

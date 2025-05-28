@@ -26,6 +26,7 @@ public class CharacterDrawPacket : IUoNetworkPacket
         var length = 20;
 
         writer.Write(OpCode);
+
         foreach (var (layer, item) in Mobile.GetItems())
         {
             length += 7;
@@ -36,10 +37,10 @@ public class CharacterDrawPacket : IUoNetworkPacket
             }
         }
 
-        writer.Write(length);
+        writer.Write((short)length);
 
         writer.Write(Mobile.Serial.Value);
-        writer.Write((short)Mobile.Race.MaleBody);
+        writer.Write((short)Mobile.Body);
         writer.Write((short)Mobile.X);
         writer.Write((short)Mobile.Y);
         writer.Write((byte)Mobile.Z);
@@ -67,7 +68,7 @@ public class CharacterDrawPacket : IUoNetworkPacket
             }
         }
 
-        writer.Write((byte)0);
+        writer.Write(0);
 
 
         return writer.ToArray();

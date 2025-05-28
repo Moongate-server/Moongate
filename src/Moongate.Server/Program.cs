@@ -86,6 +86,7 @@ await ConsoleApp.RunAsync(
             MemoryPackFormatterProvider.Register(new Point3dSerializer());
             MemoryPackFormatterProvider.Register(new Point2dSerializer());
             MemoryPackFormatterProvider.Register(new MapSerializer());
+            MemoryPackFormatterProvider.Register(new BodySerializer());
 
         };
 

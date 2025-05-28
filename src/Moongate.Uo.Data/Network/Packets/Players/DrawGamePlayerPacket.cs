@@ -12,15 +12,8 @@ public class DrawGamePlayerPacket : IUoNetworkPacket
     public byte OpCode => 0x20;
     public int Length => 19;
 
-    public Serial MobileId { get; set; } = Serial.Zero;
 
-    public int BodyType { get; set; }
-
-    public int Hue { get; set; }
-
-    public Point3D Position { get; set; } = Point3D.Zero;
-
-    public Direction Direction { get; set; } = Direction.North;
+    public MobileEntity Mobile { get; set; }
 
     public bool Read(SpanReader reader)
     {
@@ -31,26 +24,26 @@ public class DrawGamePlayerPacket : IUoNetworkPacket
     {
         if (mobileEntity != null)
         {
-            MobileId = mobileEntity.Serial;
-            BodyType = mobileEntity.Race.MaleBody;
-            Position = mobileEntity.Location;
-            Direction = mobileEntity.Direction;
+            Mobile = mobileEntity;
         }
     }
 
     public ReadOnlyMemory<byte> Write(SpanWriter writer)
     {
         writer.Write(OpCode);
-        writer.Write(MobileId.Value);
-        writer.Write((short)BodyType);
+
+        writer.Write((short)Mobile.Body);
         writer.Write((byte)0);
-        writer.Write((short)Hue);
-        writer.Write((byte)0);
-        writer.Write((short)Position.X);
-        writer.Write((short)Position.Y);
-        writer.Write((byte)0);
-        writer.Write((byte)Direction);
-        writer.Write((byte)Position.Z);
+        writer.Write((short)(Mobile.SolidHueOverride >= 0 ? Mobile.SolidHueOverride : Mobile.Hue));
+        // See Mobile.cs in modern UO
+        writer.Write((byte)Mobile.Status);
+
+        writer.Write((short)Mobile.X);
+        writer.Write((short)Mobile.Y);
+        writer.Write((short)0);
+        writer.Write((byte)Mobile.Direction);
+        writer.Write((sbyte)Mobile.Z);
+
         return writer.ToArray();
     }
 }
