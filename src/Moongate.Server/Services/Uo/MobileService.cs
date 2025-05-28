@@ -24,7 +24,7 @@ public class MobileService : IMobileService
     public MobileService(DirectoriesConfig directoriesConfig, IPersistenceManager persistenceManager)
     {
         _persistenceManager = persistenceManager;
-        _mobilesFilePath = Path.Combine(directoriesConfig[DirectoryType.Database], "mobiles.moongate");
+        _mobilesFilePath = Path.Combine(directoriesConfig[DirectoryType.Saves], "mobiles.moongate");
     }
 
     public MobileEntity? GetMobileBySerial(Serial serial)

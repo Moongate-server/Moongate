@@ -39,8 +39,8 @@ public class AccountManagerService : AbstractBaseMoongateStartStopService, IAcco
         _persistenceManager = persistenceManager;
         _eventBusService = eventBusService;
 
-        _accountsFilePath = Path.Combine(directoriesConfig[DirectoryType.Database], "accounts.moongate");
-        _charactersFilePath = Path.Combine(directoriesConfig[DirectoryType.Database], "characters.moongate");
+        _accountsFilePath = Path.Combine(directoriesConfig[DirectoryType.Saves], "accounts.moongate");
+        _charactersFilePath = Path.Combine(directoriesConfig[DirectoryType.Saves], "characters.moongate");
 
     }
 
