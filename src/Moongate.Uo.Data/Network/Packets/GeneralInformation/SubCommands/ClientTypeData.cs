@@ -30,9 +30,11 @@ public sealed class ClientTypeData : ISubcommandData
     }
 
     /// <inheritdoc />
-    public void Write(SpanWriter writer)
+    public ReadOnlyMemory<byte> Write(SpanWriter writer)
     {
         writer.Write(Unknown);
         writer.Write(ClientFlags);
+
+        return writer.ToArray();
     }
 }

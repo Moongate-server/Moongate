@@ -22,9 +22,11 @@ public sealed class ClientLanguageData : ISubcommandData
     }
 
     /// <inheritdoc />
-    public void Write(SpanWriter writer)
+    public ReadOnlyMemory<byte> Write(SpanWriter writer)
     {
         writer.WriteAscii(Language, 3);
         writer.Write((byte)0); // null terminator
+
+        return writer.ToArray();
     }
 }

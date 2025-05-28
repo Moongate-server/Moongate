@@ -1,10 +1,14 @@
 using Moongate.Core.Data.Ids;
 using Moongate.Core.Interfaces.Services.System;
+using Moongate.Core.Spans;
 using Moongate.Uo.Data.Context;
 using Moongate.Uo.Data.Extensions;
 using Moongate.Uo.Data.Network.Packets.Characters;
 using Moongate.Uo.Data.Network.Packets.Data;
 using Moongate.Uo.Data.Network.Packets.Flags;
+using Moongate.Uo.Data.Network.Packets.GeneralInformation;
+using Moongate.Uo.Data.Network.Packets.GeneralInformation.SubCommands;
+using Moongate.Uo.Data.Network.Packets.GeneralInformation.Types;
 using Moongate.Uo.Data.Network.Packets.Login;
 using Moongate.Uo.Data.Network.Packets.Players;
 using Moongate.Uo.Data.Network.Packets.Seasons;
@@ -87,7 +91,7 @@ public class CharacterHandler : IPacketListener
 
         session.SendPacket(new ClientVersionPacket());
         session.SendPacket(new LoginConfirmPacket(mobile));
-
+        session.SendPacket(new GeneralInformationPacket(SubcommandType.SetCursorHueSetMap, new SetCursorHueSetMapData().Write(new SpanWriter(1, true))));
         session.SendPacket(new SeasonalInformationPacket(Season.Spring, true));
         session.SendPacket(new DrawGamePlayerPacket(mobile));
         session.SendPacket(new CharacterDrawPacket(mobile));

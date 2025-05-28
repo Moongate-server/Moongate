@@ -17,7 +17,7 @@ public interface ISubcommandData
     /// Writes subcommand data to writer
     /// </summary>
     /// <param name="writer">Span writer</param>
-    void Write(SpanWriter writer);
+    ReadOnlyMemory<byte> Write(SpanWriter writer);
 
     /// <summary>
     /// Gets the data length in bytes

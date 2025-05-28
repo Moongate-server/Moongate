@@ -41,6 +41,17 @@ public class GeneralInformationPacket : IUoNetworkPacket
         Length = 5 + data.Length; // 1 + 2 + 2 + data length
     }
 
+    public GeneralInformationPacket(SubcommandType subcommand, ISubcommandData data)
+    {
+        Subcommand = subcommand;
+        SubcommandData = ReadOnlyMemory<byte>.Empty;
+
+        using var writer = new SpanWriter(1, true);
+        SubcommandData = data.Write(writer);
+        Length = 5 + data.Length;
+
+    }
+
     /// <summary>
     /// Creates a typed subcommand parser for this packet
     /// </summary>

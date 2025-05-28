@@ -29,10 +29,12 @@ public sealed class DamageData : ISubcommandData
     }
 
     /// <inheritdoc />
-    public void Write(SpanWriter writer)
+    public ReadOnlyMemory<byte> Write(SpanWriter writer)
     {
         writer.Write(Unknown);
         writer.Write(Serial);
         writer.Write(Damage);
+
+        return writer.ToArray();
     }
 }

@@ -25,9 +25,11 @@ public sealed class UseTargetedItemData : ISubcommandData
     }
 
     /// <inheritdoc />
-    public void Write(SpanWriter writer)
+    public ReadOnlyMemory<byte> Write(SpanWriter writer)
     {
         writer.Write(ItemSerial);
         writer.Write(TargetSerial);
+
+        return writer.ToArray();
     }
 }

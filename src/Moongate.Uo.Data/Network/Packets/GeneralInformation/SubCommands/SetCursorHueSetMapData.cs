@@ -23,8 +23,9 @@ public sealed class SetCursorHueSetMapData : ISubcommandData
     }
 
     /// <inheritdoc />
-    public void Write(SpanWriter writer)
+    public ReadOnlyMemory<byte> Write(SpanWriter writer)
     {
         writer.Write(MapId);
+        return writer.ToArray();
     }
 }
