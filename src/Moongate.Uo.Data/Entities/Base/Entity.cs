@@ -15,8 +15,8 @@ public partial class Entity : IEntity, IPosition3DEntity
 
     public Point3D Location { get; set; }
 
-    [MemoryPackIgnore]
-    public Map Map { get; private set; }
+    [MemoryPackAllowSerialize]
+    public Map Map { get; set; }
 
     public bool InRange(Point2D p, int range) =>
         p.X >= Location.X - range

@@ -1,4 +1,5 @@
 using MemoryPack;
+using Moongate.Core.Data.Ids;
 using Moongate.Persistence.Attributes;
 using NanoidDotNet;
 
@@ -10,7 +11,9 @@ public partial class CharacterEntity
 {
     public string AccountId { get; set; }
 
+    public int Slot { get; set; }
+
     public string Name { get; set; }
 
-    public int MobileId { get; set; }
+    public Serial MobileId { get; set; }
 }

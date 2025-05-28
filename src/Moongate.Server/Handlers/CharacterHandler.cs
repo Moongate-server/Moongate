@@ -1,14 +1,17 @@
+using Moongate.Core.Data.Ids;
 using Moongate.Core.Interfaces.Services.System;
 using Moongate.Uo.Data.Context;
 using Moongate.Uo.Data.Extensions;
 using Moongate.Uo.Data.Network.Packets.Characters;
 using Moongate.Uo.Data.Network.Packets.Data;
 using Moongate.Uo.Data.Network.Packets.Flags;
+using Moongate.Uo.Data.Network.Packets.Login;
 using Moongate.Uo.Network.Data.Sessions;
 using Moongate.Uo.Network.Interfaces.Handlers;
 using Moongate.Uo.Network.Interfaces.Messages;
 using Moongate.Uo.Network.Interfaces.Services;
 using Moongate.Uo.Network.Packets.Connection;
+using Moongate.Uo.Network.Types;
 using Moongate.Uo.Services.Events.Characters;
 using Moongate.Uo.Services.Interfaces.Services;
 using Moongate.Uo.Services.Serialization.Entities;
@@ -22,6 +25,7 @@ public class CharacterHandler : IPacketListener
 
     private readonly ISessionManagerService _sessionManagerService;
 
+    private readonly IMobileService _mobileService;
     private readonly IAccountManagerService _accountManagerService;
 
     private readonly IMapService _mapService;
@@ -29,11 +33,13 @@ public class CharacterHandler : IPacketListener
 
     public CharacterHandler(
         IEventBusService eventBusService, ISessionManagerService sessionManagerService, IMapService mapService,
-        IAccountManagerService accountManagerService
+        IAccountManagerService accountManagerService, IMobileService mobileService
     )
     {
         _sessionManagerService = sessionManagerService;
+        this._mapService = mapService;
         _accountManagerService = accountManagerService;
+        _mobileService = mobileService;
         _mapService = mapService;
 
         eventBusService.Subscribe<SendCharacterListEvent>(OnSendCharacterListEvent);
@@ -54,21 +60,58 @@ public class CharacterHandler : IPacketListener
 
     private async Task ProcessCharacterSelect(SessionData session, CharacterSelectPacket packet)
     {
+
         _logger.Debug("Processing character select for {CharacterName} slot n: {Slot}", packet.Name, packet.Slot);
 
+        var character = _accountManagerService.GetCharactersByAccountId(session.AccountId)
+            .FirstOrDefault(c => c.Slot == packet.Slot);
+
+        // NOTE: This is guard
+        if (character == null)
+        {
+            _logger.Warning("Character with slot {Slot} not found for account {AccountId}", packet.Slot, session.AccountId);
+            session.SendPacket(new LoginDeniedPacket(LoginDeniedReasonType.AccountBlocked));
+            session.Disconnect();
+            return;
+        }
+
+        var mobile = _mobileService.GetMobileBySerial(character.MobileId);
+
+        session.SetMobile(mobile);
+
         session.SendPacket(new ClientVersionPacket());
+        session.SendPacket(new LoginConfirmPacket());
     }
 
     private async Task ProcessCharacterCreation(SessionData session, CharacterCreationPacket packet)
     {
         _logger.Debug("Processing character creation");
+
+        var mobile = _mobileService.CreateMobile();
+
+        var startingLocation = _mapService.GetStartingCities()[packet.StartingLocation];
+
+        mobile.Name = packet.Name;
+        mobile.Dexterity = packet.Dex;
+        mobile.Strength = packet.Str;
+        mobile.Intelligence = packet.Int;
+        mobile.Race = packet.Race;
+        mobile.Profession = packet.Profession;
+        mobile.Hue = packet.Hue;
+        mobile.Map = startingLocation.Map;
+        mobile.Location = startingLocation.Location;
+
         var characterEntity = new CharacterEntity()
         {
+            Slot = packet.Slot,
             AccountId = session.AccountId,
-            MobileId = Random.Shared.Next(),
+            MobileId = mobile.Serial,
             Name = packet.Name
         };
         await _accountManagerService.AddCharacterToAccountAsync(session.AccountId, characterEntity);
+
+        // In production we need to schedule the save to the database
+        await _mobileService.SaveAsync(CancellationToken.None);
     }
 
     private async Task OnSendCharacterListEvent(SendCharacterListEvent @event)

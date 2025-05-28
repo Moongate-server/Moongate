@@ -3,6 +3,8 @@ using Moongate.Core.Data.Ids;
 using Moongate.Persistence.Attributes;
 using Moongate.Uo.Data.Entities.Base;
 using Moongate.Uo.Data.Interfaces.Entities;
+using Moongate.Uo.Data.Races.Base;
+using Moongate.Uo.Data.Serializers;
 using Moongate.Uo.Data.Types;
 
 namespace Moongate.Uo.Data.Entities;
@@ -31,6 +33,13 @@ public partial class MobileEntity : Entity, IDrawableEntity
     public int Strength { get; set; }
 
     public int Intelligence { get; set; }
+
+    [MemoryPackAllowSerialize]
+    public Race Race { get; set; }
+
+
+    [MemoryPackAllowSerialize]
+    public ProfessionInfo Profession { get; set;}
 
     public int Dexterity { get; set; }
 

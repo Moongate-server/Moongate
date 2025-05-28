@@ -1,5 +1,6 @@
 using Moongate.Core.Data.Ids;
 using Moongate.Core.Spans;
+using Moongate.Uo.Data.Entities;
 using Moongate.Uo.Data.Geometry;
 using Moongate.Uo.Data.Types;
 using Moongate.Uo.Network.Interfaces.Messages;
@@ -19,8 +20,19 @@ public class LoginConfirmPacket : IUoNetworkPacket
 
     public Direction Direction { get; set; } = Direction.North;
 
-
     public Map Map { get; set; } = Map.Felucca;
+
+    public LoginConfirmPacket(MobileEntity? mobileEntity = null)
+    {
+        if (mobileEntity != null)
+        {
+            CharacterSerial = mobileEntity.Serial;
+            ModelId = (short)mobileEntity.ModelId;
+            Location = mobileEntity.Location;
+            Direction = mobileEntity.Direction;
+            Map = mobileEntity.Map;
+        }
+    }
 
     public bool Read(SpanReader reader)
     {

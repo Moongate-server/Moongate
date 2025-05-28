@@ -63,6 +63,9 @@ public abstract class Race : ISpanParsable<Race>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsAllowedRace(Race race, int allowedRaceFlags) => (allowedRaceFlags & race.RaceFlag) != 0;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Race? GetRace(int raceID) => AllRaces.FirstOrDefault(r => r.RaceID == raceID);
+
     public override string ToString() => Name;
 
     //  public virtual bool ValidateHair(Mobile m, int itemID) => ValidateHair(m.Female, itemID);

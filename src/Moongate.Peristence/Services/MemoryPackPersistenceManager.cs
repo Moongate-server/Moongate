@@ -1,7 +1,9 @@
 using System.Security.Cryptography;
 using MemoryPack;
+using Moongate.Core.Data.Ids;
 using Moongate.Persistence.Entities;
 using Moongate.Persistence.Interfaces.Services;
+using Moongate.Persistence.TypeSerializers;
 using Moongate.Persistence.Utils;
 using Serilog;
 using static System.GC;
@@ -18,6 +20,11 @@ public class MemoryPackPersistenceManager : IPersistenceManager
     private static readonly ulong MagicNumber = BitConverter.ToUInt64("MOONGATE"u8);
 
     private readonly ILogger _logger = Log.ForContext<MemoryPackPersistenceManager>();
+
+    public MemoryPackPersistenceManager()
+    {
+        MemoryPackFormatterProvider.Register(new SerialSerializer());
+    }
 
     /// <summary>
     ///     Saves entities to a binary file with the specified format

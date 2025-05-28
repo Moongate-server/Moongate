@@ -1,4 +1,6 @@
+using Moongate.Core.Data.Ids;
 using Moongate.Core.Interfaces.Services.Base;
+using Moongate.Uo.Data.Entities;
 using Moongate.Uo.Services.Serialization.Entities;
 using Moongate.Uo.Services.Types;
 
@@ -14,4 +16,6 @@ public interface IAccountManagerService : IMoongateStartStopService
     List<CharacterEntity> GetCharactersByAccountId(string accountId);
 
     Task AddCharacterToAccountAsync(string accountId, CharacterEntity character);
+
+    Task SaveAsync(CancellationToken cancellationToken);
 }

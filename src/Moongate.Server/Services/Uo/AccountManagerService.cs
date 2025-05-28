@@ -21,12 +21,14 @@ public class AccountManagerService : AbstractBaseMoongateStartStopService, IAcco
     private readonly IEventBusService _eventBusService;
 
     private readonly Dictionary<string, AccountEntity> _accounts = new();
+
     private readonly Dictionary<string, List<CharacterEntity>> _characters = new();
 
 
     private readonly string _accountsFilePath;
 
     private readonly string _charactersFilePath;
+
 
     public AccountManagerService(
         DirectoriesConfig directoriesConfig, IPersistenceManager persistenceManager, IEventBusService eventBusService
@@ -37,8 +39,9 @@ public class AccountManagerService : AbstractBaseMoongateStartStopService, IAcco
         _persistenceManager = persistenceManager;
         _eventBusService = eventBusService;
 
-        _accountsFilePath = Path.Combine(directoriesConfig[DirectoryType.Data], "accounts.moongate");
-        _charactersFilePath = Path.Combine(directoriesConfig[DirectoryType.Data], "characters.moongate");
+        _accountsFilePath = Path.Combine(directoriesConfig[DirectoryType.Database], "accounts.moongate");
+        _charactersFilePath = Path.Combine(directoriesConfig[DirectoryType.Database], "characters.moongate");
+
     }
 
     public async Task<bool> CreateAccount(
@@ -120,7 +123,16 @@ public class AccountManagerService : AbstractBaseMoongateStartStopService, IAcco
 
         Logger.Information("Added character {CharacterName} to account {AccountId}.", character.Name, accountId);
 
-        return SaveAllAsync(CancellationToken.None);
+        return SaveAsync(CancellationToken.None);
+    }
+
+
+    public Task SaveAsync(CancellationToken cancellationToken)
+    {
+        return Task.WhenAll(
+            SaveAccountsAsync(cancellationToken),
+            SaveCharactersAsync(cancellationToken)
+        );
     }
 
 
@@ -129,6 +141,8 @@ public class AccountManagerService : AbstractBaseMoongateStartStopService, IAcco
         await LoadAccountsAsync(cancellationToken);
         await LoadCharactersAsync(cancellationToken);
     }
+
+
 
     private async Task LoadCharactersAsync(CancellationToken cancellationToken)
     {
@@ -198,16 +212,16 @@ public class AccountManagerService : AbstractBaseMoongateStartStopService, IAcco
         return _persistenceManager.SaveEntitiesAsync(_accountsFilePath, _accounts.Values, cancellationToken);
     }
 
+
+
     private Task SaveCharactersAsync(CancellationToken cancellationToken)
     {
         var allCharacters = _characters.Values.SelectMany(c => c).ToList();
         return _persistenceManager.SaveEntitiesAsync(_charactersFilePath, allCharacters, cancellationToken);
     }
 
-    private Task SaveAllAsync(CancellationToken cancellationToken)
-    {
-        return Task.WhenAll(SaveAccountsAsync(cancellationToken), SaveCharactersAsync(cancellationToken));
-    }
+
+
 
     public void Dispose()
     {
