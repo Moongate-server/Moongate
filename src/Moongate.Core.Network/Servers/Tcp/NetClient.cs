@@ -113,7 +113,9 @@ public class NetClient
     public byte[] PeekData(int count = 0)
     {
         if (_receiveBuffer == null || _receiveBuffer.IsEmpty)
-            return Array.Empty<byte>();
+        {
+            return [];
+        }
 
         int bytesToPeek = count <= 0 ? _receiveBuffer.Size : Math.Min(count, _receiveBuffer.Size);
         byte[] result = new byte[bytesToPeek];
@@ -133,7 +135,9 @@ public class NetClient
     public void ConsumeBytes(int count)
     {
         if (_receiveBuffer == null)
+        {
             return;
+        }
 
         int bytesToConsume = Math.Min(count, _receiveBuffer.Size);
         for (int i = 0; i < bytesToConsume; i++)
@@ -213,11 +217,9 @@ public class NetClient
 
     private void InitializeBuffers()
     {
-        // Circular buffer per i dati ricevuti - capacità maggiore per gestire picchi di traffico
         int circularBufferSize = Math.Max(_bufferSize * 4, 4096);
         _receiveBuffer = new CircularBuffer<byte>(circularBufferSize);
 
-        // Buffer temporaneo per le operazioni socket
         _tempReceiveBuffer = new byte[_bufferSize];
     }
 
@@ -376,32 +378,33 @@ public class NetClient
         {
             try
             {
-                // Aggiungi i dati ricevuti al circular buffer
                 ReadOnlySpan<byte> receivedData = new(args.Buffer, 0, args.BytesTransferred);
 
-                // Controlla se il buffer è pieno - se sì, rimuovi dati vecchi
+
                 int bytesToAdd = receivedData.Length;
                 while (client._receiveBuffer.Size + bytesToAdd > client._receiveBuffer.Capacity)
                 {
-                    // Rimuovi byte dal front per fare spazio
                     int bytesToRemove = Math.Min(1024, client._receiveBuffer.Size);
                     for (int i = 0; i < bytesToRemove; i++)
                     {
                         client._receiveBuffer.PopFront();
                     }
 
-                    // Log warning se necessario
-                    client.OnError?.Invoke(new InvalidOperationException(
-                        $"Receive buffer overflow, removed {bytesToRemove} bytes"));
+
+                    client.OnError?.Invoke(
+                        new InvalidOperationException(
+                            $"Receive buffer overflow, removed {bytesToRemove} bytes"
+                        )
+                    );
                 }
 
-                // Aggiungi i nuovi dati
+
                 for (int i = 0; i < receivedData.Length; i++)
                 {
                     client._receiveBuffer.PushBack(receivedData[i]);
                 }
 
-                // Processa i dati attraverso i middleware
+
                 ProcessReceivedData(client);
             }
             catch (Exception e)
@@ -436,20 +439,17 @@ public class NetClient
     {
         while (!client._receiveBuffer.IsEmpty)
         {
-            // Converti i dati del circular buffer in ReadOnlyMemory
             byte[] currentData = client._receiveBuffer.ToArray();
             ReadOnlyMemory<byte> processedData = currentData;
 
-            // Processa attraverso i middleware (logica semplificata)
+
             // TODO: Implementare la logica completa dei middleware
             int consumedBytes = 0;
             bool shouldHalt = false;
 
-            // Per ora processiamo tutti i dati disponibili
-            // In un'implementazione completa, i middleware potrebbero processare solo parte dei dati
+
             try
             {
-                // Processo attraverso middleware in ordine inverso
                 for (int i = client._middlewares.Count - 1; i >= 0; i--)
                 {
                     var middleware = client._middlewares[i];
@@ -468,25 +468,25 @@ public class NetClient
                     break;
                 }
 
-                // Se non ci sono middleware o se non consumano dati, processa tutto
+
                 if (consumedBytes == 0)
                 {
                     consumedBytes = processedData.Length;
                 }
 
-                // Invoca l'evento per i dati processati
+
                 if (!processedData.IsEmpty)
                 {
                     client.OnDataReceived?.Invoke(processedData);
                 }
 
-                // Rimuovi i byte consumati dal buffer circolare
+
                 for (int i = 0; i < consumedBytes && !client._receiveBuffer.IsEmpty; i++)
                 {
                     client._receiveBuffer.PopFront();
                 }
 
-                // Se non abbiamo consumato dati, interrompi per evitare loop infinito
+
                 if (consumedBytes == 0)
                 {
                     break;
@@ -495,7 +495,7 @@ public class NetClient
             catch (Exception e)
             {
                 client.OnError?.Invoke(e);
-                // In caso di errore, pulisci il buffer
+
                 client._receiveBuffer.Clear();
                 break;
             }
