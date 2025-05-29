@@ -60,7 +60,7 @@ public partial class MobileEntity : Entity, IDrawableEntity
 
     public int Weight { get; set; }
 
-    public int MaxWeight { get; set; }
+    public int MaxWeight { get; set; } = 100;
 
     public int CurrentHits { get; set; }
 

@@ -24,7 +24,7 @@ namespace Moongate.Server.Services.System;
 
 public class NetworkService : AbstractBaseMoongateStartStopService, INetworkService
 {
-    private const bool _useEventLoop = false;
+    private const bool _useEventLoop = true;
 
     public event INetworkService.ClientConnectedDelegate? ClientConnected;
     public event INetworkService.ClientDisconnectedDelegate? ClientDisconnected;

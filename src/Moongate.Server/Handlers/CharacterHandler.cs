@@ -93,22 +93,27 @@ public class CharacterHandler : IPacketListener
 
         session.SetMobile(mobile);
 
+
         session.SendPacket(new ClientVersionPacket());
 
-        await Task.Delay(4000);
+        await Task.Delay(64);
+
 
         session.SendPacket(new LoginConfirmPacket(mobile));
-
-        session.SendPacket(new MapChangePacket(mobile.Map));
-
         session.SendPacket(new MapPatchesPacket(Map.Maps));
+        session.SendPacket(new MapChangePacket(mobile.Map));
+        session.SendPacket(new MobileIncomingPacket(mobile));
+
+        session.SendPacket(new MobileUpdatePacket(mobile));
+
+        session.SendPacket(new UpdateStatusBarPacket(mobile));
+
 
         session.SendPacket(new SeasonPacket(mobile.Map.Season, true));
 
         session.SendPacket(new SupportedFeaturesPacket(session));
 
-
-        session.SendPacket(new MobileUpdatePacket(mobile));
+        session.SendPacket(new SetMusicPacket(MusicName.BTCastle));
         session.SendPacket(new MobileUpdatePacket(mobile));
 
         session.SendPacket(new OverallLightLevelPacket(LightLevelType.Day));
@@ -121,7 +126,6 @@ public class CharacterHandler : IPacketListener
 
         //TODO: Missing  CreateMobileStatus
 
-
         session.SendPacket(new MobileUpdatePacket(mobile));
 
         session.SendPacket(new CharacterWarModePacket());
@@ -130,14 +134,14 @@ public class CharacterHandler : IPacketListener
         session.SendPacket(new MobileUpdatePacket(mobile));
         session.SendPacket(new CharacterWarModePacket());
         session.SendPacket(new MobileIncomingPacket(mobile));
+
         session.SendPacket(new LoginCompletePacket());
+
+
         session.SendPacket(new CurrentTimePacket());
         session.SendPacket(new SeasonPacket(Season.Spring, true));
-        session.SendPacket(
-            new GeneralInformationPacket(SubcommandType.SetCursorHueSetMap, new SetCursorHueSetMapData(mobile.Map))
-        );
 
-        session.SendPacket(new SetMusicPacket(MusicName.Britain1));
+        session.SendPacket(new MapChangePacket(mobile.Map));
     }
 
     private async Task ProcessCharacterCreation(SessionData session, CharacterCreationPacket packet)

@@ -51,7 +51,7 @@ public class MobileIncomingPacket : IUoNetworkPacket
 
         foreach (var (layer, item) in Mobile.GetItems())
         {
-            var modelId = item.ModelId & 0x7FFF;
+            var modelId = item.ItemId & 0x7FFF;
             var writeHue = item.Hue != 0;
             if (writeHue)
             {

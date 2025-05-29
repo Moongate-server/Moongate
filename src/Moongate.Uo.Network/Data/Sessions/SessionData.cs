@@ -18,6 +18,7 @@ public class SessionData : IDisposable
 
     public event PacketSendDelegate OnSendPacket;
 
+
     private readonly Dictionary<string, object> _sessionData = new();
 
     public string Id { get; set; }

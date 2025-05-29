@@ -32,7 +32,7 @@ using Moongate.Uo.Services.Serialization.Entities;
 await ConsoleApp.RunAsync(
     args,
     async (
-        LogLevelType defaultLogLevel = LogLevelType.Debug, bool logToFile = true, bool loadFromEnv = false,
+        LogLevelType defaultLogLevel = LogLevelType.Trace, bool logToFile = true, bool loadFromEnv = false,
         string? rootDirectory = null, bool printHeader = true, string configName = "moongate.json",
         string ultimaOnlineDirectory = ""
     ) =>
@@ -87,6 +87,7 @@ await ConsoleApp.RunAsync(
             MemoryPackFormatterProvider.Register(new Point2dSerializer());
             MemoryPackFormatterProvider.Register(new MapSerializer());
             MemoryPackFormatterProvider.Register(new BodySerializer());
+            MemoryPackFormatterProvider.Register(new ItemDataSerializer());
 
         };
 
