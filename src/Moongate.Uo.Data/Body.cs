@@ -6,48 +6,6 @@ public struct Body
 {
     public static BodyType[] Types;
 
-    static Body()
-    {
-        if (File.Exists("Data/bodyTable.cfg"))
-        {
-            using (StreamReader ip = new StreamReader("Data/bodyTable.cfg"))
-            {
-                Types = new BodyType[0x1000];
-
-                string line;
-
-                while ((line = ip.ReadLine()) != null)
-                {
-                    if (line.Length == 0 || line.StartsWith("#"))
-                    {
-                        continue;
-                    }
-
-                    var split = line.Split('\t');
-
-                    BodyType type;
-                    int bodyID;
-
-                    if (int.TryParse(split[0], out bodyID) && Enum.TryParse(split[1], true, out type) && bodyID >= 0 &&
-                        bodyID < Types.Length)
-                    {
-                        Types[bodyID] = type;
-                    }
-                    else
-                    {
-                        Console.WriteLine("Warning: Invalid bodyTable entry:");
-                        Console.WriteLine(line);
-                    }
-                }
-            }
-        }
-        else
-        {
-            Console.WriteLine("Warning: Data/bodyTable.cfg does not exist");
-
-            Types = new BodyType[0];
-        }
-    }
 
     public Body(int bodyID)
     {
