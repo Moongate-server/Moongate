@@ -26,4 +26,9 @@ public class ClientVersionPacket : IUoNetworkPacket
 
         return writer.ToArray();
     }
+
+    public override string ToString()
+    {
+        return $"{nameof(ClientVersionPacket)}: Version={Version}";
+    }
 }

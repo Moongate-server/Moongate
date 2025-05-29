@@ -2,8 +2,7 @@ namespace Moongate.Uo.Data.Interfaces.Entities;
 
 public interface IDrawableEntity : ISerialEntity
 {
-    int ModelId { get; set; }
+    Body Body { get; }
 
     int Hue { get; set; }
-
 }

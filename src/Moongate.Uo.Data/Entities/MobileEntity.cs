@@ -3,6 +3,8 @@ using Moongate.Core.Data.Ids;
 using Moongate.Persistence.Attributes;
 using Moongate.Uo.Data.Entities.Base;
 using Moongate.Uo.Data.Interfaces.Entities;
+using Moongate.Uo.Data.Races.Base;
+using Moongate.Uo.Data.Serializers;
 using Moongate.Uo.Data.Types;
 
 namespace Moongate.Uo.Data.Entities;
@@ -14,11 +16,20 @@ public partial class MobileEntity : Entity, IDrawableEntity
     private readonly Dictionary<Layer, ItemEntity> _items = new();
     public Serial Serial { get; set; }
 
+    public bool Female { get; set; }
+
+    public ClientFlags ClientFlags { get; set; }
+
+    public bool Alive { get; set; }
+
     public string Name { get; set; }
 
     public string Title { get; set; }
 
-    public int ModelId { get; set; }
+    public int SolidHueOverride { get; set; }
+
+    [MemoryPackAllowSerialize]
+    public Body Body => Race.Body(this);
 
     public int Hue { get; set; }
 
@@ -32,6 +43,11 @@ public partial class MobileEntity : Entity, IDrawableEntity
 
     public int Intelligence { get; set; }
 
+    [MemoryPackAllowSerialize] public Race Race { get; set; }
+
+
+    [MemoryPackAllowSerialize] public ProfessionInfo Profession { get; set; }
+
     public int Dexterity { get; set; }
 
     public int MaxStamina { get; set; }
@@ -44,7 +60,7 @@ public partial class MobileEntity : Entity, IDrawableEntity
 
     public int Weight { get; set; }
 
-    public int MaxWeight { get; set; }
+    public int MaxWeight { get; set; } = 100;
 
     public int CurrentHits { get; set; }
 

@@ -106,7 +106,16 @@ public class NetClient
             throw new InvalidOperationException("Already connected");
         }
 
-        _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
+        {
+            LingerState = new LingerOption(false, 0),
+            ExclusiveAddressUse = true,
+            NoDelay = true,
+            Blocking = false,
+            SendBufferSize = bufferSize,
+            ReceiveBufferSize = bufferSize
+        };
+
         _socket.Connect(ip, port);
         IsConnected = true;
         Ip = ((System.Net.IPEndPoint)_socket.RemoteEndPoint!).Address.ToString();

@@ -25,9 +25,11 @@ public sealed class CloseGenericGumpData : ISubcommandData
     }
 
     /// <inheritdoc />
-    public void Write(SpanWriter writer)
+    public ReadOnlyMemory<byte> Write(SpanWriter writer)
     {
         writer.Write(DialogId);
         writer.Write(ButtonId);
+
+        return writer.ToArray();
     }
 }

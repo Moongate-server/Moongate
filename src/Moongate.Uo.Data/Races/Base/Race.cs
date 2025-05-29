@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using Moongate.Core.Extensions.Strings;
+using Moongate.Uo.Data.Entities;
 using Moongate.Uo.Data.Types;
 
 namespace Moongate.Uo.Data.Races.Base;
@@ -63,6 +64,9 @@ public abstract class Race : ISpanParsable<Race>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsAllowedRace(Race race, int allowedRaceFlags) => (allowedRaceFlags & race.RaceFlag) != 0;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Race? GetRace(int raceID) => AllRaces.FirstOrDefault(r => r.RaceID == raceID);
+
     public override string ToString() => Name;
 
     //  public virtual bool ValidateHair(Mobile m, int itemID) => ValidateHair(m.Female, itemID);
@@ -87,13 +91,13 @@ public abstract class Race : ISpanParsable<Race>
     public abstract int ClipHairHue(int hue);
     public abstract int RandomHairHue();
 
-    // public virtual int Body(Mobile m) => m.Alive ? AliveBody(m.Female) : GhostBody(m.Female);
+    public virtual int Body(MobileEntity m) => m.Alive ? AliveBody(m.Female) : GhostBody(m.Female);
 
-    // public virtual int AliveBody(Mobile m) => AliveBody(m.Female);
+    public virtual int AliveBody(MobileEntity m) => AliveBody(m.Female);
 
     public virtual int AliveBody(bool female) => female ? FemaleBody : MaleBody;
 
-    // public virtual int GhostBody(Mobile m) => GhostBody(m.Female);
+    public virtual int GhostBody(MobileEntity m) => GhostBody(m.Female);
 
     public virtual int GhostBody(bool female) => female ? FemaleGhostBody : MaleGhostBody;
 

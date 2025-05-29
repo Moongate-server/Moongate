@@ -24,6 +24,10 @@ public class MoongateStartupServer
 
     public event RegisterServicesDelegate RegisterServices;
 
+    public delegate void RegisterCustomSerializersDelegate();
+
+    public event RegisterCustomSerializersDelegate RegisterCustomSerializers;
+
     public delegate void RegisterScriptModulesDelegate(IScriptEngineService container);
 
     public event RegisterScriptModulesDelegate RegisterScriptModules;
@@ -75,6 +79,8 @@ public class MoongateStartupServer
         RegisterServices?.Invoke(_container);
 
         _container.AddService(typeof(IConsoleCommandService), typeof(ConsoleCommandService));
+
+        RegisterCustomSerializers?.Invoke();
     }
 
     public Task StopAsync()

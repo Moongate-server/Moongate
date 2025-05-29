@@ -22,8 +22,7 @@ using Moongate.Uo.Data.Utils;
 
 namespace Moongate.Uo.Data.Geometry;
 
-[MemoryPackable]
-public partial struct Point3D
+public struct Point3D
     : IPoint3D, IComparable<Point3D>, IComparable<IPoint3D>, IEquatable<object>, IEquatable<Point3D>,
         IEquatable<IPoint3D>, ISpanFormattable, ISpanParsable<Point3D>
 {

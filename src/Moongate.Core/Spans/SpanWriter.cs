@@ -20,6 +20,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using CommunityToolkit.HighPerformance;
 using Moongate.Core.Buffers;
+using Moongate.Core.Data.Ids;
 using Moongate.Core.Text;
 
 namespace Moongate.Core.Spans;
@@ -30,6 +31,8 @@ public ref struct SpanWriter : IDisposable
     private byte[] _arrayToReturnToPool;
     private Span<byte> _buffer;
     private int _position;
+
+    public const int AttributeMaximum = 100;
 
     public int BytesWritten { get; private set; }
 
@@ -108,10 +111,23 @@ public ref struct SpanWriter : IDisposable
             return result;
         }
 
+
         var array = new byte[_position];
         _buffer[.._position].CopyTo(array);
         return array;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Write(Serial serial) => Write(serial.Value);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WritePacketLength()
+    {
+        Seek(1, SeekOrigin.Begin);
+        Write((ushort)BytesWritten);
+        Seek(0, SeekOrigin.End);
+    }
+
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public SpanWriter(Span<byte> initialBuffer, bool resize = false)
@@ -483,6 +499,38 @@ public ref struct SpanWriter : IDisposable
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteAttribute(int max, int cur, bool normalize = false, bool reverse = false
+    )
+    {
+        if (normalize && max != 0)
+        {
+            if (reverse)
+            {
+                Write((short)(cur * AttributeMaximum / max));
+                Write((short)AttributeMaximum);
+            }
+            else
+            {
+                Write((short)AttributeMaximum);
+                Write((short)(cur * AttributeMaximum / max));
+            }
+        }
+        else
+        {
+            if (reverse)
+            {
+                Write((short)cur);
+                Write((short)max);
+            }
+            else
+            {
+                Write((short)max);
+                Write((short)cur);
+            }
+        }
+    }
+
     public struct SpanOwner : IDisposable
     {
         private readonly int _length;
@@ -500,6 +548,8 @@ public ref struct SpanWriter : IDisposable
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => MemoryMarshal.CreateSpan(ref _arrayToReturnToPool.DangerousGetReference(), _length);
         }
+
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()

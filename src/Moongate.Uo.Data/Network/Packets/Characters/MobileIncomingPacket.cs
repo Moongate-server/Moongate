@@ -4,14 +4,14 @@ using Moongate.Uo.Network.Interfaces.Messages;
 
 namespace Moongate.Uo.Data.Network.Packets.Characters;
 
-public class CharacterDrawPacket : IUoNetworkPacket
+public class MobileIncomingPacket : IUoNetworkPacket
 {
     public byte OpCode => 0x78;
     public int Length => -1;
 
     public MobileEntity Mobile { get; set; }
 
-    public CharacterDrawPacket(MobileEntity mobile = null)
+    public MobileIncomingPacket(MobileEntity mobile = null)
     {
         Mobile = mobile;
     }
@@ -26,6 +26,7 @@ public class CharacterDrawPacket : IUoNetworkPacket
         var length = 20;
 
         writer.Write(OpCode);
+
         foreach (var (layer, item) in Mobile.GetItems())
         {
             length += 7;
@@ -36,10 +37,10 @@ public class CharacterDrawPacket : IUoNetworkPacket
             }
         }
 
-        writer.Write(length);
+        writer.Write((short)length);
 
         writer.Write(Mobile.Serial.Value);
-        writer.Write((short)Mobile.ModelId);
+        writer.Write((short)Mobile.Body);
         writer.Write((short)Mobile.X);
         writer.Write((short)Mobile.Y);
         writer.Write((byte)Mobile.Z);
@@ -47,9 +48,10 @@ public class CharacterDrawPacket : IUoNetworkPacket
         writer.Write((short)Mobile.Hue);
         writer.Write((byte)Mobile.Status);
         writer.Write((byte)Mobile.Notoriety);
+
         foreach (var (layer, item) in Mobile.GetItems())
         {
-            var modelId = item.ModelId & 0x7FFF;
+            var modelId = item.ItemId & 0x7FFF;
             var writeHue = item.Hue != 0;
             if (writeHue)
             {
@@ -66,10 +68,7 @@ public class CharacterDrawPacket : IUoNetworkPacket
             }
         }
 
-        writer.Write((byte)0);
-
-        var innerData = writer.ToArray();
-        length += innerData.Length;
+        writer.Write(0);
 
 
         return writer.ToArray();

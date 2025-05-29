@@ -1,5 +1,6 @@
 using Moongate.Core.Network.Middleware;
 using Moongate.Uo.Network.Compression;
+using Serilog;
 
 namespace Moongate.Uo.Network.Middlewares;
 
@@ -9,15 +10,15 @@ public class OutgoingCompressionMiddleware : INetMiddleware
     {
         var inputBuffer = input.Span.ToArray();
 
-        Span<byte> outputBuffer = stackalloc byte[inputBuffer.Length];
-        var compressionSize = NetworkCompression.Compress(inputBuffer, outputBuffer);
+        Span<byte> outputBuffer = stackalloc byte[NetworkCompression.CalculateMaxCompressedSize(inputBuffer.Length)];
+        var length = NetworkCompression.Compress(inputBuffer, outputBuffer);
 
-        if (compressionSize == 0)
+        if (length == 0)
         {
-            output = inputBuffer;
+            length = inputBuffer.Length;
         }
 
-        output = new Memory<byte>(outputBuffer[..compressionSize].ToArray());
+        output = new Memory<byte>(outputBuffer[..length].ToArray());
     }
 
     public (bool halt, int consumedFromOrigin) ProcessReceive(

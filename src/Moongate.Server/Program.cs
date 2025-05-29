@@ -1,5 +1,6 @@
 using ConsoleAppFramework;
 using DryIoc;
+using MemoryPack;
 using Moongate.Core.Data.Configs.Services;
 using Moongate.Core.Data.Options;
 using Moongate.Core.Directories;
@@ -20,6 +21,8 @@ using Moongate.Server.Services.System;
 using Moongate.Server.Services.Uo;
 using Moongate.Uo.Data.Entities;
 using Moongate.Uo.Data.Network.Packets.Characters;
+using Moongate.Uo.Data.Network.Packets.GeneralInformation;
+using Moongate.Uo.Data.Serializers;
 using Moongate.Uo.Network.Interfaces.Services;
 using Moongate.Uo.Network.Packets.Connection;
 using Moongate.Uo.Services.Interfaces.Services;
@@ -29,7 +32,7 @@ using Moongate.Uo.Services.Serialization.Entities;
 await ConsoleApp.RunAsync(
     args,
     async (
-        LogLevelType defaultLogLevel = LogLevelType.Debug, bool logToFile = true, bool loadFromEnv = false,
+        LogLevelType defaultLogLevel = LogLevelType.Trace, bool logToFile = true, bool loadFromEnv = false,
         string? rootDirectory = null, bool printHeader = true, string configName = "moongate.json",
         string ultimaOnlineDirectory = ""
     ) =>
@@ -76,6 +79,17 @@ await ConsoleApp.RunAsync(
             .Register<MobileEntity>()
             ;
 
+        moongateStartupServer.RegisterCustomSerializers += () =>
+        {
+            MemoryPackFormatterProvider.Register(new RaceSerializer());
+            MemoryPackFormatterProvider.Register(new ProfessionSerializer());
+            MemoryPackFormatterProvider.Register(new Point3dSerializer());
+            MemoryPackFormatterProvider.Register(new Point2dSerializer());
+            MemoryPackFormatterProvider.Register(new MapSerializer());
+            MemoryPackFormatterProvider.Register(new BodySerializer());
+            MemoryPackFormatterProvider.Register(new ItemDataSerializer());
+
+        };
 
         moongateStartupServer.RegisterServices += container =>
         {
@@ -104,6 +118,7 @@ await ConsoleApp.RunAsync(
             container
                 .AddService(typeof(IAccountManagerService), typeof(AccountManagerService))
                 .AddService(typeof(IMapService), typeof(MapService))
+                .AddService(typeof(IMobileService), typeof(MobileService))
                 ;
 
             container.RegisterInstance(new ScriptEngineConfig());
@@ -138,6 +153,7 @@ await ConsoleApp.RunAsync(
             networkService.RegisterPacket<CharacterCreationPacket>();
             networkService.RegisterPacket<CharacterSelectPacket>();
             networkService.RegisterPacket<ClientVersionPacket>();
+            networkService.RegisterPacket<GeneralInformationPacket>();
 
             networkService.RegisterPacketHandler<SeedPacket, LoginHandler>();
             networkService.RegisterPacketHandler<LoginPacket, LoginHandler>();

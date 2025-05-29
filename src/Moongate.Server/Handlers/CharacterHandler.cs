@@ -1,14 +1,27 @@
+using Moongate.Core.Data.Ids;
 using Moongate.Core.Interfaces.Services.System;
+using Moongate.Core.Spans;
+using Moongate.Uo.Data;
 using Moongate.Uo.Data.Context;
 using Moongate.Uo.Data.Extensions;
 using Moongate.Uo.Data.Network.Packets.Characters;
 using Moongate.Uo.Data.Network.Packets.Data;
+using Moongate.Uo.Data.Network.Packets.Features;
 using Moongate.Uo.Data.Network.Packets.Flags;
+using Moongate.Uo.Data.Network.Packets.GeneralInformation;
+using Moongate.Uo.Data.Network.Packets.GeneralInformation.SubCommands;
+using Moongate.Uo.Data.Network.Packets.GeneralInformation.Types;
+using Moongate.Uo.Data.Network.Packets.Login;
+using Moongate.Uo.Data.Network.Packets.Players;
+using Moongate.Uo.Data.Network.Packets.Seasons;
+using Moongate.Uo.Data.Network.Packets.World;
+using Moongate.Uo.Data.Types;
 using Moongate.Uo.Network.Data.Sessions;
 using Moongate.Uo.Network.Interfaces.Handlers;
 using Moongate.Uo.Network.Interfaces.Messages;
 using Moongate.Uo.Network.Interfaces.Services;
 using Moongate.Uo.Network.Packets.Connection;
+using Moongate.Uo.Network.Types;
 using Moongate.Uo.Services.Events.Characters;
 using Moongate.Uo.Services.Interfaces.Services;
 using Moongate.Uo.Services.Serialization.Entities;
@@ -22,6 +35,7 @@ public class CharacterHandler : IPacketListener
 
     private readonly ISessionManagerService _sessionManagerService;
 
+    private readonly IMobileService _mobileService;
     private readonly IAccountManagerService _accountManagerService;
 
     private readonly IMapService _mapService;
@@ -29,11 +43,13 @@ public class CharacterHandler : IPacketListener
 
     public CharacterHandler(
         IEventBusService eventBusService, ISessionManagerService sessionManagerService, IMapService mapService,
-        IAccountManagerService accountManagerService
+        IAccountManagerService accountManagerService, IMobileService mobileService
     )
     {
         _sessionManagerService = sessionManagerService;
+        this._mapService = mapService;
         _accountManagerService = accountManagerService;
+        _mobileService = mobileService;
         _mapService = mapService;
 
         eventBusService.Subscribe<SendCharacterListEvent>(OnSendCharacterListEvent);
@@ -54,21 +70,115 @@ public class CharacterHandler : IPacketListener
 
     private async Task ProcessCharacterSelect(SessionData session, CharacterSelectPacket packet)
     {
-        _logger.Debug("Processing character select for {CharacterName} slot n: {Slot}", packet.Name, packet.Slot);
+        var character = _accountManagerService.GetCharactersByAccountId(session.AccountId)
+            .FirstOrDefault(c => c.Slot == packet.Slot);
+
+        // NOTE: This is guard
+        if (character == null)
+        {
+            _logger.Warning("Character with slot {Slot} not found for account {AccountId}", packet.Slot, session.AccountId);
+            session.SendPacket(new LoginDeniedPacket(LoginDeniedReasonType.AccountBlocked));
+            session.Disconnect();
+            return;
+        }
+
+        var mobile = _mobileService.GetMobileBySerial(character.MobileId);
+        _logger.Debug(
+            "Processing character select for {CharacterName} slot n: {Slot} (Serial: {Serial})",
+            packet.Name,
+            packet.Slot,
+            mobile.Serial
+        );
+
+
+        session.SetMobile(mobile);
+
 
         session.SendPacket(new ClientVersionPacket());
+
+        await Task.Delay(64);
+
+
+        session.SendPacket(new LoginConfirmPacket(mobile));
+        session.SendPacket(new MapPatchesPacket(Map.Maps));
+        session.SendPacket(new MapChangePacket(mobile.Map));
+        session.SendPacket(new MobileIncomingPacket(mobile));
+
+        session.SendPacket(new MobileUpdatePacket(mobile));
+
+        session.SendPacket(new UpdateStatusBarPacket(mobile));
+
+
+        session.SendPacket(new SeasonPacket(mobile.Map.Season, true));
+
+        session.SendPacket(new SupportedFeaturesPacket(session));
+
+        session.SendPacket(new SetMusicPacket(MusicName.BTCastle));
+        session.SendPacket(new MobileUpdatePacket(mobile));
+
+        session.SendPacket(new OverallLightLevelPacket(LightLevelType.Day));
+        session.SendPacket(new PersonalLightLevelPacket(mobile, LightLevelType.Day));
+
+        session.SendPacket(new MobileUpdatePacket(mobile));
+
+        // TODO: Refactor SendMobileIncoming
+        session.SendPacket(new MobileIncomingPacket(mobile));
+
+        //TODO: Missing  CreateMobileStatus
+
+        session.SendPacket(new MobileUpdatePacket(mobile));
+
+        session.SendPacket(new CharacterWarModePacket());
+        session.SendPacket(new SupportedFeaturesPacket(session));
+
+        session.SendPacket(new MobileUpdatePacket(mobile));
+        session.SendPacket(new CharacterWarModePacket());
+        session.SendPacket(new MobileIncomingPacket(mobile));
+
+        session.SendPacket(new LoginCompletePacket());
+
+
+        session.SendPacket(new CurrentTimePacket());
+        session.SendPacket(new SeasonPacket(Season.Spring, true));
+
+        session.SendPacket(new MapChangePacket(mobile.Map));
     }
 
     private async Task ProcessCharacterCreation(SessionData session, CharacterCreationPacket packet)
     {
         _logger.Debug("Processing character creation");
+
+        var mobile = _mobileService.CreateMobile();
+
+        var startingLocation = _mapService.GetStartingCities()[packet.StartingLocation];
+
+        mobile.Name = packet.Name;
+        mobile.Dexterity = packet.Dex;
+        mobile.Strength = packet.Str;
+        mobile.Intelligence = packet.Int;
+        mobile.Race = packet.Race;
+        mobile.Profession = packet.Profession;
+        mobile.Hue = packet.Hue;
+        mobile.Map = startingLocation.Map;
+        mobile.Location = startingLocation.Location;
+        mobile.Alive = true;
+        mobile.Female = packet.IsFemale;
+        mobile.ClientFlags = packet.ClientFlags;
+
+        session.SetClientFlags(packet.ClientFlags);
+
+
         var characterEntity = new CharacterEntity()
         {
+            Slot = packet.Slot,
             AccountId = session.AccountId,
-            MobileId = Random.Shared.Next(),
+            MobileId = mobile.Serial,
             Name = packet.Name
         };
         await _accountManagerService.AddCharacterToAccountAsync(session.AccountId, characterEntity);
+
+        // In production we need to schedule the save to the database
+        await _mobileService.SaveAsync(CancellationToken.None);
     }
 
     private async Task OnSendCharacterListEvent(SendCharacterListEvent @event)

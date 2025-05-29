@@ -14,6 +14,10 @@ public class CharacterWarModePacket : IUoNetworkPacket
         return false;
     }
 
+    public CharacterWarModePacket(bool isWarMode = false)
+    {
+        IsWarMode = isWarMode;
+    }
     public ReadOnlyMemory<byte> Write(SpanWriter writer)
     {
         writer.Write(OpCode);

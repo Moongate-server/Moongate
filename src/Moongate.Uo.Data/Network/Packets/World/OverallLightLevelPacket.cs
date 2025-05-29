@@ -10,6 +10,12 @@ public class OverallLightLevelPacket : IUoNetworkPacket
     public byte OpCode => 0x4F;
     public int Length => 2;
 
+
+    public OverallLightLevelPacket(LightLevelType lightLevel = LightLevelType.Day)
+    {
+        LightLevel = lightLevel;
+    }
+
     public bool Read(SpanReader reader)
     {
         return false;

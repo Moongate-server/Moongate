@@ -21,8 +21,10 @@ public sealed class ClosedStatusGumpData : ISubcommandData
     }
 
     /// <inheritdoc />
-    public void Write(SpanWriter writer)
+    public ReadOnlyMemory<byte> Write(SpanWriter writer)
     {
         writer.Write(CharacterId);
+
+        return writer.ToArray();
     }
 }

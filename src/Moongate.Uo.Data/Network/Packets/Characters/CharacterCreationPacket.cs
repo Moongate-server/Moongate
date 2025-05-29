@@ -16,7 +16,7 @@ public class CharacterCreationPacket : IUoNetworkPacket
     public int Slot { get; set; }
 
     public int LoginCount { get; set; }
-    public CharacterCreateFlags ClientFlags { get; set; }
+    public ClientFlags ClientFlags { get; set; }
 
     public Dictionary<SkillName, int> Skills { get; set; } = new();
 
@@ -62,7 +62,7 @@ public class CharacterCreationPacket : IUoNetworkPacket
         reader.ReadByte();
         reader.ReadByte();
 
-        ClientFlags = (CharacterCreateFlags)reader.ReadInt32();
+        ClientFlags = (ClientFlags)reader.ReadInt32();
 
         reader.ReadInt32();
 
@@ -76,8 +76,12 @@ public class CharacterCreationPacket : IUoNetworkPacket
 
         IsFemale = genderRace % 2 != 0;
 
+
+
         var raceID = UoContext.StygianAbyss ? (byte)(genderRace < 4 ? 0 : genderRace / 2 - 1) : (byte)(genderRace / 2);
         Race = Race.Races[raceID] ?? Race.DefaultRace;
+
+
 
         Str = reader.ReadByte();
         Dex = reader.ReadByte();

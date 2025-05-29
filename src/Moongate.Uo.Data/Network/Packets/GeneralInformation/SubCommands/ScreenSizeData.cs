@@ -33,11 +33,13 @@ public sealed class ScreenSizeData : ISubcommandData
     }
 
     /// <inheritdoc />
-    public void Write(SpanWriter writer)
+    public ReadOnlyMemory<byte> Write(SpanWriter writer)
     {
         writer.Write(Unknown1);
         writer.Write(Width);
         writer.Write(Height);
         writer.Write(Unknown2);
+
+        return writer.ToArray();
     }
 }

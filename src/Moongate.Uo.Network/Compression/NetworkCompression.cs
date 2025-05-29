@@ -58,11 +58,38 @@ public static class NetworkCompression
         0x4, 0x00D
     };
 
+    /// <summary>
+    /// Calculates the maximum size needed for the compressed output buffer.
+    /// This provides a conservative estimate based on the worst-case compression scenario.
+    /// </summary>
+    /// <param name="inputLength">Length of the input data to be compressed</param>
+    /// <returns>Maximum size in bytes needed for the compressed output buffer, or 0 if input is too large to compress</returns>
+    public static int CalculateMaxCompressedSize(int inputLength)
+    {
+        if (inputLength <= 0)
+        {
+            return 0;
+        }
+
+        if (inputLength > DefiniteOverflow)
+        {
+            return 0; // Input too large to compress
+        }
+
+        // Worst case: each byte uses MaximalCodeLength bits
+        int maxBitsNeeded = (inputLength * MaximalCodeLength) + TerminalCodeLength;
+
+        // Convert to bytes, rounding up for byte alignment
+        int maxBytesNeeded = (maxBitsNeeded + 7) / 8;
+
+        // Ensure we don't exceed the buffer size limit
+        return Math.Min(maxBytesNeeded, BufferSize);
+    }
+
     public static int Compress(ReadOnlySpan<byte> input, Span<byte> output)
     {
         if (input.Length > DefiniteOverflow)
         {
-            output = default;
             return 0;
         }
 

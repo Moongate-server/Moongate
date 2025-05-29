@@ -35,7 +35,7 @@ public sealed class EnableMapDiffData : ISubcommandData
     }
 
     /// <inheritdoc />
-    public void Write(SpanWriter writer)
+    public ReadOnlyMemory<byte> Write(SpanWriter writer)
     {
         writer.Write(NumberOfMaps);
         for (int i = 0; i < NumberOfMaps; i++)
@@ -43,5 +43,7 @@ public sealed class EnableMapDiffData : ISubcommandData
             writer.Write(MapPatches[i]);
             writer.Write(StaticPatches[i]);
         }
+
+        return writer.ToArray();
     }
 }

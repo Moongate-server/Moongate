@@ -83,7 +83,7 @@ public class LoginHandler : IPacketListener
 
         session.SendPacket(connectToServer);
 
-        session.Disconnect();
+        //session.Disconnect();
     }
 
     private async Task Login(SessionData session, LoginPacket loginPacket)
