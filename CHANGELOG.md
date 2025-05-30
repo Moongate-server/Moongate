@@ -1,6 +1,9 @@
 # Change Log
 
 
+<a name="0.6.1"></a>
+## [0.6.1](https://www.github.com/Moongate-server/Moongate/releases/tag/v0.6.1) (2025-05-30)
+
 <a name="0.6.0"></a>
 ## [0.6.0](https://www.github.com/Moongate-server/Moongate/releases/tag/v0.6.0) (2025-05-30)
 
