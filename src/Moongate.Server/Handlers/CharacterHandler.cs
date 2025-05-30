@@ -1,16 +1,12 @@
 using Moongate.Core.Data.Ids;
 using Moongate.Core.Interfaces.Services.System;
-using Moongate.Core.Spans;
-using Moongate.Uo.Data;
 using Moongate.Uo.Data.Context;
 using Moongate.Uo.Data.Extensions;
 using Moongate.Uo.Data.Network.Packets.Characters;
+using Moongate.Uo.Data.Network.Packets.Chat;
 using Moongate.Uo.Data.Network.Packets.Data;
 using Moongate.Uo.Data.Network.Packets.Features;
 using Moongate.Uo.Data.Network.Packets.Flags;
-using Moongate.Uo.Data.Network.Packets.GeneralInformation;
-using Moongate.Uo.Data.Network.Packets.GeneralInformation.SubCommands;
-using Moongate.Uo.Data.Network.Packets.GeneralInformation.Types;
 using Moongate.Uo.Data.Network.Packets.Login;
 using Moongate.Uo.Data.Network.Packets.Players;
 using Moongate.Uo.Data.Network.Packets.Seasons;
@@ -38,18 +34,21 @@ public class CharacterHandler : IPacketListener
     private readonly IMobileService _mobileService;
     private readonly IAccountManagerService _accountManagerService;
 
+    private readonly ITimerService _timerService;
+
 
     private readonly IMapService _mapService;
 
 
     public CharacterHandler(
         IEventBusService eventBusService, ISessionManagerService sessionManagerService, IMapService mapService,
-        IAccountManagerService accountManagerService, IMobileService mobileService
+        IAccountManagerService accountManagerService, IMobileService mobileService, ITimerService timerService
     )
     {
         _sessionManagerService = sessionManagerService;
         _accountManagerService = accountManagerService;
         _mobileService = mobileService;
+        _timerService = timerService;
         _mapService = mapService;
 
         eventBusService.Subscribe<SendCharacterListEvent>(OnSendCharacterListEvent);
@@ -98,22 +97,62 @@ public class CharacterHandler : IPacketListener
 
         await Task.Delay(64);
         session.SendPacket(new LoginConfirmPacket(mobile));
-        session.SendPacket(new MapChangePacket(mobile.Map));
-        session.SendPacket(new MobileUpdatePacket(mobile));
+
         session.SendPacket(new MobileIncomingPacket(mobile));
         session.SendPacket(new SupportedFeaturesPacket(session));
         session.SendPacket(new CharacterWarModePacket());
 
+
         session.SendPacket(new LoginCompletePacket());
+        session.SendPacket(new MapChangePacket(mobile.Map));
         session.SendPacket(new OverallLightLevelPacket(LightLevelType.Day));
         session.SendPacket(new PersonalLightLevelPacket(mobile, LightLevelType.Day));
+        session.SendPacket(new SeasonPacket(mobile.Map.Season, true));
 
-        session.SendPacket(new MapChangePacket(mobile.Map));
-        // session.SendPacket(new LoginConfirmPacket(mobile));
-        // session.SendPacket(new MapPatchesPacket(Map.Maps));
+
+        _timerService.RegisterTimer(
+            "test_broadcast",
+            1000,
+            () =>
+            {
+                var broadcastPacket = new UnicodeSpeechPacket()
+                {
+                    Serial = Serial.MinusOne,
+                    Graphic = -1,
+                    Type = SpeechType.Command,
+                    Hue = SpeechHues.System,
+                    Language = "ENU",
+                    Text = "Welcome to Moongate!",
+                    IsUnicode = true,
+                    Name = "System",
+                    Font = 3
+                };
+
+                session.SendPacket(broadcastPacket);
+            },
+            1000,
+            true
+        );
+
+
+        // session.SendPacket(new MobileUpdatePacket(mobile));
+        // session.SendPacket(new LoginCompletePacket());
         // session.SendPacket(new MapChangePacket(mobile.Map));
-        // session.SendPacket(new MobileIncomingPacket(mobile));
         //
+        // session.SendPacket(new MobileIncomingPacket(mobile));
+        // session.SendPacket(new SupportedFeaturesPacket(session));
+        // session.SendPacket(new CharacterWarModePacket());
+        //
+        //
+        // session.SendPacket(new OverallLightLevelPacket(LightLevelType.Day));
+        // session.SendPacket(new PersonalLightLevelPacket(mobile, LightLevelType.Day));
+        //
+        // session.SendPacket(new MapChangePacket(mobile.Map));
+        //  session.SendPacket(new LoginConfirmPacket(mobile));
+        //  session.SendPacket(new MapPatchesPacket(Map.Maps));
+        //  session.SendPacket(new MapChangePacket(mobile.Map));
+        //  session.SendPacket(new MobileIncomingPacket(mobile));
+
         // session.SendPacket(new MobileUpdatePacket(mobile));
         //
         // session.SendPacket(new UpdateStatusBarPacket(mobile));

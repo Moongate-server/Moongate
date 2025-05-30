@@ -16,6 +16,30 @@ and we believe it deserves modern technology to shine again. Beyond reviving thi
 comprehensive learning platform for understanding MMO architecture from the ground up - providing developers with the tools
 and knowledge to study, modify, and create their own MMO experiences from scratch.
 
+## 🏁 Development Milestones
+
+### ✅ **Milestone 1: First Character Login** - COMPLETED!
+
+**Achievement Unlocked!** 🎮
+
+We've successfully implemented the core login system and character display functionality. Players can now:
+- Connect to the server
+- Select and display their character in the game world
+- Receive server messages (Unicode speech packets)
+
+![Milestone 1](./images/milestone_1.png)
+*First character successfully logged in and displaying "Welcome to Moongate" message*
+
+**Technical Implementation:**
+- ✅ Network packet handling for character login (0x1B, 0x55)
+- ✅ Unicode Speech Message system (0xAE packet)
+- ✅ Basic character rendering and positioning
+- ✅ Server-to-client communication established
+
+**Next Up:** Character movement, world loading, and item systems!
+
+---
+
 ## ⚡ Key Features
 
 ### 🚀 **AOT Performance**
@@ -178,6 +202,20 @@ docker run -p 2593:2593 -p 2594:2594 moongate
 | Cold Start         | ~5-10s               | <100ms   |
 | Packet Processing  | ~1000/s              | ~50000/s |
 | Concurrent Players | ~200                 | ~2000+   |
+
+## 🗺️ Roadmap
+
+### 🚧 **Upcoming Milestones**
+
+- **Milestone 2**: Character Movement & World Navigation
+- **Milestone 3**: Item System & Inventory Management
+- **Milestone 4**: NPC System & Basic AI
+- **Milestone 5**: Combat System Implementation
+- **Milestone 6**: Skill System & Character Progression
+- **Milestone 7**: Housing & World Building
+- **Milestone 8**: Guild System & Player Communication
+- **Milestone 9**: Quest System & Scripted Events
+- **Milestone 10**: Full Game Launch Ready
 
 ## 🤝 Contributing
 

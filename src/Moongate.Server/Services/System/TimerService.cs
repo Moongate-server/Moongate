@@ -35,7 +35,7 @@ public class TimerService : ITimerService
             {
                 try
                 {
-                    timer.Callback?.Invoke();
+                    _eventLoopService.EnqueueAction($"timer-{timer.Id}", timer.Callback);
                 }
                 catch (Exception ex)
                 {

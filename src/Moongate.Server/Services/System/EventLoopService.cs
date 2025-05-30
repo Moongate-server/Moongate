@@ -329,13 +329,19 @@ public class EventLoopService : IEventLoopService, IMetricsProvider
             ProcessQueuedActions();
 
             // Calculate tick duration
-            long tickEndTimestamp = Stopwatch.GetTimestamp();
-            double tickDurationMs = Stopwatch.GetElapsedTime(tickStartTimestamp, tickEndTimestamp).TotalMilliseconds;
+
+            var tickDurationMs = Stopwatch.GetElapsedTime(tickStartTimestamp).TotalMilliseconds;
+
+            if (tickDurationMs < TickIntervalMs)
+            {
+                tickDurationMs = TickIntervalMs;
+            }
 
             // Increment tick counter and accumulate time
             Metrics.TotalTicksProcessed++;
             Metrics.AccumulatedTickTimeMs += tickDurationMs;
 
+            //OnTick?.Invoke(tickDurationMs < TickIntervalMs ? tickDurationMs : TickIntervalMs);
             OnTick?.Invoke(tickDurationMs);
 
             // Reset counters periodically
