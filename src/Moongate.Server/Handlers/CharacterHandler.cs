@@ -98,8 +98,8 @@ public class CharacterHandler : IPacketListener
         await Task.Delay(64);
         session.SendPacket(new LoginConfirmPacket(mobile));
 
-        session.SendPacket(new MobileIncomingPacket(mobile));
-        session.SendPacket(new SupportedFeaturesPacket(session));
+        //session.SendPacket(new MobileIncomingPacket(mobile));
+        //session.SendPacket(new SupportedFeaturesPacket(session));
         session.SendPacket(new CharacterWarModePacket());
 
 
