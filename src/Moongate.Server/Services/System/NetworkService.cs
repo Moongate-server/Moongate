@@ -135,19 +135,19 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
             loginServer.OnClientDisconnected += client => OnClientDisconnected(loginServer, client);
 
 
-            var gameServer = new MoongateTcpServer(
-                $"game_{index}",
-                new IPEndPoint(endPoint.Address, _moongateServerConfig.Network.GamePort),
-                _moonTcpServerOptions
-            );
-
-            gameServer.OnClientDataReceived += (client, memory) => ParsePacket(loginServer, client, memory);
-            gameServer.OnClientConnected += client => OnClientConnected(loginServer, client);
-            gameServer.OnClientDisconnected += client => OnClientDisconnected(loginServer, client);
+            // var gameServer = new MoongateTcpServer(
+            //     $"game_{index}",
+            //     new IPEndPoint(endPoint.Address, _moongateServerConfig.Network.GamePort),
+            //     _moonTcpServerOptions
+            // );
+            //
+            // gameServer.OnClientDataReceived += (client, memory) => ParsePacket(gameServer, client, memory);
+            // gameServer.OnClientConnected += client => OnClientConnected(gameServer, client);
+            // gameServer.OnClientDisconnected += client => OnClientDisconnected(gameServer, client);
 
 
             _loginServers.Add(loginServer);
-            _gameServers.Add(gameServer);
+            // _gameServers.Add(gameServer);
             index++;
         }
     }
@@ -179,12 +179,6 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
 
         var sessionData = _sessionManagerService.GetSession(obj.Id);
 
-        if (sessionData.PutInLimbo && sessionData.AuthId >= 0)
-        {
-            _inLoginWaitingSessions.TryAdd(sessionData.AuthId, new WaitingLoginSession(sessionData, DateTime.UtcNow));
-
-            Logger.Debug("Client {ClientId} put in limbo with AuthSessionKey: {SessionKey}", obj.Id, sessionData.AuthId);
-        }
 
         sessionData.OnSendPacket -= SendPacket;
         ClientDisconnected?.Invoke(server.Id, obj.Id);
@@ -587,6 +581,26 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
     public SessionData? GetInLimboSession(int sessionAuthId)
     {
         return _inLoginWaitingSessions.GetValueOrDefault(sessionAuthId)?.SessionData;
+    }
+
+    public void PutInLimboSession(SessionData session)
+    {
+        if (session.AuthId < 0)
+        {
+            Logger.Warning("Session {SessionId} has no AuthId, cannot put in limbo", session.Id);
+            return;
+        }
+
+        var waitingSession = new WaitingLoginSession(session, DateTime.UtcNow);
+
+        if (_inLoginWaitingSessions.TryAdd(session.AuthId, waitingSession))
+        {
+            Logger.Debug("Added session {SessionId} to limbo with AuthSessionKey: {AuthId}", session.Id, session.AuthId);
+        }
+        else
+        {
+            Logger.Warning("Session with AuthSessionKey {AuthId} already exists in limbo", session.AuthId);
+        }
     }
 
     public bool RemoveInLimboSession(int sessionAuthId)

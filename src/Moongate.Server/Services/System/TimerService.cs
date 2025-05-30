@@ -35,7 +35,7 @@ public class TimerService : ITimerService
             {
                 try
                 {
-                    _eventLoopService.EnqueueAction($"timer-{timer.Id}", timer.Callback);
+                    _eventLoopService.EnqueueAction($"timer-{timer.Id}", () => TimerExecutorGuard(timer));
                 }
                 catch (Exception ex)
                 {
@@ -55,6 +55,26 @@ public class TimerService : ITimerService
         }
 
         _timerSemaphore.Release();
+    }
+
+    private void TimerExecutorGuard(TimerDataObject timerDataObject)
+    {
+        try
+        {
+            timerDataObject.Callback();
+        }
+        catch (Exception ex)
+        {
+            if (timerDataObject.DieOnException)
+            {
+                _logger.Error(ex, "Timer {TimerId} encountered an error and will be unregistered", timerDataObject.Id);
+                UnregisterTimer(timerDataObject.Id);
+            }
+            else
+            {
+                _logger.Warning(ex, "Timer {TimerId} encountered an error", timerDataObject.Id);
+            }
+        }
     }
 
     public Task StartAsync(CancellationToken cancellationToken = default)

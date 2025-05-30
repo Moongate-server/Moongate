@@ -231,7 +231,7 @@ public class CharacterHandler : IPacketListener
 
     private async Task OnSendCharacterListEvent(SendCharacterListEvent @event)
     {
-        var session = _sessionManagerService.GetSession(@event.SessionId);
+        var session = @event.Session;
 
         session.EnableCompression();
 

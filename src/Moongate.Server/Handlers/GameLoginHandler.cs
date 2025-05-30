@@ -39,17 +39,17 @@ public class GameLoginHandler : IPacketListener
                 .QuerySessions(data => data.AuthId == gameServerLoginPacket.AuthId)
                 .FirstOrDefault();
 
-            _networkService.RemoveInLimboSession(gameServerLoginPacket.AuthId);
 
             session.AuthId = gameServerLoginPacket.AuthId;
             session.AccountId = limboSession?.AccountId;
             session.CloneDataFrom(limboSession);
-            limboSession.PutInLimbo = false;
-            limboSession.Dispose();
+
 
             _logger.Information("Game server login: {SessionId} - {Username}", session.Id, gameServerLoginPacket.Sid);
 
-            _eventBusService.PublishAsync(new SendCharacterListEvent(session.Id));
+            await _eventBusService.PublishAsync(new SendCharacterListEvent(session));
+
+
         }
     }
 }

@@ -8,6 +8,7 @@ using Moongate.Uo.Network.Data.Entries;
 using Moongate.Uo.Network.Data.Sessions;
 using Moongate.Uo.Network.Interfaces.Handlers;
 using Moongate.Uo.Network.Interfaces.Messages;
+using Moongate.Uo.Network.Interfaces.Services;
 using Moongate.Uo.Network.Packets.Connection;
 using Moongate.Uo.Network.Types;
 using Moongate.Uo.Services.Events.Accounts;
@@ -24,12 +25,18 @@ public class LoginHandler : IPacketListener
 
     private readonly MoongateServerConfig _moongateServerConfig;
 
+    private readonly INetworkService _networkService;
+
     private readonly List<GameServerEntry> _gameServerEntries = new();
 
-    public LoginHandler(IAccountManagerService accountManagerService, MoongateServerConfig moongateServerConfig)
+    public LoginHandler(
+        IAccountManagerService accountManagerService, MoongateServerConfig moongateServerConfig,
+        INetworkService networkService
+    )
     {
         _accountManagerService = accountManagerService;
         _moongateServerConfig = moongateServerConfig;
+        _networkService = networkService;
 
         _gameServerEntries.Add(
             new GameServerEntry()
@@ -73,17 +80,18 @@ public class LoginHandler : IPacketListener
         session.AuthId = Random.Shared.Next();
         session.PutInLimbo = true;
 
+
+        _networkService.PutInLimboSession(session);
+
         /// (From Prima project) 05/05/2025 --> Fixed connection bug after 4 days of testing, now i can die in peace! :D
         var connectToServer = new ConnectToGameServerPacket()
         {
             GameServerIP = gameServer.IP,
-            GameServerPort = (ushort)_moongateServerConfig.Network.GamePort,
+            GameServerPort = (ushort)_moongateServerConfig.Network.LoginPort,
             SessionKey = session.AuthId,
         };
 
         session.SendPacket(connectToServer);
-
-        //session.Disconnect();
     }
 
     private async Task Login(SessionData session, LoginPacket loginPacket)

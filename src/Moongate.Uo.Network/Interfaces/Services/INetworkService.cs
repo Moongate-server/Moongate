@@ -28,6 +28,8 @@ public interface INetworkService : IMoongateStartStopService
 
     SessionData? GetInLimboSession(int sessionAuthId);
 
+    void PutInLimboSession(SessionData session);
+
     bool RemoveInLimboSession(int sessionAuthId);
 
 }

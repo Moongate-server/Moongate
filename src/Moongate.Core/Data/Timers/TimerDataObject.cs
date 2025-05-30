@@ -10,12 +10,12 @@ public class TimerDataObject : IDisposable
     public double IntervalInMs { get; set; }
 
     public Action Callback { get; set; }
-
     public bool Repeat { get; set; }
 
     public double RemainingTimeInMs = 0;
-
     public double DelayInMs { get; set; }
+
+    public bool DieOnException { get; set; } = true;
 
 
     public void DecrementRemainingTime(double deltaTime)

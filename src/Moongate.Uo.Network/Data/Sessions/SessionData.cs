@@ -86,6 +86,7 @@ public class SessionData : IDisposable
     {
         if (!PutInLimbo)
         {
+            Id = string.Empty;
             _sessionData.Clear();
             AuthId = -1;
             AccountId = string.Empty;
