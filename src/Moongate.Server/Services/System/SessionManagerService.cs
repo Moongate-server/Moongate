@@ -10,9 +10,9 @@ namespace Moongate.Server.Services.System;
 
 public class SessionManagerService : AbstractBaseMoongateService, ISessionManagerService
 {
-    // private readonly ObjectPool<SessionData> _sessionPool = ObjectPool.Create(
-    //     new DefaultPooledObjectPolicy<SessionData>()
-    // );
+    private readonly ObjectPool<SessionData> _sessionPool = ObjectPool.Create(
+        new DefaultPooledObjectPolicy<SessionData>()
+    );
 
     private readonly ConcurrentDictionary<string, SessionData> _sessionData = new();
 
@@ -55,7 +55,7 @@ public class SessionManagerService : AbstractBaseMoongateService, ISessionManage
             throw new InvalidOperationException($"Session with ID {sessionId} already exists.");
         }
 
-        var session = new SessionData();
+        var session = _sessionPool.Get();
         session.Id = sessionId;
         _sessionData[sessionId] = session;
 
@@ -69,7 +69,7 @@ public class SessionManagerService : AbstractBaseMoongateService, ISessionManage
         if (_sessionData.TryRemove(sessionId, out var session))
         {
             session.Dispose();
-            //_sessionPool.Return(session);
+            _sessionPool.Return(session);
             Logger.Information("Deleted session: {SessionId}", sessionId);
         }
         else

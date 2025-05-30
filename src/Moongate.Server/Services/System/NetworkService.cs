@@ -583,8 +583,15 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
         return _inLoginWaitingSessions.GetValueOrDefault(sessionAuthId)?.SessionData;
     }
 
-    public void PutInLimboSession(SessionData session)
+    public void PutInLimboSession(SessionData originalSession)
     {
+        var session = new SessionData();
+
+        session.AuthId = originalSession.AuthId;
+        session.Id = originalSession.Id;
+        session.AccountId = originalSession.AccountId;
+        session.CloneDataFrom(originalSession);
+
         if (session.AuthId < 0)
         {
             Logger.Warning("Session {SessionId} has no AuthId, cannot put in limbo", session.Id);
