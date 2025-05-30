@@ -128,6 +128,8 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
                  ))
         {
             var loginServer = new MoongateTcpServer($"login_{index}", endPoint, _moonTcpServerOptions);
+
+
             loginServer.OnClientDataReceived += (client, memory) => ParsePacket(loginServer, client, memory);
             loginServer.OnClientConnected += client => OnClientConnected(loginServer, client);
             loginServer.OnClientDisconnected += client => OnClientDisconnected(loginServer, client);
@@ -152,6 +154,24 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
 
     private void OnClientDisconnected(MoongateTcpServer server, NetClient obj)
     {
+        Logger.Debug("Client disconnected: {ClientId} on server {ServerId}", obj.Id, server.Id);
+
+        if (_useEventLoop)
+        {
+            _eventLoopService.EnqueueAction(
+                $"network_client_disconnected_{obj.Id}",
+                () => InternalOnClientDisconnected(server, obj),
+                EventLoopPriority.High
+            );
+        }
+        else
+        {
+            InternalOnClientDisconnected(server, obj);
+        }
+    }
+
+    private void InternalOnClientDisconnected(MoongateTcpServer server, NetClient obj)
+    {
         if (!_clients.TryRemove(obj.Id, out var client))
         {
             Logger.Warning("Client {ClientId} not found in the list of connected clients", obj.Id);
@@ -173,6 +193,24 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
     }
 
     private void OnClientConnected(MoongateTcpServer server, NetClient obj)
+    {
+        Logger.Debug("Client connected: {ClientId} on server {ServerId}", obj.Id, server.Id);
+
+        if (_useEventLoop)
+        {
+            _eventLoopService.EnqueueAction(
+                $"network_client_connected_{obj.Id}",
+                () => InternalOnClientConnected(server, obj),
+                EventLoopPriority.High
+            );
+        }
+        else
+        {
+            InternalOnClientConnected(server, obj);
+        }
+    }
+
+    private void InternalOnClientConnected(MoongateTcpServer server, NetClient obj)
     {
         if (_clients.TryAdd(obj.Id, obj))
         {
@@ -223,7 +261,8 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
                     {
                         Logger.Verbose("Sending buffer to client {ClientId} via eventloop", client.Id);
                         client.Send(buffer);
-                    }, EventLoopPriority.High
+                    },
+                    EventLoopPriority.High
                 );
             }
             else
@@ -240,6 +279,22 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
     }
 
     private void ParsePacket(MoongateTcpServer server, NetClient client, ReadOnlyMemory<byte> buffer)
+    {
+        if (_useEventLoop)
+        {
+            _eventLoopService.EnqueueAction(
+                "NetworkService_ParsePacket",
+                () => { InternalParsePacket(server, client, buffer); },
+                EventLoopPriority.High
+            );
+        }
+        else
+        {
+            InternalParsePacket(server, client, buffer);
+        }
+    }
+
+    private void InternalParsePacket(MoongateTcpServer server, NetClient client, ReadOnlyMemory<byte> buffer)
     {
         var remainingBuffer = buffer;
 
@@ -274,7 +329,11 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
                 break;
             }
 
-            Logger.Debug("Processing packet with opcode: 0x{Opcode:X2}, expected size: {ExpectedSize} bytes", opcode, expectedSize == -1 ? "on byte[2]" : expectedSize);
+            Logger.Debug(
+                "Processing packet with opcode: 0x{Opcode:X2}, expected size: {ExpectedSize} bytes",
+                opcode,
+                expectedSize == -1 ? "on byte[2]" : expectedSize
+            );
 
             var headerSize = 1;
             int packetSize;

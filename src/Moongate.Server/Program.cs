@@ -23,6 +23,7 @@ using Moongate.Uo.Data.Entities;
 using Moongate.Uo.Data.Network.Packets.Characters;
 using Moongate.Uo.Data.Network.Packets.GeneralInformation;
 using Moongate.Uo.Data.Network.Packets.Housing;
+using Moongate.Uo.Data.Network.Packets.System;
 using Moongate.Uo.Data.Network.Packets.Ui;
 using Moongate.Uo.Data.Serializers;
 using Moongate.Uo.Network.Interfaces.Services;
@@ -158,6 +159,7 @@ await ConsoleApp.RunAsync(
             networkService.RegisterPacket<SingleClickPacket>();
             networkService.RegisterPacket<GetPlayerStatusPacket>();
             networkService.RegisterPacket<UpdateViewPublicHouseContentPacket>();
+            networkService.RegisterPacket<PingMessagePacket>();
 
             networkService.RegisterPacketHandler<SeedPacket, LoginHandler>();
             networkService.RegisterPacketHandler<LoginPacket, LoginHandler>();
@@ -166,6 +168,9 @@ await ConsoleApp.RunAsync(
             networkService.RegisterPacketHandler<GameServerLoginPacket, GameLoginHandler>();
             networkService.RegisterPacketHandler<CharacterCreationPacket, CharacterHandler>();
             networkService.RegisterPacketHandler<CharacterSelectPacket, CharacterHandler>();
+
+            networkService.RegisterPacketHandler<PingMessagePacket, PingHandler>();
+
         };
 
         moongateStartupServer.BeforeStart += container =>
