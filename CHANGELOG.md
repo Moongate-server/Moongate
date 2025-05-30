@@ -1,6 +1,21 @@
 # Change Log
 
 
+<a name="0.5.0"></a>
+## [0.5.0](https://www.github.com/Moongate-server/Moongate/releases/tag/v0.5.0) (2025-05-29)
+
+### Features
+
+* add new serializers for ItemData and HealthBarColorType to improve data handling ([8392622](https://www.github.com/Moongate-server/Moongate/commit/8392622c4691858ff37c1c7775082025b830b863))
+* **CharacterHandler.cs:** add support for new MobileIncomingPacket to handle ([affe949](https://www.github.com/Moongate-server/Moongate/commit/affe94998403a2416c4709fea64b37f4d2e7a04d))
+* **CharacterHandler.cs:** add support for sending GeneralInformationPacket ([f858352](https://www.github.com/Moongate-server/Moongate/commit/f858352185a3b55154d00e18ce12ada22def041b))
+* **Program.cs:** add GeneralInformationPacket to network service registration for ([cd621ea](https://www.github.com/Moongate-server/Moongate/commit/cd621ea3a0307854ac5150027b432316e72212f2))
+* **server:** add new save files for accounts, characters, and mobiles ([3e3ff02](https://www.github.com/Moongate-server/Moongate/commit/3e3ff0207b24ea6330ae772b846163bde9577b79))
+
+### Bug Fixes
+
+* **Moongate.Core.csproj:** update ZLinq package version to 1.4.9 for bug fixes and improvements ([0da8105](https://www.github.com/Moongate-server/Moongate/commit/0da8105f202f417c92cdce4d4a813ba4830d588b))
+
 <a name="0.4.0"></a>
 ## [0.4.0](https://www.github.com/Moongate-server/Moongate/releases/tag/v0.4.0) (2025-05-27)
 
