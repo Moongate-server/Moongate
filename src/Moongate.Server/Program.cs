@@ -22,6 +22,8 @@ using Moongate.Server.Services.Uo;
 using Moongate.Uo.Data.Entities;
 using Moongate.Uo.Data.Network.Packets.Characters;
 using Moongate.Uo.Data.Network.Packets.GeneralInformation;
+using Moongate.Uo.Data.Network.Packets.Housing;
+using Moongate.Uo.Data.Network.Packets.Ui;
 using Moongate.Uo.Data.Serializers;
 using Moongate.Uo.Network.Interfaces.Services;
 using Moongate.Uo.Network.Packets.Connection;
@@ -32,7 +34,7 @@ using Moongate.Uo.Services.Serialization.Entities;
 await ConsoleApp.RunAsync(
     args,
     async (
-        LogLevelType defaultLogLevel = LogLevelType.Trace, bool logToFile = true, bool loadFromEnv = false,
+        LogLevelType defaultLogLevel = LogLevelType.Debug, bool logToFile = true, bool loadFromEnv = false,
         string? rootDirectory = null, bool printHeader = true, string configName = "moongate.json",
         string ultimaOnlineDirectory = ""
     ) =>
@@ -88,7 +90,6 @@ await ConsoleApp.RunAsync(
             MemoryPackFormatterProvider.Register(new MapSerializer());
             MemoryPackFormatterProvider.Register(new BodySerializer());
             MemoryPackFormatterProvider.Register(new ItemDataSerializer());
-
         };
 
         moongateStartupServer.RegisterServices += container =>
@@ -154,6 +155,9 @@ await ConsoleApp.RunAsync(
             networkService.RegisterPacket<CharacterSelectPacket>();
             networkService.RegisterPacket<ClientVersionPacket>();
             networkService.RegisterPacket<GeneralInformationPacket>();
+            networkService.RegisterPacket<SingleClickPacket>();
+            networkService.RegisterPacket<GetPlayerStatusPacket>();
+            networkService.RegisterPacket<UpdateViewPublicHouseContentPacket>();
 
             networkService.RegisterPacketHandler<SeedPacket, LoginHandler>();
             networkService.RegisterPacketHandler<LoginPacket, LoginHandler>();

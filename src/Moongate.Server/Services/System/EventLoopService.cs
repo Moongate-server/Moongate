@@ -201,8 +201,6 @@ public class EventLoopService : IEventLoopService, IMetricsProvider
     {
         ArgumentNullException.ThrowIfNull(action);
 
-        name = name.ToLowerInvariant().Trim();
-
         var queuedAction = new QueuedAction(name, action, priority);
         var queue = _priorityQueues[priority];
         queue.Enqueue(queuedAction);
@@ -475,7 +473,8 @@ public class EventLoopService : IEventLoopService, IMetricsProvider
                     maxProcessingTime = Math.Max(maxProcessingTime, processingTime);
                     actionsProcessed++;
 
-                    _logger.Verbose("Action '{Name}' with ID {Id} executed in {ProcessingTime}ms",
+                    _logger.Verbose(
+                        "Action '{Name}' with ID {Id} executed in {ProcessingTime}ms",
                         action.Name,
                         action.Id,
                         processingTime.ToString("F2")

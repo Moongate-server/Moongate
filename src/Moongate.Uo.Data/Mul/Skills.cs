@@ -33,24 +33,24 @@ public sealed class Skills
         set => m_SkillEntries = value;
     }
 
-    /// <summary>
-    ///     ReReads skills.mul
-    /// </summary>
-    public static void Reload()
-    {
-        m_FileIndex = new FileIndex("skills.idx", "skills.mul", 16);
-        m_SkillEntries = new List<Moongate.Uo.Data.Skills.SkillInfo>();
-        for (int i = 0; i < m_FileIndex.Index.Length; ++i)
-        {
-            Moongate.Uo.Data.Skills.SkillInfo info = GetSkill(i);
-            if (info == null)
-            {
-                break;
-            }
-
-            m_SkillEntries.Add(info);
-        }
-    }
+    // /// <summary>
+    // ///     ReReads skills.mul
+    // /// </summary>
+    // public static void Reload()
+    // {
+    //     m_FileIndex = new FileIndex("skills.idx", "skills.mul", 16);
+    //     m_SkillEntries = new List<Moongate.Uo.Data.Skills.SkillInfo>();
+    //     for (int i = 0; i < m_FileIndex.Index.Length; ++i)
+    //     {
+    //         Moongate.Uo.Data.Skills.SkillInfo info = GetSkill(i);
+    //         if (info == null)
+    //         {
+    //             break;
+    //         }
+    //
+    //         m_SkillEntries.Add(info);
+    //     }
+    // }
 
 
     /// <summary>

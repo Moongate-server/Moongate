@@ -22,6 +22,20 @@ public static class GeneralInformationExtensions
         return parser.Parse<T>();
     }
 
+    public static ISubcommandData ParseSubcommandTyped(this GeneralInformationPacket packet)
+    {
+        return packet.SubcommandType switch
+        {
+            SubcommandType.ScreenSize => packet.ParseSubcommand<ScreenSizeData>(),
+            SubcommandType.ClientLanguage => packet.ParseSubcommand<ClientLanguageData>(),
+            SubcommandType.ClientType => packet.ParseSubcommand<ClientTypeData>(),
+            SubcommandType.SetCursorHueSetMap => packet.ParseSubcommand<SetCursorHueSetMapData>(),
+            SubcommandType.Damage => packet.ParseSubcommand<DamageData>(),
+            _ => throw new NotSupportedException($"Unsupported subcommand type: {packet.SubcommandType}")
+        };
+    }
+
+
     /// <summary>
     /// Gets screen size data from packet
     /// </summary>
@@ -29,7 +43,7 @@ public static class GeneralInformationExtensions
     /// <returns>Screen size data or null if not applicable</returns>
     public static ScreenSizeData? GetScreenSize(this GeneralInformationPacket packet)
     {
-        return packet.Subcommand == SubcommandType.ScreenSize
+        return packet.SubcommandType == SubcommandType.ScreenSize
             ? packet.ParseSubcommand<ScreenSizeData>()
             : null;
     }
@@ -41,7 +55,7 @@ public static class GeneralInformationExtensions
     /// <returns>Client language data or null if not applicable</returns>
     public static ClientLanguageData? GetClientLanguage(this GeneralInformationPacket packet)
     {
-        return packet.Subcommand == SubcommandType.ClientLanguage
+        return packet.SubcommandType == SubcommandType.ClientLanguage
             ? packet.ParseSubcommand<ClientLanguageData>()
             : null;
     }
@@ -53,7 +67,7 @@ public static class GeneralInformationExtensions
     /// <returns>Client type data or null if not applicable</returns>
     public static ClientTypeData? GetClientType(this GeneralInformationPacket packet)
     {
-        return packet.Subcommand == SubcommandType.ClientType
+        return packet.SubcommandType == SubcommandType.ClientType
             ? packet.ParseSubcommand<ClientTypeData>()
             : null;
     }
@@ -65,7 +79,7 @@ public static class GeneralInformationExtensions
     /// <returns>Map ID or null if not applicable</returns>
     public static byte? GetMapId(this GeneralInformationPacket packet)
     {
-        return packet.Subcommand == SubcommandType.SetCursorHueSetMap
+        return packet.SubcommandType == SubcommandType.SetCursorHueSetMap
             ? packet.ParseSubcommand<SetCursorHueSetMapData>()?.MapId
             : null;
     }
@@ -77,7 +91,7 @@ public static class GeneralInformationExtensions
     /// <returns>Damage data or null if not applicable</returns>
     public static DamageData? GetDamage(this GeneralInformationPacket packet)
     {
-        return packet.Subcommand == SubcommandType.Damage
+        return packet.SubcommandType == SubcommandType.Damage
             ? packet.ParseSubcommand<DamageData>()
             : null;
     }
@@ -89,7 +103,7 @@ public static class GeneralInformationExtensions
     /// <returns>True if typically sent by client</returns>
     public static bool IsClientPacket(this GeneralInformationPacket packet)
     {
-        return packet.Subcommand switch
+        return packet.SubcommandType switch
         {
             SubcommandType.ScreenSize => true,
             SubcommandType.ClientLanguage => true,
@@ -112,7 +126,7 @@ public static class GeneralInformationExtensions
     /// <returns>True if typically sent by server</returns>
     public static bool IsServerPacket(this GeneralInformationPacket packet)
     {
-        return packet.Subcommand switch
+        return packet.SubcommandType switch
         {
             SubcommandType.InitializeFastWalkPrevention => true,
             SubcommandType.AddKeyToFastWalkStack => true,
