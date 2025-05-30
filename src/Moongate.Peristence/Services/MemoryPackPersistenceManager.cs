@@ -270,10 +270,10 @@ public class MemoryPackPersistenceManager : IPersistenceManager
         }
 
         _logger.Information(
-            "Successfully loaded {TotalEntities} entities across {TypeCount} types from {FilePath}",
+            "Successfully loaded {TotalEntities} entities across {TypeCount} types from file {FileName}",
             result.Sum(kvp => kvp.Value.Count),
             result.Count,
-            filePath
+            Path.GetFileName(filePath)
         );
 
         return result;
