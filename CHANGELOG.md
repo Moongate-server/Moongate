@@ -1,6 +1,13 @@
 # Change Log
 
 
+<a name="0.7.0"></a>
+## [0.7.0](https://www.github.com/Moongate-server/Moongate/releases/tag/v0.7.0) (2025-05-30)
+
+### Features
+
+* add UnicodeSpeechPacket to send speech messages to clients ([6c12c3c](https://www.github.com/Moongate-server/Moongate/commit/6c12c3cf2c2634bfc697452ac95285a1a35497e0))
+
 <a name="0.6.1"></a>
 ## [0.6.1](https://www.github.com/Moongate-server/Moongate/releases/tag/v0.6.1) (2025-05-30)
 
