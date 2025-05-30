@@ -1,6 +1,14 @@
 # Change Log
 
 
+<a name="0.6.0"></a>
+## [0.6.0](https://www.github.com/Moongate-server/Moongate/releases/tag/v0.6.0) (2025-05-30)
+
+### Features
+
+* **CircularBuffer.cs:** implement CircularBuffer class for managing circular buffers to improve data handling efficiency ([a097fe2](https://www.github.com/Moongate-server/Moongate/commit/a097fe283197a6eb2fa5a6453616047f03535ab6))
+* **Moongate.Server.csproj:** add KeraLua package reference to enable Lua scripting support ([370fef6](https://www.github.com/Moongate-server/Moongate/commit/370fef6f0cef13a5d2901d53ebb58b424e235548))
+
 <a name="0.5.0"></a>
 ## [0.5.0](https://www.github.com/Moongate-server/Moongate/releases/tag/v0.5.0) (2025-05-29)
 
