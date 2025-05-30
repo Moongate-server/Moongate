@@ -1,6 +1,6 @@
 using System.Collections;
 
-namespace Moongate.Core.Buffers;
+namespace Moongate.Core.Network.Buffers;
 
 /// <inheritdoc/>
 /// <summary>

@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Moongate.Core.Network.Buffers;
 using Moongate.Core.Network.Middleware;
 using NanoidDotNet;
 
@@ -49,6 +50,16 @@ public class NetClient
 
     public bool HaveCompression { get; set; }
 
+    /// <summary>
+    /// Gets the number of bytes currently available in the receive buffer
+    /// </summary>
+    public int AvailableBytes => _receiveBuffer?.Size ?? 0;
+
+    /// <summary>
+    /// Gets whether the receive buffer is full
+    /// </summary>
+    public bool IsReceiveBufferFull => _receiveBuffer?.IsFull ?? false;
+
     private readonly List<INetMiddleware> _middlewares = new();
     private readonly List<INetInterceptor> _interceptors = new();
     private Socket _socket;
@@ -56,8 +67,10 @@ public class NetClient
 
     private SocketAsyncEventArgs _receiveArg;
     private SocketAsyncEventArgs _sendArg;
-    private ArrayBufferWriter<byte> _receivedData;
+    private CircularBuffer<byte> _receiveBuffer;
+    private byte[] _tempReceiveBuffer;
     private byte[] _tempSendBuffer;
+    private int _bufferSize;
 
     /// <summary>
     /// Add a middleware to the client
@@ -93,6 +106,47 @@ public class NetClient
     }
 
     /// <summary>
+    /// Peek at data in the buffer without consuming it
+    /// </summary>
+    /// <param name="count">Number of bytes to peek (0 for all available)</param>
+    /// <returns>Array containing the peeked data</returns>
+    public byte[] PeekData(int count = 0)
+    {
+        if (_receiveBuffer == null || _receiveBuffer.IsEmpty)
+        {
+            return [];
+        }
+
+        int bytesToPeek = count <= 0 ? _receiveBuffer.Size : Math.Min(count, _receiveBuffer.Size);
+        byte[] result = new byte[bytesToPeek];
+
+        for (int i = 0; i < bytesToPeek; i++)
+        {
+            result[i] = _receiveBuffer[i];
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Consume (remove) bytes from the front of the buffer
+    /// </summary>
+    /// <param name="count">Number of bytes to consume</param>
+    public void ConsumeBytes(int count)
+    {
+        if (_receiveBuffer == null)
+        {
+            return;
+        }
+
+        int bytesToConsume = Math.Min(count, _receiveBuffer.Size);
+        for (int i = 0; i < bytesToConsume; i++)
+        {
+            _receiveBuffer.PopFront();
+        }
+    }
+
+    /// <summary>
     /// Connect to the remote host
     /// </summary>
     /// <param name="ip"></param>
@@ -106,6 +160,7 @@ public class NetClient
             throw new InvalidOperationException("Already connected");
         }
 
+        _bufferSize = bufferSize;
         _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
         {
             LingerState = new LingerOption(false, 0),
@@ -120,16 +175,8 @@ public class NetClient
         IsConnected = true;
         Ip = ((System.Net.IPEndPoint)_socket.RemoteEndPoint!).Address.ToString();
 
-        _receivedData = new ArrayBufferWriter<byte>(bufferSize);
-
-        _receiveArg = new SocketAsyncEventArgs();
-        _receiveArg.SetBuffer(new byte[bufferSize], 0, bufferSize);
-        _receiveArg.UserToken = this;
-        _receiveArg.Completed += HandleReadWrite;
-
-        _sendArg = new SocketAsyncEventArgs();
-        _sendArg.UserToken = this;
-        _sendArg.Completed += HandleReadWrite;
+        InitializeBuffers();
+        SetupSocketArgs();
 
         OnConnected?.Invoke();
 
@@ -152,20 +199,13 @@ public class NetClient
             throw new InvalidOperationException("Already connected");
         }
 
+        _bufferSize = bufferSize;
         _socket = socket;
         IsConnected = true;
         Ip = ((System.Net.IPEndPoint)socket.RemoteEndPoint!).Address.ToString();
 
-        _receivedData = new ArrayBufferWriter<byte>(bufferSize);
-
-        _receiveArg = new SocketAsyncEventArgs();
-        _receiveArg.SetBuffer(new byte[bufferSize], 0, bufferSize);
-        _receiveArg.UserToken = this;
-        _receiveArg.Completed += HandleReadWrite;
-
-        _sendArg = new SocketAsyncEventArgs();
-        _sendArg.UserToken = this;
-        _sendArg.Completed += HandleReadWrite;
+        InitializeBuffers();
+        SetupSocketArgs();
 
         OnConnected?.Invoke();
 
@@ -173,6 +213,26 @@ public class NetClient
         {
             Receive(_receiveArg);
         }
+    }
+
+    private void InitializeBuffers()
+    {
+        int circularBufferSize = Math.Max(_bufferSize * 4, 4096);
+        _receiveBuffer = new CircularBuffer<byte>(circularBufferSize);
+
+        _tempReceiveBuffer = new byte[_bufferSize];
+    }
+
+    private void SetupSocketArgs()
+    {
+        _receiveArg = new SocketAsyncEventArgs();
+        _receiveArg.SetBuffer(_tempReceiveBuffer, 0, _tempReceiveBuffer.Length);
+        _receiveArg.UserToken = this;
+        _receiveArg.Completed += HandleReadWrite;
+
+        _sendArg = new SocketAsyncEventArgs();
+        _sendArg.UserToken = this;
+        _sendArg.Completed += HandleReadWrite;
     }
 
     /// <summary>
@@ -191,11 +251,15 @@ public class NetClient
         _socket?.Dispose();
         _socket = null;
 
+        // Cleanup buffers
         if (_tempSendBuffer != null)
         {
             ArrayPool<byte>.Shared.Return(_tempSendBuffer);
             _tempSendBuffer = null;
         }
+
+        _receiveBuffer?.Clear();
+        _tempReceiveBuffer = null;
 
         try
         {
@@ -206,7 +270,6 @@ public class NetClient
             OnError?.Invoke(e);
         }
     }
-
 
     /// <summary>
     /// Send data to the remote host
@@ -257,7 +320,6 @@ public class NetClient
                 return false;
             }
         }
-
 
         _tempSendBuffer = ArrayPool<byte>.Shared.Rent(data.Length);
         data.Span.CopyTo(_tempSendBuffer);
@@ -317,104 +379,33 @@ public class NetClient
             try
             {
                 ReadOnlySpan<byte> receivedData = new(args.Buffer, 0, args.BytesTransferred);
-                // copy
-                client._receivedData.Write(receivedData);
 
-                // process through middlewares, reverse order
-                ReadOnlyMemory<byte> processedData = client._receivedData.WrittenMemory;
-                // temp stack memory
-                Span<byte> tempStackMem = stackalloc byte[1024];
-                // repeat until all data is processed
-                while (!processedData.IsEmpty)
+
+                int bytesToAdd = receivedData.Length;
+                while (client._receiveBuffer.Size + bytesToAdd > client._receiveBuffer.Capacity)
                 {
-                    /// FIXME: Fix the middleware processing logic
-                    int index = 0;
-                    // // reverse order - last middleware first
-                    // for (int i = client._middlewares.Count - 1; i >= 0; i--)
-                    // {
-                    //     var middleware = client._middlewares[i];
-                    //     try
-                    //     {
-                    //         var (halt, consumed) = middleware.ProcessReceive(ref processedData, out processedData);
-                    //         // some middlewares might halt the processing
-                    //         if (halt)
-                    //         {
-                    //             goto cont_receive;
-                    //         }
-                    //
-                    //         index += consumed;
-                    //     }
-                    //     catch (Exception e)
-                    //     {
-                    //         client._receivedData.Clear();
-                    //         client.OnError?.Invoke(e);
-                    //         goto cont_receive;
-                    //     }
-                    // }
-
-
-                    // still the original data or partially the original data
-                    ref byte processed = ref MemoryMarshal.GetReference(processedData.Span);
-                    ref byte originalData = ref MemoryMarshal.GetReference(client._receivedData.WrittenSpan);
-                    bool original = Unsafe.IsAddressGreaterThan(ref processed, ref originalData) &&
-                                    Unsafe.IsAddressLessThan(
-                                        ref processed,
-                                        ref Unsafe.Add(ref originalData, client._receivedData.WrittenCount)
-                                    );
-                    // if offset is less than length of _receivedData.WrittenMemory, then it's the original data
-                    if (original)
+                    int bytesToRemove = Math.Min(1024, client._receiveBuffer.Size);
+                    for (int i = 0; i < bytesToRemove; i++)
                     {
-                        IntPtr diff = Unsafe.ByteOffset(
-                            ref Unsafe.Add(ref processed, processedData.Length),
-                            ref originalData
-                        );
-                        if (diff.ToInt64() > int.MaxValue)
-                        {
-                            client.OnError?.Invoke(new ArithmeticException("diff is too large"));
-                            client._receivedData.Clear();
-                            goto cont_receive;
-                        }
-
-                        index = diff.ToInt32();
+                        client._receiveBuffer.PopFront();
                     }
 
-                    // invoke event
-                    try
-                    {
-                        client.OnDataReceived?.Invoke(processedData);
-                    }
-                    catch (Exception e)
-                    {
-                        client.OnError?.Invoke(e);
-                    }
 
-                    // get left over data
-                    int leftOver = client._receivedData.WrittenCount - index;
-                    if (leftOver > 0 && index < client._receivedData.WrittenCount && index > 0)
-                    {
-                        // copy left over data to temp stack memory - faster than array pool
-                        if (leftOver <= 1024)
-                        {
-                            client._receivedData.WrittenSpan.Slice(index).CopyTo(tempStackMem);
-                            client._receivedData.Clear();
-                            client._receivedData.Write(tempStackMem.Slice(0, leftOver));
-                        }
-                        else
-                        {
-                            byte[] temp = ArrayPool<byte>.Shared.Rent(leftOver);
-                            client._receivedData.WrittenMemory.Slice(index).CopyTo(temp);
-                            client._receivedData.Clear();
-                            client._receivedData.Write(temp.AsSpan(0, leftOver));
-                            ArrayPool<byte>.Shared.Return(temp);
-                        }
-                    }
-                    else
-                    {
-                        client._receivedData.Clear();
-                    }
-
-                    processedData = client._receivedData.WrittenMemory;
+                    client.OnError?.Invoke(
+                        new InvalidOperationException(
+                            $"Receive buffer overflow, removed {bytesToRemove} bytes"
+                        )
+                    );
                 }
+
+
+                for (int i = 0; i < receivedData.Length; i++)
+                {
+                    client._receiveBuffer.PushBack(receivedData[i]);
+                }
+
+
+                ProcessReceivedData(client);
             }
             catch (Exception e)
             {
@@ -441,6 +432,73 @@ public class NetClient
         else
         {
             Stop(args);
+        }
+    }
+
+    private static void ProcessReceivedData(NetClient client)
+    {
+        while (!client._receiveBuffer.IsEmpty)
+        {
+            byte[] currentData = client._receiveBuffer.ToArray();
+            ReadOnlyMemory<byte> processedData = currentData;
+
+
+            // TODO: Implementare la logica completa dei middleware
+            int consumedBytes = 0;
+            bool shouldHalt = false;
+
+
+            try
+            {
+                for (int i = client._middlewares.Count - 1; i >= 0; i--)
+                {
+                    var middleware = client._middlewares[i];
+                    // Nota: questa è una semplificazione - potresti dover adattare l'interfaccia
+                    // var (halt, consumed) = middleware.ProcessReceive(ref processedData, out processedData);
+                    // if (halt)
+                    // {
+                    //     shouldHalt = true;
+                    //     break;
+                    // }
+                    // consumedBytes += consumed;
+                }
+
+                if (shouldHalt)
+                {
+                    break;
+                }
+
+
+                if (consumedBytes == 0)
+                {
+                    consumedBytes = processedData.Length;
+                }
+
+
+                if (!processedData.IsEmpty)
+                {
+                    client.OnDataReceived?.Invoke(processedData);
+                }
+
+
+                for (int i = 0; i < consumedBytes && !client._receiveBuffer.IsEmpty; i++)
+                {
+                    client._receiveBuffer.PopFront();
+                }
+
+
+                if (consumedBytes == 0)
+                {
+                    break;
+                }
+            }
+            catch (Exception e)
+            {
+                client.OnError?.Invoke(e);
+
+                client._receiveBuffer.Clear();
+                break;
+            }
         }
     }
 }

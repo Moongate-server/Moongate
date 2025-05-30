@@ -218,10 +218,10 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
             if (_useEventLoop)
             {
                 _eventLoopService.EnqueueAction(
-                    $" network_send_{client.Id}",
+                    $"network_send_{client.Id}",
                     () =>
                     {
-                        Logger.Debug("Sending buffer to client {ClientId} via eventloop", client.Id);
+                        Logger.Verbose("Sending buffer to client {ClientId} via eventloop", client.Id);
                         client.Send(buffer);
                     }, EventLoopPriority.High
                 );
@@ -242,6 +242,8 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
     private void ParsePacket(MoongateTcpServer server, NetClient client, ReadOnlyMemory<byte> buffer)
     {
         var remainingBuffer = buffer;
+
+        Logger.Debug("Received buffer from client {ClientId}: {Length} bytes", client.Id, buffer.Length);
 
         /// FIXME: Not beautiful, but it works
         if (remainingBuffer.Length == 69)
@@ -271,6 +273,8 @@ public class NetworkService : AbstractBaseMoongateStartStopService, INetworkServ
                 Logger.Warning("No size defined for packet opcode: 0x{Opcode:X2}", opcode);
                 break;
             }
+
+            Logger.Debug("Processing packet with opcode: 0x{Opcode:X2}, expected size: {ExpectedSize} bytes", opcode, expectedSize == -1 ? "on byte[2]" : expectedSize);
 
             var headerSize = 1;
             int packetSize;

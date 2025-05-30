@@ -5,6 +5,8 @@ namespace Moongate.Uo.Data.Network.Packets.GeneralInformation.Types;
 /// </summary>
 public enum SubcommandType : ushort
 {
+    Invalid = 0x00,
+
     // Fast Walk Prevention
     InitializeFastWalkPrevention = 0x01,
     AddKeyToFastWalkStack = 0x02,
